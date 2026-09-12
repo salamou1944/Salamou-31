@@ -1,18 +1,50 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import OpenAI from "openai";
+import crypto from "node:crypto";
 
 const app = Fastify({ logger: true });
 await app.register(cors, { origin: true });
 
 const port = Number(process.env.PORT || 3000);
 const model = process.env.OPENAI_MODEL || "gpt-5.6-luna";
+const serviceApiKeys = new Set(
+  (process.env.SERVICE_API_KEYS || "")
+    .split(",")
+    .map((key) => key.trim())
+    .filter(Boolean)
+);
+const maxRequestsPerMinute = Number(process.env.RATE_LIMIT_PER_MINUTE || 20);
+const requestLog = new Map();
 
 function getClient() {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is not configured");
   }
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
+
+function safeEqual(a, b) {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+function isAuthorized(request) {
+  const provided = request.headers["x-api-key"];
+  if (!provided || serviceApiKeys.size === 0) return false;
+  return [...serviceApiKeys].some((key) => safeEqual(provided, key));
+}
+
+function rateLimit(request) {
+  const key = request.headers["x-api-key"] || request.ip;
+  const now = Date.now();
+  const windowStart = now - 60_000;
+  const recent = (requestLog.get(key) || []).filter((timestamp) => timestamp > windowStart);
+  if (recent.length >= maxRequestsPerMinute) return false;
+  recent.push(now);
+  requestLog.set(key, recent);
+  return true;
 }
 
 const schema = {
@@ -43,10 +75,19 @@ const schema = {
 app.get("/health", async () => ({
   ok: true,
   service: "ai-product-content-api",
-  model
+  model,
+  authentication: serviceApiKeys.size > 0 ? "api-key" : "not-configured"
 }));
 
 app.post("/v1/product-content", async (request, reply) => {
+  if (!isAuthorized(request)) {
+    return reply.code(401).send({ error: "Unauthorized" });
+  }
+
+  if (!rateLimit(request)) {
+    return reply.code(429).send({ error: "Rate limit exceeded" });
+  }
+
   const body = request.body || {};
   const productName = String(body.product_name || "").trim();
   const productDetails = String(body.product_details || "").trim();
