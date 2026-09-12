@@ -1,0 +1,14 @@
+{
+  "name": "ai-product-content-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "latest",
+    "fastify": "latest",
+    "openai": "latest"
+  }
+}
