@@ -29,15 +29,19 @@ The API returns a title, short description, full description, selling points, ad
 - `SERVICE_API_KEYS` — required; comma-separated customer/service keys.
 - `OPENAI_MODEL` — optional; defaults to `gpt-5.6-luna`.
 - `RATE_LIMIT_PER_MINUTE` — optional; defaults to `10`, bounded at startup.
-- `DAILY_QUOTA_PER_KEY` — optional; defaults to `100` and is persisted by the service quota file.
-- `QUOTA_FILE` — optional; defaults to `/tmp/ai-product-content-quota.json`.
+- `DAILY_QUOTA_PER_KEY` — optional; defaults to `100`.
+- `QUOTA_FILE` — optional; defaults to `data/ai-product-content-quota.json` under the service working directory.
 - `PORT` — optional; defaults to `3000`.
+
+The quota store is created with restrictive permissions, stores only SHA-256-derived API-key identifiers (never raw API keys), validates its structure, and is updated with an atomic temp-file/fsync/rename sequence. Quota consumption uses an atomic directory lock with stale-lock recovery so concurrent processes do not silently overwrite each other's counters. If the quota store is missing, unreadable, or malformed after startup initialization, quota operations fail closed rather than resetting usage.
+
+For a multi-instance production deployment, use a shared transactional datastore for quota accounting before issuing high-value customer keys. The local file implementation is suitable only where the quota file is on reliable persistent storage and the deployment topology is controlled.
 
 ## Safety controls
 
 The generation endpoint fails closed when required credentials are missing, requires an API key, applies per-key rate limiting and a daily quota, rejects unknown or incorrectly typed fields, caps input sizes, validates HTTP(S) image URLs, limits model output, disables provider response storage, ignores prompt-injection instructions inside seller data, and does not return provider error details to callers.
 
-For a multi-instance production deployment, replace the local quota file with a shared persistent datastore before issuing high-value customer keys.
+Invalid request bodies and fields are fully validated before daily quota is consumed. A request that fails validation therefore does not spend a daily generation quota. Quota is reserved immediately before the billable provider call.
 
 ## Run
 
