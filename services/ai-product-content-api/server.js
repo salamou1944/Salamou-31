@@ -157,6 +157,8 @@ app.post("/v1/product-content", async (request, reply) => {
     const response = await client.responses.create(
       {
         model,
+        store: false,
+        max_output_tokens: 1_200,
         input: [{ role: "user", content }],
         text: {
           format: {
