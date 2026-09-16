@@ -11,6 +11,7 @@ on:
 jobs:
   supervise:
     uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
+    secrets: inherit
     with:
       goal: >-
         Continue the highest-value unfinished engineering work in this repository toward a practical,
