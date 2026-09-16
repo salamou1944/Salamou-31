@@ -1,0 +1,24 @@
+name: elite-code-supervisor
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '*/10 * * * *'
+
+jobs:
+  supervise:
+    uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
+    with:
+      goal: >-
+        Continue the highest-value unfinished engineering work in this repository toward a practical,
+        sellable AI/API capability. Inspect the real repository state first. Preserve SECURITY.md and never
+        expose or create secrets. Prioritize incomplete services, tests, API usability, documentation needed
+        for real use, and production-readiness blockers. Implement only safe, minimal changes; test and
+        verify every change; repair failures introduced by the change; leave concrete evidence. Do not modify
+        CI workflows, credentials, authentication policy, deployment configuration, or destructive data.
+    permissions:
+      contents: write
+      models: read
+      copilot-requests: write
