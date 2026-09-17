@@ -1,0 +1,7 @@
+# Local runtime state and ledgers
+/data/
+*.lock
+*.tmp
+.env
+.env.*
+!.env.example
