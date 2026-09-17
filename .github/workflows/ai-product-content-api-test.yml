@@ -1,0 +1,29 @@
+name: ai-product-content-api-test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/ai-product-content-api/**'
+      - '.github/workflows/ai-product-content-api-test.yml'
+  pull_request:
+    paths:
+      - 'services/ai-product-content-api/**'
+      - '.github/workflows/ai-product-content-api-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ai-product-content-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --ignore-scripts
+      - run: npm test
