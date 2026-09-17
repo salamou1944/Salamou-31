@@ -2,6 +2,12 @@
 /data/
 *.lock
 *.tmp
+*.log
+*_temp
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.p12
+*.pfx
