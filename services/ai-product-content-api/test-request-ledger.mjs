@@ -5,7 +5,7 @@ import path from 'node:path';
 
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'product-api-ledger-'));
 process.env.REQUEST_LEDGER_FILE=path.join(dir,'ledger.json');
-const { getIdempotency, putIdempotency, requestFingerprint }=await import('./request-ledger.mjs');
+const { getIdempotency, putIdempotency, claimIdempotency, releaseIdempotency, requestFingerprint } = await import('./request-ledger.mjs');
 const body={product_name:'x',language:'English'};
 const fp=requestFingerprint(body);
 assert.equal(getIdempotency('key','idem'),null);
