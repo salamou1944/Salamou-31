@@ -13,3 +13,18 @@ putIdempotency('key','idem',fp,{ok:true,result:{title:'x'}});
 assert.deepEqual(getIdempotency('key','idem').response,{ok:true,result:{title:'x'}});
 assert.throws(()=>putIdempotency('key','idem',requestFingerprint({...body,language:'French'}),{ok:true}),/idempotency_key_reused/);
 console.log(JSON.stringify({ok:true,idempotency:'deduplicates-successful-retries'}));
+
+const claim = claimIdempotency('key', 'in-flight', fp);
+assert.equal(claim.status, 'claimed');
+assert.equal(claimIdempotency('key', 'in-flight', fp).status, 'pending');
+assert.throws(
+  () => claimIdempotency('key', 'in-flight', requestFingerprint({ ...body, language: 'French' })),
+  /idempotency_key_reused/
+);
+releaseIdempotency('key', 'in-flight', fp);
+assert.equal(claimIdempotency('key', 'in-flight', fp).status, 'claimed');
+
+const completedClaim = claimIdempotency('key', 'completed', fp);
+assert.equal(completedClaim.status, 'claimed');
+putIdempotency('key', 'completed', fp, { ok: true, result: { title: 'done' } });
+assert.equal(claimIdempotency('key', 'completed', fp).status, 'completed');
