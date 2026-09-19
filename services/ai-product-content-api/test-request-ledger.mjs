@@ -13,3 +13,14 @@ putIdempotency('key','idem',fp,{ok:true,result:{title:'x'}});
 assert.deepEqual(getIdempotency('key','idem').response,{ok:true,result:{title:'x'}});
 assert.throws(()=>putIdempotency('key','idem',requestFingerprint({...body,language:'French'}),{ok:true}),/idempotency_key_reused/);
 console.log(JSON.stringify({ok:true,idempotency:'deduplicates-successful-retries'}));
+
+
+test('request ledger fails closed on corrupt or missing persistent state', async () => {
+  const corrupt = path.join(dir, 'corrupt.json');
+  fs.writeFileSync(corrupt, '{not-json', 'utf8');
+  process.env.REQUEST_LEDGER_FILE = corrupt;
+  const mod = await import('./request-ledger.mjs?corrupt=' + Date.now());
+  assert.throws(() => mod.getIdempotency('key', 'idem'), /Unexpected token|JSON/);
+  fs.rmSync(corrupt, { force: true });
+  assert.equal(mod.getIdempotency('key', 'idem'), null);
+});
