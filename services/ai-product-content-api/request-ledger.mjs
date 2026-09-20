@@ -5,6 +5,7 @@ import path from 'node:path';
 const file = process.env.REQUEST_LEDGER_FILE || path.join(process.cwd(), 'data', 'ai-product-content-request-ledger.json');
 const lock = `${file}.lock`;
 const staleMs = 30_000;
+let heldLockToken = null;
 
 function keyId(key) { return crypto.createHash('sha256').update(key, 'utf8').digest('hex'); }
 function entryId(apiKey, idempotencyKey) { return `${keyId(apiKey)}:${keyId(idempotencyKey)}`; }
@@ -15,7 +16,7 @@ function processStartToken(pid) {
     return afterComm[19] || null;
   } catch { return null; }
 }
-const ownerIdentity = () => ({ pid: process.pid, startToken: processStartToken(process.pid), at: Date.now() });
+const ownerIdentity = () => ({ pid: process.pid, startToken: processStartToken(process.pid), at: Date.now(), token: `${process.pid}-${Date.now()}-${crypto.randomBytes(8).toString('hex')}` });
 function ownerAlive(owner) {
   if (!owner || !Number.isInteger(Number(owner.pid))) return false;
   const pid = Number(owner.pid);
@@ -51,7 +52,9 @@ function acquire() {
   for (let i = 0; i < 100; i += 1) {
     try {
       fs.mkdirSync(lock, { mode: 0o700 });
-      fs.writeFileSync(path.join(lock, 'owner'), JSON.stringify(ownerIdentity()), { mode: 0o600 });
+      const owner = ownerIdentity();
+      fs.writeFileSync(path.join(lock, 'owner'), JSON.stringify(owner), { mode: 0o600 });
+      heldLockToken = owner.token;
       return;
     } catch (error) {
       if (error.code !== 'EEXIST') throw error;
@@ -71,7 +74,14 @@ function acquire() {
   }
   throw new Error('request_ledger_lock_timeout');
 }
-function release() { fs.rmSync(lock, { recursive: true, force: true }); }
+function release() {
+  if (!heldLockToken) return;
+  try {
+    const owner = JSON.parse(fs.readFileSync(path.join(lock, 'owner'), 'utf8'));
+    if (owner?.token === heldLockToken) fs.rmSync(lock, { recursive: true, force: true });
+  } catch {}
+  heldLockToken = null;
+}
 
 export function getIdempotency(apiKey, idempotencyKey) {
   if (!idempotencyKey) return null;
