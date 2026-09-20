@@ -29,7 +29,7 @@ assert.equal(claimIdempotency('key', 'completed', fp).status, 'completed');
 
 const staleLiveId = 'stale-live';
 const ledger = JSON.parse(fs.readFileSync(process.env.REQUEST_LEDGER_FILE,'utf8'));
-ledger.entries[`${crypto.createHash('sha256').update('key').digest('hex')}:${require('node:crypto').createHash('sha256').update(staleLiveId).digest('hex')}`] = {
+ledger.entries[`${crypto.createHash('sha256').update('key').digest('hex')}:${crypto.createHash('sha256').update(staleLiveId).digest('hex')}`] = {
   fingerprint: fp, status: 'pending', createdAt: new Date(Date.now()-60_000).toISOString(),
   owner: { pid: process.pid, startToken: 'current-process-token-mismatch-test', at: Date.now()-60_000 }
 };
@@ -38,7 +38,7 @@ assert.equal(claimIdempotency('key', staleLiveId, fp).status, 'claimed');
 
 const activeId = 'active-live';
 const activeLedger = JSON.parse(fs.readFileSync(process.env.REQUEST_LEDGER_FILE,'utf8'));
-activeLedger.entries[`${require('node:crypto').createHash('sha256').update('key').digest('hex')}:${require('node:crypto').createHash('sha256').update(activeId).digest('hex')}`] = {
+activeLedger.entries[`${crypto.createHash('sha256').update('key').digest('hex')}:${crypto.createHash('sha256').update(activeId).digest('hex')}`] = {
   fingerprint: fp, status: 'pending', createdAt: new Date(Date.now()-60_000).toISOString(),
   owner: { pid: process.pid, startToken: (() => { const stat=fs.readFileSync(`/proc/${process.pid}/stat`,'utf8'); return stat.slice(stat.lastIndexOf(')')+2).trim().split(/\s+/)[19]; })(), at: Date.now()-60_000 }
 };
