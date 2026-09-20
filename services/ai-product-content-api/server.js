@@ -91,6 +91,6 @@ Rules:
     const payload={ok:true,model,result};
     if(idempotencyKey)try{const persisted=putIdempotency(apiKey,idempotencyKey,fingerprint,payload,claim.ownerToken);if(!persisted)return reply.code(409).send({error:"Idempotency-Key ownership was lost; retry the request"});}catch(error){if(error.message==="idempotency_key_reused_with_different_request")return reply.code(409).send({error:"Idempotency-Key was reused with a different request"});throw error;}
     return payload;
-  }catch(error){if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}request.log.error({err:error},"Product content generation failed");return reply.code(502).send({error:"Generation failed"});}
+  }catch(error){if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}request.log.error({err:error},"Product content generation failed");return reply.code(502).send({error:"Generation failed"});}
 });
 await app.listen({port,host:"0.0.0.0"});
