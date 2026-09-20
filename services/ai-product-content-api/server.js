@@ -83,6 +83,8 @@ Rules:
 - Keep the output persuasive but factual.
 - Write for a business selling this product online.
 - Return only the requested structured fields.`;
+  let quotaRefunded=false;
+  const refundQuotaOnce=async()=>{if(quotaRefunded)return false;quotaRefunded=true;try{return await refundDailyQuota(apiKey);}catch(refundError){request.log.error({err:refundError},"Quota refund failed");return false;}};
   try{
     const client=getClient(),content=[{type:"input_text",text:prompt}];
     if(imageUrl)content.push({type:"input_image",image_url:imageUrl});
