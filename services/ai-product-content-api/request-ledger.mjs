@@ -59,7 +59,13 @@ function acquire() {
         const owner = JSON.parse(fs.readFileSync(path.join(lock, 'owner'), 'utf8'));
         if (Date.now() - Number(owner.at) > staleMs && !ownerAlive(owner)) fs.rmSync(lock, { recursive: true, force: true });
       } catch {
-        try { fs.rmSync(lock, { recursive: true, force: true }); } catch {}
+        // A newly-created lock can briefly exist before owner metadata is visible.
+        // Never reclaim it immediately: use the lock directory mtime as a conservative
+        // stale-age boundary for ownerless locks to avoid a creation/recovery race.
+        try {
+          const stat = fs.statSync(lock);
+          if (Date.now() - stat.mtimeMs > staleMs) fs.rmSync(lock, { recursive: true, force: true });
+        } catch {}
       }
     }
   }
