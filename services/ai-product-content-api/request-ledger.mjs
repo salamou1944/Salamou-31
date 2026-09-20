@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 const file = process.env.REQUEST_LEDGER_FILE || path.join(process.cwd(), 'data', 'ai-product-content-request-ledger.json');
 const lock = `${file}.lock`;
@@ -67,7 +68,7 @@ function acquire() {
         // stale-age boundary for ownerless locks to avoid a creation/recovery race.
         try {
           const stat = fs.statSync(lock);
-          if (Date.now() - stat.mtimeMs > staleMs) fs.rmSync(lock, { recursive: true, force: true });
+          if (Date.now() - stat.mtimeMs > staleMs) { const stalePath=`${lock}.stale-${process.pid}-${Date.now()}-${randomUUID()}`; try { fs.renameSync(lock,stalePath); fs.rmSync(stalePath,{recursive:true,force:true}); } catch {} }
         } catch {}
       }
     }
