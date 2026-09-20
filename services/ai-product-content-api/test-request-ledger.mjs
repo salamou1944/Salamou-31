@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'product-api-ledger-'));
 process.env.REQUEST_LEDGER_FILE=path.join(dir,'ledger.json');
@@ -28,7 +29,7 @@ assert.equal(claimIdempotency('key', 'completed', fp).status, 'completed');
 
 const staleLiveId = 'stale-live';
 const ledger = JSON.parse(fs.readFileSync(process.env.REQUEST_LEDGER_FILE,'utf8'));
-ledger.entries[`${require('node:crypto').createHash('sha256').update('key').digest('hex')}:${require('node:crypto').createHash('sha256').update(staleLiveId).digest('hex')}`] = {
+ledger.entries[`${crypto.createHash('sha256').update('key').digest('hex')}:${require('node:crypto').createHash('sha256').update(staleLiveId).digest('hex')}`] = {
   fingerprint: fp, status: 'pending', createdAt: new Date(Date.now()-60_000).toISOString(),
   owner: { pid: process.pid, startToken: 'current-process-token-mismatch-test', at: Date.now()-60_000 }
 };
