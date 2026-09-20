@@ -87,11 +87,11 @@ Rules:
     const client=getClient(),content=[{type:"input_text",text:prompt}];
     if(imageUrl)content.push({type:"input_image",image_url:imageUrl});
     const response=await client.responses.create({model,store:false,max_output_tokens:1_200,input:[{role:"user",content}],text:{format:{type:"json_schema",name:"product_content",strict:true,schema}}},{timeout:30_000});
-    if(!response.output_text||typeof response.output_text!=="string"){await refundDailyQuota(apiKey);return reply.code(502).send({error:"No usable model output"});}
-    let result;try{result=JSON.parse(response.output_text);}catch{await refundDailyQuota(apiKey);return reply.code(502).send({error:"Invalid model output"});}
+    if(!response.output_text||typeof response.output_text!=="string"){await refundQuotaOnce();return reply.code(502).send({error:"No usable model output"});}
+    let result;try{result=JSON.parse(response.output_text);}catch{await refundQuotaOnce();return reply.code(502).send({error:"Invalid model output"});}
     const payload={ok:true,model,result};
     if(idempotencyKey)try{const persisted=putIdempotency(apiKey,idempotencyKey,fingerprint,payload,claim.ownerToken);if(!persisted)return reply.code(409).send({error:"Idempotency-Key ownership was lost; retry the request"});}catch(error){if(error.message==="idempotency_key_reused_with_different_request")return reply.code(409).send({error:"Idempotency-Key was reused with a different request"});throw error;}
     return payload;
-  }catch(error){try{await refundDailyQuota(apiKey);}catch(refundError){request.log.error({err:refundError},"Quota refund failed");}if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}request.log.error({err:error},"Product content generation failed");return reply.code(502).send({error:"Generation failed"});}
+  }catch(error){await refundQuotaOnce();if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}request.log.error({err:error},"Product content generation failed");return reply.code(502).send({error:"Generation failed"});}
 });
 await app.listen({port,host:"0.0.0.0"});
