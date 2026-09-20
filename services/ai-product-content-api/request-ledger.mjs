@@ -61,14 +61,17 @@ function acquire() {
       if (error.code !== 'EEXIST') throw error;
       try {
         const owner = JSON.parse(fs.readFileSync(path.join(lock, 'owner'), 'utf8'));
-        if (Date.now() - Number(owner.at) > staleMs && !ownerAlive(owner)) { const stalePath=`${lock}.stale-${process.pid}-${Date.now()}-${randomUUID()}`; try { fs.renameSync(lock, stalePath); fs.rmSync(stalePath,{recursive:true,force:true}); } catch {} }
+        if (Date.now() - Number(owner.at) > staleMs && !ownerAlive(owner)) {
+          const stalePath=`${lock}.stale-${process.pid}-${Date.now()}-${randomUUID()}`;
+          try { fs.renameSync(lock, stalePath); fs.rmSync(stalePath,{recursive:true,force:true}); } catch {}
+        }
       } catch {
-        // A newly-created lock can briefly exist before owner metadata is visible.
-        // Never reclaim it immediately: use the lock directory mtime as a conservative
-        // stale-age boundary for ownerless locks to avoid a creation/recovery race.
         try {
           const stat = fs.statSync(lock);
-          if (Date.now() - stat.mtimeMs > staleMs) { const stalePath=`${lock}.stale-${process.pid}-${Date.now()}-${randomUUID()}`; try { fs.renameSync(lock,stalePath); fs.rmSync(stalePath,{recursive:true,force:true}); } catch {} }
+          if (Date.now() - stat.mtimeMs > staleMs) {
+            const stalePath=`${lock}.stale-${process.pid}-${Date.now()}-${randomUUID()}`;
+            try { fs.renameSync(lock,stalePath); fs.rmSync(stalePath,{recursive:true,force:true}); } catch {}
+          }
         } catch {}
       }
     }
@@ -107,33 +110,44 @@ export function claimIdempotency(apiKey, idempotencyKey, fingerprint) {
     const pending = { fingerprint, status: 'pending', createdAt: new Date().toISOString(), owner: ownerIdentity() };
     state.entries[id] = pending;
     write(state);
-    return { status: 'claimed', entry: pending };
+    return { status: 'claimed', entry: pending, ownerToken: pending.owner.token };
   } finally { release(); }
 }
 
-export function putIdempotency(apiKey, idempotencyKey, fingerprint, response) {
-  if (!idempotencyKey) return;
+export function putIdempotency(apiKey, idempotencyKey, fingerprint, response, ownerToken = null) {
+  if (!idempotencyKey) return true;
   acquire();
   try {
     const state = read();
     const id = entryId(apiKey, idempotencyKey);
     const existing = state.entries[id];
     if (existing && existing.fingerprint !== fingerprint) throw new Error('idempotency_key_reused_with_different_request');
+    if (existing?.status === 'pending') {
+      if (!ownerToken || existing.owner?.token !== ownerToken) return false;
+    } else if (ownerToken) {
+      return false;
+    }
     state.entries[id] = { fingerprint, status: 'completed', response, createdAt: existing?.createdAt || new Date().toISOString(), completedAt: new Date().toISOString() };
     write(state);
+    return true;
   } finally { release(); }
 }
 
-export function releaseIdempotency(apiKey, idempotencyKey, fingerprint) {
-  if (!idempotencyKey) return;
+export function releaseIdempotency(apiKey, idempotencyKey, fingerprint, ownerToken = null) {
+  if (!idempotencyKey) return true;
   acquire();
   try {
     const state = read();
     const id = entryId(apiKey, idempotencyKey);
     const existing = state.entries[id];
-    if (!existing) return;
+    if (!existing) return true;
     if (existing.fingerprint !== fingerprint) throw new Error('idempotency_key_reused_with_different_request');
-    if ((existing.status || 'completed') === 'pending') { delete state.entries[id]; write(state); }
+    if ((existing.status || 'completed') === 'pending') {
+      if (!ownerToken || existing.owner?.token !== ownerToken) return false;
+      delete state.entries[id];
+      write(state);
+    }
+    return true;
   } finally { release(); }
 }
 
