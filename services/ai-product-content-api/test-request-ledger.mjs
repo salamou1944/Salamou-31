@@ -48,7 +48,7 @@ assert.equal(claimIdempotency('key', activeId, fp).status, 'pending');
 const lockPath = process.env.REQUEST_LEDGER_FILE + '.lock';
 fs.mkdirSync(lockPath, { recursive: true });
 try {
-  assert.equal(claimIdempotency('key', 'fresh-ownerless-lock', fp).status, 'pending');
+  assert.throws(() => claimIdempotency('key', 'fresh-ownerless-lock', fp), /request_ledger_lock_timeout/);
 } finally {
   fs.rmSync(lockPath, { recursive: true, force: true });
 }
