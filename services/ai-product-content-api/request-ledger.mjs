@@ -61,7 +61,7 @@ function acquire() {
       if (error.code !== 'EEXIST') throw error;
       try {
         const owner = JSON.parse(fs.readFileSync(path.join(lock, 'owner'), 'utf8'));
-        if (Date.now() - Number(owner.at) > staleMs && !ownerAlive(owner)) fs.rmSync(lock, { recursive: true, force: true });
+        if (Date.now() - Number(owner.at) > staleMs && !ownerAlive(owner)) { const stalePath=`${lock}.stale-${process.pid}-${Date.now()}-${randomUUID()}`; try { fs.renameSync(lock, stalePath); fs.rmSync(stalePath,{recursive:true,force:true}); } catch {} }
       } catch {
         // A newly-created lock can briefly exist before owner metadata is visible.
         // Never reclaim it immediately: use the lock directory mtime as a conservative
