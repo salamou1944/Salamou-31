@@ -45,4 +45,12 @@ activeLedger.entries[`${crypto.createHash('sha256').update('key').digest('hex')}
 fs.writeFileSync(process.env.REQUEST_LEDGER_FILE, JSON.stringify(activeLedger));
 assert.equal(claimIdempotency('key', activeId, fp).status, 'pending');
 
+const lockPath = process.env.REQUEST_LEDGER_FILE + '.lock';
+fs.mkdirSync(lockPath, { recursive: true });
+try {
+  assert.equal(claimIdempotency('key', 'fresh-ownerless-lock', fp).status, 'pending');
+} finally {
+  fs.rmSync(lockPath, { recursive: true, force: true });
+}
+
 console.log(JSON.stringify({ok:true,idempotency:'atomic-claim-and-live-owner-stale-recovery-safe'}));
