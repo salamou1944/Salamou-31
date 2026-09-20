@@ -5,7 +5,7 @@
   "type":"module",
   "scripts":{
     "start":"node server.js",
-    "test":"node --check server.js && node --check request-ledger.mjs && node test-request-ledger.mjs"
+    "test":"node --check server.js && node --check request-ledger.mjs && node test-request-ledger.mjs && node test-quota-refund-contract.mjs"
   },
   "dependencies":{
     "@fastify/cors":"11.1.0",
