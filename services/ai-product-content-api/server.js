@@ -62,14 +62,14 @@ app.post("/v1/product-content",async(request,reply)=>{
   }
   if(claim.status==="completed")return reply.code(200).send(claim.entry.response);
   if(claim.status==="pending")return reply.code(409).send({error:"Idempotency-Key is already in progress"});
-  if(!rateLimit(apiKey)){if(idempotencyKey)releaseIdempotency(apiKey,idempotencyKey,fingerprint);return reply.code(429).send({error:"Rate limit exceeded"});}
+  if(!rateLimit(apiKey)){if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}return reply.code(429).send({error:"Rate limit exceeded"});}
   let quotaReserved;
   try { quotaReserved = await consumeDailyQuota(apiKey); } catch (error) {
-    if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}
+    if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}
     request.log.error({err:error},"Quota service unavailable");
     return reply.code(503).send({error:"Quota service unavailable"});
   }
-  if(!quotaReserved){if(idempotencyKey)releaseIdempotency(apiKey,idempotencyKey,fingerprint);return reply.code(429).send({error:"Daily quota exceeded"});}
+  if(!quotaReserved){if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}return reply.code(429).send({error:"Daily quota exceeded"});}
   const prompt=`Create sales-ready product content in ${language}.
 
 Product name: ${productName||"Unknown"}
@@ -89,7 +89,7 @@ Rules:
     if(!response.output_text||typeof response.output_text!=="string")return reply.code(502).send({error:"No usable model output"});
     let result;try{result=JSON.parse(response.output_text);}catch{return reply.code(502).send({error:"Invalid model output"});}
     const payload={ok:true,model,result};
-    if(idempotencyKey)try{putIdempotency(apiKey,idempotencyKey,fingerprint,payload);}catch(error){if(error.message==="idempotency_key_reused_with_different_request")return reply.code(409).send({error:"Idempotency-Key was reused with a different request"});throw error;}
+    if(idempotencyKey)try{const persisted=putIdempotency(apiKey,idempotencyKey,fingerprint,payload,claim.ownerToken);if(!persisted)return reply.code(409).send({error:"Idempotency-Key ownership was lost; retry the request"});}catch(error){if(error.message==="idempotency_key_reused_with_different_request")return reply.code(409).send({error:"Idempotency-Key was reused with a different request"});throw error;}
     return payload;
   }catch(error){if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}request.log.error({err:error},"Product content generation failed");return reply.code(502).send({error:"Generation failed"});}
 });
