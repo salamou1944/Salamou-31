@@ -8,6 +8,27 @@ const staleMs = 30_000;
 
 function keyId(key) { return crypto.createHash('sha256').update(key, 'utf8').digest('hex'); }
 function entryId(apiKey, idempotencyKey) { return `${keyId(apiKey)}:${keyId(idempotencyKey)}`; }
+function processStartToken(pid) {
+  try {
+    const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8');
+    const afterComm = stat.slice(stat.lastIndexOf(')') + 2).trim().split(/\s+/);
+    return afterComm[19] || null;
+  } catch { return null; }
+}
+const ownerIdentity = () => ({ pid: process.pid, startToken: processStartToken(process.pid), at: Date.now() });
+function ownerAlive(owner) {
+  if (!owner || !Number.isInteger(Number(owner.pid))) return false;
+  const pid = Number(owner.pid);
+  const current = processStartToken(pid);
+  if (current && owner.startToken) return current === owner.startToken;
+  try { process.kill(pid, 0); return true; } catch { return false; }
+}
+function pendingIsRecoverable(entry) {
+  if (!entry || entry.status !== 'pending') return false;
+  if (entry.owner && ownerAlive(entry.owner)) return false;
+  const age = Date.now() - Date.parse(entry.createdAt || '');
+  return Number.isFinite(age) && age > staleMs;
+}
 function read() {
   try {
     const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -30,13 +51,13 @@ function acquire() {
   for (let i = 0; i < 100; i += 1) {
     try {
       fs.mkdirSync(lock, { mode: 0o700 });
-      fs.writeFileSync(path.join(lock, 'owner'), JSON.stringify({ pid: process.pid, at: Date.now() }), { mode: 0o600 });
+      fs.writeFileSync(path.join(lock, 'owner'), JSON.stringify(ownerIdentity()), { mode: 0o600 });
       return;
     } catch (error) {
       if (error.code !== 'EEXIST') throw error;
       try {
         const owner = JSON.parse(fs.readFileSync(path.join(lock, 'owner'), 'utf8'));
-        if (Date.now() - Number(owner.at) > staleMs) fs.rmSync(lock, { recursive: true, force: true });
+        if (Date.now() - Number(owner.at) > staleMs && !ownerAlive(owner)) fs.rmSync(lock, { recursive: true, force: true });
       } catch {
         try { fs.rmSync(lock, { recursive: true, force: true }); } catch {}
       }
@@ -63,19 +84,14 @@ export function claimIdempotency(apiKey, idempotencyKey, fingerprint) {
     if (existing) {
       const status = existing.status || 'completed';
       if (status === 'pending') {
-        const age = Date.now() - Date.parse(existing.createdAt || '');
-        if (Number.isFinite(age) && age <= staleMs) return { status: 'pending', entry: existing };
-      } else {
-        return { status: 'completed', entry: existing };
-      }
+        if (!pendingIsRecoverable(existing)) return { status: 'pending', entry: existing };
+      } else return { status: 'completed', entry: existing };
     }
-    const pending = { fingerprint, status: 'pending', createdAt: new Date().toISOString() };
+    const pending = { fingerprint, status: 'pending', createdAt: new Date().toISOString(), owner: ownerIdentity() };
     state.entries[id] = pending;
     write(state);
     return { status: 'claimed', entry: pending };
-  } finally {
-    release();
-  }
+  } finally { release(); }
 }
 
 export function putIdempotency(apiKey, idempotencyKey, fingerprint, response) {
@@ -100,10 +116,7 @@ export function releaseIdempotency(apiKey, idempotencyKey, fingerprint) {
     const existing = state.entries[id];
     if (!existing) return;
     if (existing.fingerprint !== fingerprint) throw new Error('idempotency_key_reused_with_different_request');
-    if ((existing.status || 'completed') === 'pending') {
-      delete state.entries[id];
-      write(state);
-    }
+    if ((existing.status || 'completed') === 'pending') { delete state.entries[id]; write(state); }
   } finally { release(); }
 }
 
