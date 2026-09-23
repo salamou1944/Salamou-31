@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import fs from "node:fs";
 import path from "node:path";
 import {validateSpec,compileApi} from "./factory.mjs";
+import {deploymentPlan} from "./deployment.mjs";
 
 const app=Fastify({logger:true,bodyLimit:64*1024});
 const port=Number(process.env.PORT||8797);
@@ -13,6 +14,7 @@ function writeRegistry(x){const tmp=registryFile+"."+process.pid+".tmp";fs.write
 function auth(request,reply){if(process.env.FACTORY_API_KEY&&request.headers["x-api-key"]!==process.env.FACTORY_API_KEY)return reply.code(401).send({error:"Unauthorized"});}
 app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:"manifest-to-runnable-api"}));
 app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","compile","register","inspect"],artifact:["server.mjs","package.json","openapi.json","README.md","ledger.mjs","usage.mjs"],apiClasses:["ai","llm","vision","image","ocr","speech","translation","research","data","webhook","commerce","lead","custom-business"],evidence:["SPEC_VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","E2E_VERIFIED","BUSINESS_VERIFIED","HARDENED"],providers:"adapter-based; unavailable providers fail closed"}));
+app.post("/v1/factory/deploy/plan",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,plan:deploymentPlan({target:request.body?.target,serviceName:request.body?.serviceName})};}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
 app.get("/v1/factory/apis",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;return {ok:true,apis:readRegistry().apis};});
 app.post("/v1/factory/validate",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,spec:validateSpec(request.body)}}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
 app.post("/v1/factory/build",async(request,reply)=>{
