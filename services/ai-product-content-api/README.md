@@ -25,9 +25,10 @@ The API returns a title, short description, full description, selling points, ad
 
 ## Required environment
 
-- `OPENAI_API_KEY` — required; never commit it.
+- `AI_PROVIDER_API_KEY` — required; provider credential, never commit it. `OPENAI_API_KEY` remains accepted as a compatibility alias.
+- `AI_PROVIDER_BASE_URL` — optional; OpenAI-compatible API base URL, defaults to `https://api.openai.com/v1`.
+- `AI_MODEL` — required; model identifier supplied by the selected provider. `OPENAI_MODEL` remains accepted as a compatibility alias.
 - `SERVICE_API_KEYS` — required; comma-separated customer/service keys.
-- `OPENAI_MODEL` — optional; defaults to `gpt-5.6-luna`.
 - `RATE_LIMIT_PER_MINUTE` — optional; defaults to `10`, bounded at startup.
 - `DAILY_QUOTA_PER_KEY` — optional; defaults to `100`.
 - `QUOTA_FILE` — optional; defaults to `data/ai-product-content-quota.json` under the service working directory.
@@ -47,7 +48,7 @@ Invalid request bodies and fields are fully validated before daily quota is cons
 
 ```bash
 npm install
-OPENAI_API_KEY=your_key SERVICE_API_KEYS=customer_key npm start
+AI_PROVIDER_API_KEY=your_provider_key AI_MODEL=your_model SERVICE_API_KEYS=customer_key npm start
 ```
 
 Health check: `GET /health`. It returns HTTP 503 until both required credentials are configured.
@@ -59,3 +60,7 @@ The first offer is intentionally narrow: **send product details once and receive
 ## First customer trial
 
 Use one real product from a small e-commerce seller. Ask for the product name, factual details, preferred language, and optionally a public image URL. Generate one sample, get approval, then sell a small monthly package rather than a custom software project.
+
+## Provider-neutral factory contract
+
+The service is an API-factory component: callers use the same POST /v1/product-content contract while the runtime selects an OpenAI-compatible provider through AI_PROVIDER_BASE_URL, AI_PROVIDER_API_KEY, and AI_MODEL. No provider credential is committed to Git. EASY can consume this service through its stable API contract without coupling its application code to a specific vendor.
