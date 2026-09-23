@@ -12,7 +12,7 @@ function readRegistry(){try{const x=JSON.parse(fs.readFileSync(registryFile,"utf
 function writeRegistry(x){const tmp=registryFile+"."+process.pid+".tmp";fs.writeFileSync(tmp,JSON.stringify(x,null,2)+"\n",{mode:0o600});fs.renameSync(tmp,registryFile);}
 function auth(request,reply){if(process.env.FACTORY_API_KEY&&request.headers["x-api-key"]!==process.env.FACTORY_API_KEY)return reply.code(401).send({error:"Unauthorized"});}
 app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:"manifest-to-runnable-api"}));
-app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","compile","register","inspect"],artifact:["server.mjs","package.json","openapi.json","README.md"],providers:"generated APIs are provider-neutral unless their manifest explicitly defines an integration"}));
+app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","compile","register","inspect"],artifact:["server.mjs","package.json","openapi.json","README.md","ledger.mjs","usage.mjs"],apiClasses:["ai","llm","vision","image","ocr","speech","translation","research","data","webhook","commerce","lead","custom-business"],evidence:["SPEC_VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","E2E_VERIFIED","BUSINESS_VERIFIED","HARDENED"],providers:"adapter-based; unavailable providers fail closed"}));
 app.get("/v1/factory/apis",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;return {ok:true,apis:readRegistry().apis};});
 app.post("/v1/factory/validate",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,spec:validateSpec(request.body)}}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
 app.post("/v1/factory/build",async(request,reply)=>{
@@ -21,7 +21,7 @@ app.post("/v1/factory/build",async(request,reply)=>{
     const spec=validateSpec(request.body);
     const artifact=compileApi(spec,root);
     const registry=readRegistry(); registry.apis=registry.apis.filter(x=>x.name!==spec.name);
-    registry.apis.push({name:spec.name,version:spec.version,auth:spec.auth,operations:spec.operations.length,artifact});
+    registry.apis.push({identity:spec.name,name:spec.name,version:spec.version,status:"COMPILED",evidence:"COMPILED",capabilities:spec.capabilities,auth:spec.auth,operations:spec.operations.length,provider:spec.provider?.kind||null,runtime:"node-fastify",deployment:{status:"NOT_DEPLOYED"},artifact,updatedAt:new Date().toISOString()});
     writeRegistry(registry);
     return reply.code(201).send({ok:true,artifact});
   }catch(e){request.log.error({err:e},"factory build failed");return reply.code(400).send({ok:false,error:e.message});}
