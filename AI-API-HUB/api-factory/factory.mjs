@@ -76,7 +76,33 @@ export function compileApi(spec,outRoot){
   fs.mkdirSync(dir,{recursive:true,mode:0o755});
   const routes=s.operations.map(op=>routeSource(op,s.auth,s.provider)).join("\n");
   const providerImport=s.operations.some(op=>op.handler==="provider") ? "import {createProviderAdapter} from "./provider.mjs";\nconst provider=createProviderAdapter("+JSON.stringify(s.provider)+");\n" : "const provider=null;\n";
-  const server="import Fastify from "fastify";\n"+providerImport+"const app=Fastify({logger:true,bodyLimit:64*1024});\nconst port=Number(process.env.PORT||3000);\napp.get(\"/health\",async()=>({ok:true,service:"+JSON.stringify(s.name)+",version:"+JSON.stringify(s.version)+",factory:\"api-factory\"}));\napp.get(\"/ready\",async(request,reply)=>{const providerHealth=provider?await provider.health():{available:true,reason:\"not_required\"};if(!providerHealth.available)return reply.code(503).send({ok:false,ready:false,provider:providerHealth});return {ok:true,ready:true,provider:providerHealth};});\n"+routes+"\nawait app.listen({port,host:\"0.0.0.0\"});\n";
+  const server=`import Fastify from "fastify";
+import {RequestLedger} from "./ledger.mjs";
+import {UsageLedger} from "./usage.mjs";
+${providerImport}const app=Fastify({logger:true,bodyLimit:64*1024});
+const port=Number(process.env.PORT||3000);
+const requestLedger=new RequestLedger(process.env.REQUEST_LEDGER_FILE||"./data/requests.json");
+const usageLedger=new UsageLedger(process.env.USAGE_LEDGER_FILE||"./data/usage.json");
+app.addHook("onRequest",async(request,reply)=>{
+  if(request.method==="GET"||request.method==="DELETE") return;
+  const key=request.headers["idempotency-key"];
+  if(!key) return;
+  const result=requestLedger.begin({idempotencyKey:key,api:${JSON.stringify(s.name)},route:request.routeOptions?.url||request.url});
+  if(result.replayed) return reply.code(409).send({error:{code:"IDEMPOTENCY_REPLAY",message:"Idempotency key already used"}});
+});
+app.addHook("onResponse",async(request,reply)=>{
+  const key=request.headers["idempotency-key"];
+  if(key) requestLedger.finish({idempotencyKey:key,status:reply.statusCode,usage:usageLedger.snapshot()});
+});
+app.get("/health",async()=>({ok:true,service:${JSON.stringify(s.name)},version:${JSON.stringify(s.version)},factory:"api-factory"}));
+app.get("/ready",async(request,reply)=>{
+  const providerHealth=provider?await provider.health():{available:true,reason:"not_required"};
+  if(!providerHealth.available) return reply.code(503).send({ok:false,ready:false,provider:providerHealth});
+  return {ok:true,ready:true,provider:providerHealth};
+});
+${routes}
+await app.listen({port,host:"0.0.0.0"});
+`;
   const pkg=JSON.stringify({name:s.name,version:"0.1.0",private:true,type:"module",scripts:{start:"node server.mjs",test:"node --check server.mjs"},dependencies:{fastify:"5.6.1"}},null,2)+"\n";
   const openapi={openapi:"3.1.0",info:{title:s.name,version:s.version,description:s.description},paths:{},components:{schemas:{}}};
   if(s.auth==="api-key") openapi.components.securitySchemes={ApiKey:{type:"apiKey",in:"header",name:"x-api-key"}};
