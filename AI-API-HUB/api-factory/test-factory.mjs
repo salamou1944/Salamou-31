@@ -2,17 +2,49 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import {spawn,execFileSync} from "node:child_process";
 import {validateSpec,compileApi} from "./factory.mjs";
 
 const root=fs.mkdtempSync(path.join(os.tmpdir(),"api-factory-"));
-const spec={name:"demo-orders",version:"v1",description:"Generated test API",auth:"api-key",operations:[
- {method:"GET",path:"/v1/orders",summary:"List orders"},
- {method:"POST",path:"/v1/orders",summary:"Create order"}
+const spec={name:"demo-orders",version:"v1",description:"Generated test API",auth:"api-key",capabilities:["commerce"],operations:[
+ {method:"GET",path:"/v1/orders",summary:"List orders",responseSchema:{type:"object"}},
+ {method:"POST",path:"/v1/orders",summary:"Create order",requestSchema:{type:"object",required:["id"],properties:{id:{type:"string"}}}}
 ]};
 assert.equal(validateSpec(spec).name,"demo-orders");
-const artifact=compileApi(spec,root);
-for(const file of artifact.files) assert.equal(fs.existsSync(path.join(root,"demo-orders",file)),true);
-assert.match(fs.readFileSync(path.join(root,"demo-orders","server.mjs"),"utf8"),/v1\/orders/);
 assert.throws(()=>validateSpec({...spec,name:"Bad Name"}),/name/);
 assert.throws(()=>validateSpec({...spec,operations:[spec.operations[0],spec.operations[0]]}),/duplicate/);
-console.log("api-factory compiler: PASS");
+assert.throws(()=>validateSpec({...spec,operations:[{...spec.operations[0],handler:"provider"}]}),/provider handler requires/);
+
+const artifact=compileApi(spec,root);
+for(const file of artifact.files) assert.equal(fs.existsSync(path.join(root,"demo-orders",file)),true);
+const generated=path.join(root,"demo-orders");
+assert.match(fs.readFileSync(path.join(generated,"server.mjs"),"utf8"),/RequestLedger/);
+assert.match(fs.readFileSync(path.join(generated,"openapi.json"),"utf8"),/"x-api-key"/);
+
+execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:generated,stdio:"inherit"});
+const port="3007";
+const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,PORT:port,API_KEY:"test-secret",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
+let output="";
+child.stdout.on("data",d=>{output+=d.toString();});
+child.stderr.on("data",d=>{output+=d.toString();});
+
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+await wait(1500);
+assert.equal(child.exitCode,null,"generated runtime exited early: "+output);
+const base="http://127.0.0.1:"+port;
+const health=await fetch(base+"/health");
+assert.equal(health.status,200);
+assert.equal((await health.json()).service,"demo-orders");
+const denied=await fetch(base+"/v1/orders");
+assert.equal(denied.status,401);
+const ok=await fetch(base+"/v1/orders",{headers:{"x-api-key":"test-secret"}});
+assert.equal(ok.status,200);
+const created=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
+assert.equal(created.status,200);
+const replay=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
+assert.equal(replay.status,409);
+const usage=JSON.parse(fs.readFileSync(path.join(generated,"data","usage.json"),"utf8"));
+assert.equal(usage.total,2);
+child.kill("SIGTERM");
+await wait(300);
+console.log("api-factory compiler + generated runtime + auth + idempotency: PASS");
