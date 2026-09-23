@@ -61,8 +61,8 @@ function routeSource(op,auth,provider){
   const route=JSON.stringify(op.path);
   const schema=op.requestSchema?JSON.stringify(op.requestSchema):"null";
   const body=op.handler==="provider"
-    ? "const result=await provider.execute(request.body??{}); usageLedger.record("+JSON.stringify(op.path)+"); return reply.send(result);"
-    : "usageLedger.record("+JSON.stringify(op.path)+"); return reply.send({ok:true,api:"+JSON.stringify(op.path)+",received:"+(method==="get"||method==="delete"?"null":"request.body??null")+"});";
+    ? "const result=await provider.execute(request.body??{}); quota.consume(); usageLedger.record("+JSON.stringify(op.path)+"); return reply.send(result);"
+    : "quota.consume(); usageLedger.record("+JSON.stringify(op.path)+"); return reply.send({ok:true,api:"+JSON.stringify(op.path)+",received:"+(method==="get"||method==="delete"?"null":"request.body??null")+"});";
   const guard=auth==="api-key"
     ? "if(!process.env.API_KEY || request.headers['x-api-key']!==process.env.API_KEY) return reply.code(401).send({error:{code:'UNAUTHORIZED',message:'Invalid API key'}});\n  "
     : "";
