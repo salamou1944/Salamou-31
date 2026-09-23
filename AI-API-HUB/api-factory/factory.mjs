@@ -75,7 +75,9 @@ export function compileApi(spec,outRoot){
   const dir=path.join(outRoot,s.name);
   fs.mkdirSync(dir,{recursive:true,mode:0o755});
   const routes=s.operations.map(op=>routeSource(op,s.auth,s.provider)).join("\n");
-  const providerImport=s.operations.some(op=>op.handler==="provider") ? "import {createProviderAdapter} from "./provider.mjs";\nconst provider=createProviderAdapter("+JSON.stringify(s.provider)+");\n" : "const provider=null;\n";
+  const providerImport=s.operations.some(op=>op.handler==="provider") ? `import {createProviderAdapter} from "./provider.mjs";
+const provider=createProviderAdapter(${JSON.stringify(s.provider)});
+` : "const provider=null;\n";
   const server=`import Fastify from "fastify";
 import {RequestLedger} from "./ledger.mjs";
 import {UsageLedger} from "./usage.mjs";
