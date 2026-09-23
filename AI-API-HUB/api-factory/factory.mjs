@@ -67,7 +67,7 @@ function routeSource(op,auth,provider){
     ? "if(!process.env.API_KEY || request.headers['x-api-key']!==process.env.API_KEY) return reply.code(401).send({error:{code:'UNAUTHORIZED',message:'Invalid API key'}});\n  "
     : "";
   const schemaLine=op.requestSchema ? "schema:{body:"+schema+"}," : "";
-  return "app."+method+"("+route+",{"+schemaLine+"},async(request,reply)=>{\n  "+guard+body+"\n}).catch?undefined:undefined;";
+  return "app."+method+"("+route+",{"+schemaLine+"},async(request,reply)=>{\n  "+guard+body+"\n});";
 }
 
 export function compileApi(spec,outRoot){
