@@ -1,0 +1,9 @@
+{
+  "name":"product-content-api",
+  "version":"v1",
+  "description":"Provider-neutral product content API contract.",
+  "auth":"api-key",
+  "operations":[
+    {"method":"POST","path":"/v1/product-content","summary":"Generate structured product content"}
+  ]
+}
