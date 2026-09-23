@@ -23,7 +23,7 @@ assert.match(fs.readFileSync(path.join(generated,"openapi.json"),"utf8"),/"x-api
 
 execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:generated,stdio:"inherit"});
 const port="3007";
-const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,PORT:port,API_KEY:"test-secret",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
+const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,PORT:port,API_KEY:"test-secret",API_QUOTA_LIMIT:"2",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
 let output="";
 child.stdout.on("data",d=>{output+=d.toString();});
 child.stderr.on("data",d=>{output+=d.toString();});
@@ -43,6 +43,8 @@ const created=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-typ
 assert.equal(created.status,200);
 const replay=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
 assert.equal(replay.status,409);
+const quotaHit=await fetch(base+"/v1/orders",{headers:{"x-api-key":"test-secret"}});
+assert.equal(quotaHit.status,429);
 const usage=JSON.parse(fs.readFileSync(path.join(generated,"data","usage.json"),"utf8"));
 assert.equal(usage.total,2);
 child.kill("SIGTERM");
