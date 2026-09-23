@@ -23,7 +23,7 @@ assert.match(fs.readFileSync(path.join(generated,"openapi.json"),"utf8"),/"x-api
 
 execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:generated,stdio:"inherit"});
 const port="3007";
-const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,PORT:port,API_KEY:"test-secret",API_QUOTA_LIMIT:"2",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
+const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,PORT:port,API_KEY:"test-secret",API_QUOTA_LIMIT:"3",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
 let output="";
 child.stdout.on("data",d=>{output+=d.toString();});
 child.stderr.on("data",d=>{output+=d.toString();});
