@@ -47,4 +47,25 @@ const usage=JSON.parse(fs.readFileSync(path.join(generated,"data","usage.json"),
 assert.equal(usage.total,2);
 child.kill("SIGTERM");
 await wait(300);
-console.log("api-factory compiler + generated runtime + auth + idempotency: PASS");
+
+const providerSpec={name:"provider-demo",version:"v1",auth:"none",provider:{kind:"openai-compatible",baseUrl:"https://example.invalid/v1",model:"test-model",credentialEnv:"TEST_PROVIDER_KEY"},operations:[
+ {method:"POST",path:"/v1/generate",summary:"Generate output",handler:"provider",requestSchema:{type:"object"}}
+]};
+const providerArtifact=compileApi(providerSpec,root);
+const providerDir=path.join(root,"provider-demo");
+assert(providerArtifact.files.includes("provider.mjs"));
+execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:providerDir,stdio:"inherit"});
+const providerChild=spawn(process.execPath,["server.mjs"],{cwd:providerDir,env:{...process.env,PORT:"3008",TEST_PROVIDER_KEY:""},stdio:["ignore","pipe","pipe"]});
+let providerOutput="";
+providerChild.stdout.on("data",d=>{providerOutput+=d.toString();});
+providerChild.stderr.on("data",d=>{providerOutput+=d.toString();});
+await wait(1200);
+assert.equal(providerChild.exitCode,null,"provider runtime exited early: "+providerOutput);
+const ready=await fetch("http://127.0.0.1:3008/ready");
+assert.equal(ready.status,503);
+const readyBody=await ready.json();
+assert.equal(readyBody.ready,false);
+assert.equal(readyBody.provider.reason,"missing_credentials");
+providerChild.kill("SIGTERM");
+await wait(300);
+console.log("api-factory compiler + generated runtime + auth + idempotency + provider fail-closed: PASS");
