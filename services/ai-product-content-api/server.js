@@ -7,7 +7,10 @@ import { claimIdempotency, putIdempotency, releaseIdempotency, requestFingerprin
 
 const app = Fastify({ logger:true, bodyLimit:32*1024, requestTimeout:35_000 });
 const port=Number(process.env.PORT||3000);
-const model=process.env.OPENAI_MODEL||"gpt-5.6-luna";
+const providerApiKey=process.env.AI_PROVIDER_API_KEY||process.env.OPENAI_API_KEY||"";
+const providerBaseUrl=(process.env.AI_PROVIDER_BASE_URL||"https://api.openai.com/v1").replace(/\\/$/,"");
+const model=process.env.AI_MODEL||process.env.OPENAI_MODEL||"";
+
 const maxRequestsPerMinute=Number(process.env.RATE_LIMIT_PER_MINUTE||10);
 const dailyQuota=Number(process.env.DAILY_QUOTA_PER_KEY||100);
 const maxProductNameLength=200,maxProductDetailsLength=8_000,maxLanguageLength=60,maxImageUrlLength=2_000;
@@ -18,7 +21,11 @@ if(!Number.isInteger(maxRequestsPerMinute)||maxRequestsPerMinute<1||maxRequestsP
 if(!Number.isInteger(dailyQuota)||dailyQuota<1||dailyQuota>100000)throw new Error("DAILY_QUOTA_PER_KEY must be an integer between 1 and 100000");
 const serviceApiKeys=new Set((process.env.SERVICE_API_KEYS||"").split(",").map(key=>key.trim()).filter(Boolean));
 const requestLog=new Map();
-function getClient(){if(!process.env.OPENAI_API_KEY)throw new Error("OPENAI_API_KEY is not configured");return new OpenAI({apiKey:process.env.OPENAI_API_KEY});}
+function getClient(){
+  if(!providerApiKey)throw new Error("AI_PROVIDER_API_KEY is not configured");
+  if(!model)throw new Error("AI_MODEL is not configured");
+  return new OpenAI({apiKey:providerApiKey,baseURL:providerBaseUrl});
+}
 function safeEqual(a,b){const left=Buffer.from(a,"utf8"),right=Buffer.from(b,"utf8");return left.length===right.length&&crypto.timingSafeEqual(left,right);}
 function isAuthorized(request){const provided=request.headers["x-api-key"];if(typeof provided!=="string"||serviceApiKeys.size===0)return false;return [...serviceApiKeys].some(key=>safeEqual(provided,key));}
 function rateLimit(apiKey){const now=Date.now(),windowStart=now-60_000,recent=(requestLog.get(apiKey)||[]).filter(timestamp=>timestamp>windowStart);if(recent.length>=maxRequestsPerMinute)return false;recent.push(now);requestLog.set(apiKey,recent);return true;}
@@ -34,7 +41,14 @@ async function consumeDailyQuota(apiKey){await acquireQuotaLock();try{const stat
 ensureQuotaStore();
 function validHttpUrl(value){try{const url=new URL(value);return url.protocol==="https:"||url.protocol==="http:";}catch{return false;}}
 const schema={type:"object",additionalProperties:false,properties:{title:{type:"string"},short_description:{type:"string"},description:{type:"string"},selling_points:{type:"array",items:{type:"string"},maxItems:8},ad_copy:{type:"string"},cta:{type:"string"},audience:{type:"string"},cautions:{type:"array",items:{type:"string"},maxItems:8}},required:["title","short_description","description","selling_points","ad_copy","cta","audience","cautions"]};
-app.get("/health",async(_request,reply)=>{const ready=Boolean(process.env.OPENAI_API_KEY)&&serviceApiKeys.size>0;return reply.code(ready?200:503).send({ok:ready,ready,service:"ai-product-content-api",model,authentication:serviceApiKeys.size>0?"api-key":"not-configured",openai_configured:Boolean(process.env.OPENAI_API_KEY),idempotency:"persistent-file-ledger"});});
+app.get("/health",async(_request,reply)=>{const ready=Boolean(providerApiKey&&model)&&serviceApiKeys.size>0;
+return reply.code(ready?200:503).send({
+  ok:ready,ready,service:"ai-product-content-api",model,
+  provider_base_url:providerBaseUrl,
+  authentication:serviceApiKeys.size>0?"api-key":"not-configured",
+  ai_provider_configured:Boolean(providerApiKey&&model),
+  idempotency:"persistent-file-ledger"
+});});
 app.post("/v1/product-content",async(request,reply)=>{
   if(!isAuthorized(request))return reply.code(401).send({error:"Unauthorized"});
   const apiKey=request.headers["x-api-key"];
