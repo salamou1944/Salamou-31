@@ -44,7 +44,7 @@ assert.equal(created.status,200);
 const replay=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
 const replayText=await replay.text();
 console.log("IDEMPOTENCY_REPLAY_DIAGNOSTIC",JSON.stringify({status:replay.status,body:replayText,serverOutput:output}));
-assert.equal(replay.status,200);
+assert.equal(replay.status,200,"replay status/body/server="+JSON.stringify({status:replay.status,body:replayText,serverOutput:output}));
 const firstBody=await created.clone().json();
 const replayBody=JSON.parse(replayText);
 assert.deepEqual(replayBody,firstBody);
