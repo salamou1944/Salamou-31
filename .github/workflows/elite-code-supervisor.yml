@@ -27,4 +27,4 @@ jobs:
     permissions:
       contents: write
       copilot-requests: write
-# Verify the failed-worker cleanup path before advancing.
+# Re-evaluate after isolating the tool checkout from target dirty-state verification.
