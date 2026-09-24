@@ -64,7 +64,7 @@ function routeSource(op,auth,provider){
     ? "const result=await provider.execute(request.body??{}); quota.consume(); usageLedger.record("+JSON.stringify(op.path)+"); return reply.send(result);"
     : "quota.consume(); usageLedger.record("+JSON.stringify(op.path)+"); return reply.send({ok:true,api:"+JSON.stringify(op.path)+",received:"+(method==="get"||method==="delete"?"null":"request.body??null")+"});";
   const schemaLine=op.requestSchema ? "schema:{body:"+schema+"}," : "";
-  return "app."+method+"("+route+",{"+schemaLine+"},async(request,reply)=>{\n  "+body+"\n});";
+  const guard=auth==="api-key" ? "if(!process.env.API_KEY || request.headers[\'x-api-key\']!==process.env.API_KEY) return reply.code(401).send({error:{code:\'UNAUTHORIZED\',message:\'Invalid API key\'}});\\n  " : "";\n  return "app."+method+"("+route+",{"+schemaLine+"},async(request,reply)=>{\n  "+guard+body+"\n});";
 }
 
 export function compileApi(spec,outRoot){
