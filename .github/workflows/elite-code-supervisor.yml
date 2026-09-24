@@ -27,4 +27,4 @@ jobs:
     permissions:
       contents: write
       copilot-requests: write
-# Verify the architecture-aware ARMY-14 gate and test-surface detection.
+# Verify pipeline evidence remains distinct from external-provider availability.
