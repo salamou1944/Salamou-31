@@ -22,5 +22,4 @@ jobs:
         CI workflows, credentials, authentication policy, deployment configuration, or destructive data.
     permissions:
       contents: write
-      models: read
       copilot-requests: write
