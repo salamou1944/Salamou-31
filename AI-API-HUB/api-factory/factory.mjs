@@ -104,12 +104,29 @@ app.addHook("onRequest",async(request,reply)=>{
   if(request.method==="GET"||request.method==="DELETE") return;
   const key=request.headers["idempotency-key"];
   if(!key) return;
-  const result=requestLedger.begin({idempotencyKey:key,api:${JSON.stringify(s.name)},route:request.routeOptions?.url||request.url});
-  if(result.replayed) return reply.code(409).send({error:{code:"IDEMPOTENCY_REPLAY",message:"Idempotency key already used"}});
+  const route=request.routeOptions?.url||request.url;
+  const requestFingerprint=requestLedger.fingerprint({method:request.method,route,body:request.body});
+  const result=requestLedger.begin({idempotencyKey:key,api:${JSON.stringify(s.name)},route,requestFingerprint});
+  if(result.conflict) return reply.code(409).send({error:{code:"IDEMPOTENCY_KEY_CONFLICT",message:"Idempotency key was already used with a different request"}});
+  if(result.replayed){
+    const record=result.record?.status==="started" ? await requestLedger.waitForCompletion(key) : result.record;
+    if(record?.responseBody!=null){
+      const status=Number(record.status)||200;
+      reply.code(status);
+      if(record.contentType) reply.header("content-type",record.contentType);
+      return reply.send(record.responseBody);
+    }
+    return reply.code(409).send({error:{code:"IDEMPOTENCY_IN_PROGRESS",message:"An identical request is still in progress"}});
+  }
+});
+app.addHook("onSend",async(request,reply,payload)=>{
+  const key=request.headers["idempotency-key"];
+  if(key) request.__idempotencyPayload=payload;
+  return payload;
 });
 app.addHook("onResponse",async(request,reply)=>{
   const key=request.headers["idempotency-key"];
-  if(key) requestLedger.finish({idempotencyKey:key,status:reply.statusCode,usage:usageLedger.snapshot()});
+  if(key) requestLedger.finish({idempotencyKey:key,status:reply.statusCode,usage:usageLedger.snapshot(),responseBody:request.__idempotencyPayload??null,contentType:reply.getHeader("content-type")||"application/json"});
 });
 app.get("/health",async()=>({ok:true,service:${JSON.stringify(s.name)},version:${JSON.stringify(s.version)},factory:"api-factory"}));
 app.get("/metrics",async()=>({ok:true,service:${JSON.stringify(s.name)},usage:usageLedger.snapshot(),quota:quota.snapshot()}));
