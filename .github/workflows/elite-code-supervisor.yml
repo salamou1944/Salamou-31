@@ -27,3 +27,4 @@ jobs:
     permissions:
       contents: write
       copilot-requests: write
+# Re-evaluate after removing nonessential reusable-workflow permissions.
