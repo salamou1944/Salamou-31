@@ -27,4 +27,4 @@ jobs:
     permissions:
       contents: write
       copilot-requests: write
-# Verify the repaired API source through the supervisor's independent pipeline.
+# Verify the failed-worker cleanup path before advancing.
