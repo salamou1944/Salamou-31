@@ -27,4 +27,4 @@ jobs:
     permissions:
       contents: write
       copilot-requests: write
-# Re-evaluate after removing nonessential reusable-workflow permissions.
+# Verify the repaired API source through the supervisor's independent pipeline.
