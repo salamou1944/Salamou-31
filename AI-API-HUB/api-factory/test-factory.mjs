@@ -43,10 +43,12 @@ const created=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-typ
 assert.equal(created.status,200);
 const replay=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
 assert.equal(replay.status,409);
+const third=await fetch(base+"/v1/orders",{headers:{"x-api-key":"test-secret"}});
+assert.equal(third.status,200);
 const quotaHit=await fetch(base+"/v1/orders",{headers:{"x-api-key":"test-secret"}});
 assert.equal(quotaHit.status,429);
 const usage=JSON.parse(fs.readFileSync(path.join(generated,"data","usage.json"),"utf8"));
-assert.equal(usage.total,2);
+assert.equal(usage.total,3);
 child.kill("SIGTERM");
 await wait(300);
 
