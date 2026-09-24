@@ -8,7 +8,7 @@ import { claimIdempotency, putIdempotency, releaseIdempotency, requestFingerprin
 const app = Fastify({ logger:true, bodyLimit:32*1024, requestTimeout:35_000 });
 const port=Number(process.env.PORT||3000);
 const providerApiKey=process.env.AI_PROVIDER_API_KEY||process.env.OPENAI_API_KEY||"";
-const providerBaseUrl=(process.env.AI_PROVIDER_BASE_URL||"https://api.openai.com/v1").replace(/\\/$/,"");
+const providerBaseUrl=(process.env.AI_PROVIDER_BASE_URL||"https://api.openai.com/v1").replace(/\/$/,"");
 const model=process.env.AI_MODEL||process.env.OPENAI_MODEL||"";
 
 const maxRequestsPerMinute=Number(process.env.RATE_LIMIT_PER_MINUTE||10);
