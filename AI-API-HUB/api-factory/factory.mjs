@@ -101,6 +101,8 @@ app.addHook("onRequest",async(request,reply)=>{
       throw error;
     }
   }
+});
+app.addHook("preHandler",async(request,reply)=>{
   if(request.method==="GET"||request.method==="DELETE") return;
   const key=request.headers["idempotency-key"];
   if(!key) return;
