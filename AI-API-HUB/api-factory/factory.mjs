@@ -92,7 +92,6 @@ app.setErrorHandler((error,request,reply)=>{
   if(error instanceof QuotaExceededError) return reply.code(429).send({error:{code:error.code,message:error.message,limit:error.limit}});
   if(error?.code==="PROVIDER_UNAVAILABLE") return reply.code(503).send({error:{code:error.code,message:"Provider unavailable"}});
   request.log.error({err:error},"request failed");
-  if(process.env.NODE_ENV==="test") return reply.code(500).send({error:{code:"INTERNAL_ERROR",message:error?.message||"Internal server error",stack:error?.stack||null}});
   return reply.code(500).send({error:{code:"INTERNAL_ERROR",message:"Internal server error"}});
 });
 app.addHook("onRequest",async(request,reply)=>{
