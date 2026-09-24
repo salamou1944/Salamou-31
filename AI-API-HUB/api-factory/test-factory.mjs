@@ -23,7 +23,7 @@ assert.match(fs.readFileSync(path.join(generated,"openapi.json"),"utf8"),/"x-api
 
 execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:generated,stdio:"inherit"});
 const port="3007";
-const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,NODE_ENV:"test",PORT:port,API_KEY:"test-secret",API_QUOTA_LIMIT:"10",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
+const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,PORT:port,API_KEY:"test-secret",API_QUOTA_LIMIT:"4",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
 let output="";
 child.stdout.on("data",d=>{output+=d.toString();});
 child.stderr.on("data",d=>{output+=d.toString();});
@@ -40,14 +40,11 @@ assert.equal(denied.status,401);
 const ok=await fetch(base+"/v1/orders",{headers:{"x-api-key":"test-secret"}});
 assert.equal(ok.status,200);
 const created=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
-const createdText=await created.text();
-assert.equal(created.status,200,"created status/body/server="+JSON.stringify({status:created.status,body:createdText,serverOutput:output}));
+assert.equal(created.status,200);
 const replay=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
-const replayText=await replay.text();
-console.log("IDEMPOTENCY_REPLAY_DIAGNOSTIC",JSON.stringify({status:replay.status,body:replayText,serverOutput:output}));
-assert.equal(replay.status,200,"replay status/body/server="+JSON.stringify({status:replay.status,body:replayText,serverOutput:output}));
-const firstBody=JSON.parse(createdText);
-const replayBody=JSON.parse(replayText);
+assert.equal(replay.status,200);
+const firstBody=await created.clone().json();
+const replayBody=await replay.clone().json();
 assert.deepEqual(replayBody,firstBody);
 const conflict=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"different"})});
 assert.equal(conflict.status,409);
