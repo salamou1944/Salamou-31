@@ -75,7 +75,7 @@ export function compileApi(spec,outRoot){
   const providerImport=s.operations.some(op=>op.handler==="provider") ? `import {createProviderAdapter} from "./provider.mjs";
 const provider=createProviderAdapter(${JSON.stringify(s.provider)});
 ` : "const provider=null;\n";
-  const server=`import Fastify from "fastify";
+  const authHook=auth==="api-key" ? `  if(request.url!=="/health"&&request.url!=="/ready"&&request.url!=="/metrics"&&request.headers["x-api-key"]!==process.env.API_KEY) return reply.code(401).send({error:{code:"UNAUTHORIZED",message:"Invalid API key"}});\n` : "";\n  const server=`import Fastify from "fastify";
 import {RequestLedger} from "./ledger.mjs";
 import {UsageLedger} from "./usage.mjs";
 import {QuotaGuard,QuotaExceededError} from "./quota.mjs";
