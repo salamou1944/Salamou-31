@@ -23,3 +23,4 @@ jobs:
     permissions:
       contents: write
       copilot-requests: write
+# Re-evaluate the reusable supervisor against its current main revision.
