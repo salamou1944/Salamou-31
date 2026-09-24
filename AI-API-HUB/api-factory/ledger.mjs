@@ -24,7 +24,7 @@ export class RequestLedger {
     const started=Date.now();
     while(true){
       try{
-        const fd=fs.openSync(this.lockFile,"wx",{mode:0o600});
+        const fd=fs.openSync(this.lockFile,"wx",0o600);
         fs.writeSync(fd,JSON.stringify({pid:process.pid,createdAt:Date.now()}));
         return fd;
       }catch(error){
