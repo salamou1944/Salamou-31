@@ -116,7 +116,11 @@ app.addHook("preHandler",async(request,reply)=>{
       const status=Number(record.status)||200;
       reply.code(status);
       if(record.contentType) reply.header("content-type",record.contentType);
-      return reply.send(record.responseBody);
+      let replayPayload=record.responseBody;
+      if(record.contentType?.startsWith("application/json") && typeof replayPayload==="string"){
+        try{replayPayload=JSON.parse(replayPayload);}catch{}
+      }
+      return reply.send(replayPayload);
     }
     return reply.code(409).send({error:{code:"IDEMPOTENCY_IN_PROGRESS",message:"An identical request is still in progress"}});
   }
