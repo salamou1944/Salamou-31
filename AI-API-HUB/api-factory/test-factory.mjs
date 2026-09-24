@@ -23,7 +23,7 @@ assert.match(fs.readFileSync(path.join(generated,"openapi.json"),"utf8"),/"x-api
 
 execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:generated,stdio:"inherit"});
 const port="3007";
-const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,PORT:port,API_KEY:"test-secret",API_QUOTA_LIMIT:"3",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
+const child=spawn(process.execPath,["server.mjs"],{cwd:generated,env:{...process.env,PORT:port,API_KEY:"test-secret",API_QUOTA_LIMIT:"10",REQUEST_LEDGER_FILE:path.join(generated,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generated,"data","usage.json")},stdio:["ignore","pipe","pipe"]});
 let output="";
 child.stdout.on("data",d=>{output+=d.toString();});
 child.stderr.on("data",d=>{output+=d.toString();});
@@ -42,13 +42,26 @@ assert.equal(ok.status,200);
 const created=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
 assert.equal(created.status,200);
 const replay=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"abc"})});
-assert.equal(replay.status,409);
+assert.equal(replay.status,200);
+const firstBody=await created.clone().json();
+const replayBody=await replay.clone().json();
+assert.deepEqual(replayBody,firstBody);
+const conflict=await fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-1"},body:JSON.stringify({id:"different"})});
+assert.equal(conflict.status,409);
+assert.equal((await conflict.json()).error.code,"IDEMPOTENCY_KEY_CONFLICT");
+const concurrent=[1,2,3,4].map(()=>fetch(base+"/v1/orders",{method:"POST",headers:{"content-type":"application/json","x-api-key":"test-secret","idempotency-key":"orders-concurrent"},body:JSON.stringify({id:"concurrent"})}));
+const concurrentResponses=await Promise.all(concurrent);
+assert.deepEqual(concurrentResponses.map(x=>x.status),[200,200,200,200]);
+const concurrentBodies=await Promise.all(concurrentResponses.map(x=>x.json()));
+assert.deepEqual(concurrentBodies[0],concurrentBodies[1]);
+assert.deepEqual(concurrentBodies[0],concurrentBodies[2]);
+assert.deepEqual(concurrentBodies[0],concurrentBodies[3]);
 const third=await fetch(base+"/v1/orders",{headers:{"x-api-key":"test-secret"}});
 assert.equal(third.status,200);
 const quotaHit=await fetch(base+"/v1/orders",{headers:{"x-api-key":"test-secret"}});
 assert.equal(quotaHit.status,429);
 const usage=JSON.parse(fs.readFileSync(path.join(generated,"data","usage.json"),"utf8"));
-assert.equal(usage.total,3);
+assert.equal(usage.total,4);
 child.kill("SIGTERM");
 await wait(300);
 
