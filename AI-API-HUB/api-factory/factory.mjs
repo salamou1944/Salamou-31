@@ -126,7 +126,7 @@ app.addHook("onSend",async(request,reply,payload)=>{
 });
 app.addHook("onResponse",async(request,reply)=>{
   const key=request.headers["idempotency-key"];
-  if(key) requestLedger.finish({idempotencyKey:key,status:reply.statusCode,usage:usageLedger.snapshot(),responseBody:request.__idempotencyPayload??null,contentType:reply.getHeader("content-type")||"application/json"});
+  if(key) requestLedger.finish({idempotencyKey:key,status:reply.statusCode,usage:usageLedger.snapshot(),responseBody:request.__idempotencyPayload??null,contentType:"application/json"});
 });
 app.get("/health",async()=>({ok:true,service:${JSON.stringify(s.name)},version:${JSON.stringify(s.version)},factory:"api-factory"}));
 app.get("/metrics",async()=>({ok:true,service:${JSON.stringify(s.name)},usage:usageLedger.snapshot(),quota:quota.snapshot()}));
