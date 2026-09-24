@@ -42,7 +42,7 @@ export function createProviderAdapter(config){
       if(!cfg.baseUrl || !cfg.model) throw new ProviderUnavailableError("Provider configuration is incomplete");
       const response=await fetch(cfg.baseUrl+"/chat/completions",{
         method:"POST",
-        headers:{"content-type":"application/json","authorization:"Bearer "+credential},
+        headers:{"content-type":"application/json","authorization":"Bearer "+credential},
         body:JSON.stringify({model:cfg.model,messages:input.messages||[],temperature:input.temperature})
       });
       if(!response.ok){
