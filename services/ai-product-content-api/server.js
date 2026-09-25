@@ -38,6 +38,7 @@ function ensureQuotaStore(){const directory=path.dirname(quotaFile);fs.mkdirSync
 async function acquireQuotaLock(){const directory=path.dirname(quotaFile);fs.mkdirSync(directory,{recursive:true,mode:0o700});for(let attempt=0;attempt<100;attempt+=1){try{fs.mkdirSync(quotaLockDir,{mode:0o700});fs.writeFileSync(path.join(quotaLockDir,"owner"),JSON.stringify({pid:process.pid,acquiredAt:Date.now()}),{mode:0o600});return;}catch(error){if(error?.code!=="EEXIST")throw error;try{const owner=JSON.parse(fs.readFileSync(path.join(quotaLockDir,"owner"),"utf8"));if(Date.now()-Number(owner.acquiredAt)>quotaLockStaleMs)fs.rmSync(quotaLockDir,{recursive:true,force:true});}catch{try{fs.rmSync(quotaLockDir,{recursive:true,force:true});}catch{}}await new Promise(resolve=>setTimeout(resolve,10));}}throw new Error("Quota store lock timeout");}
 function releaseQuotaLock(){fs.rmSync(quotaLockDir,{recursive:true,force:true});}
 async function consumeDailyQuota(apiKey){await acquireQuotaLock();try{const state=readQuotaState(),day=todayKey(),keyId=quotaKeyId(apiKey),current=state.entries[keyId],keyState=current?.day===day?current:{day,count:0};if(keyState.count>=dailyQuota)return false;keyState.count+=1;state.entries[keyId]=keyState;writeQuotaState(state);return true;}finally{releaseQuotaLock();}}
+async function refundDailyQuota(apiKey){await acquireQuotaLock();try{const state=readQuotaState(),day=todayKey(),keyId=quotaKeyId(apiKey),current=state.entries[keyId];if(!current||current.day!==day||current.count<=0)return false;current.count-=1;if(current.count===0)delete state.entries[keyId];else state.entries[keyId]=current;writeQuotaState(state);return true;}finally{releaseQuotaLock();}}
 ensureQuotaStore();
 function validHttpUrl(value){try{const url=new URL(value);return url.protocol==="https:"||url.protocol==="http:";}catch{return false;}}
 const schema={type:"object",additionalProperties:false,properties:{title:{type:"string"},short_description:{type:"string"},description:{type:"string"},selling_points:{type:"array",items:{type:"string"},maxItems:8},ad_copy:{type:"string"},cta:{type:"string"},audience:{type:"string"},cautions:{type:"array",items:{type:"string"},maxItems:8}},required:["title","short_description","description","selling_points","ad_copy","cta","audience","cautions"]};
@@ -96,15 +97,17 @@ Rules:
 - Keep the output persuasive but factual.
 - Write for a business selling this product online.
 - Return only the requested structured fields.`;
+  let quotaRefunded=false;
+  const refundQuotaOnce=async()=>{if(quotaRefunded)return false;quotaRefunded=true;try{return await refundDailyQuota(apiKey);}catch(refundError){request.log.error({err:refundError},"Quota refund failed");return false;}};
   try{
     const client=getClient(),content=[{type:"input_text",text:prompt}];
     if(imageUrl)content.push({type:"input_image",image_url:imageUrl});
     const response=await client.responses.create({model,store:false,max_output_tokens:1_200,input:[{role:"user",content}],text:{format:{type:"json_schema",name:"product_content",strict:true,schema}}},{timeout:30_000});
-    if(!response.output_text||typeof response.output_text!=="string")return reply.code(502).send({error:"No usable model output"});
-    let result;try{result=JSON.parse(response.output_text);}catch{return reply.code(502).send({error:"Invalid model output"});}
+    if(!response.output_text||typeof response.output_text!=="string"){await refundQuotaOnce();return reply.code(502).send({error:"No usable model output"});}
+    let result;try{result=JSON.parse(response.output_text);}catch{await refundQuotaOnce();return reply.code(502).send({error:"Invalid model output"});}
     const payload={ok:true,model,result};
     if(idempotencyKey)try{const persisted=putIdempotency(apiKey,idempotencyKey,fingerprint,payload,claim.ownerToken);if(!persisted)return reply.code(409).send({error:"Idempotency-Key ownership was lost; retry the request"});}catch(error){if(error.message==="idempotency_key_reused_with_different_request")return reply.code(409).send({error:"Idempotency-Key was reused with a different request"});throw error;}
     return payload;
-  }catch(error){if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}request.log.error({err:error},"Product content generation failed");return reply.code(502).send({error:"Generation failed"});}
+  }catch(error){await refundQuotaOnce();if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}request.log.error({err:error},"Product content generation failed");return reply.code(502).send({error:"Generation failed"});}
 });
 await app.listen({port,host:"0.0.0.0"});
