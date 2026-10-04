@@ -31,19 +31,26 @@ export function createProviderAdapter(config){
       if(!cfg.configured) return {available:false,reason:"not_configured"};
       const credential=cfg.credentialEnv ? process.env[cfg.credentialEnv] : null;
       if(!credential) return {available:false,reason:"missing_credentials"};
-      if(cfg.kind!=="openai-compatible") return {available:false,reason:"unsupported_adapter"};
-      if(!cfg.baseUrl || !cfg.model) return {available:false,reason:"incomplete_configuration"};
-      return {available:true,kind:cfg.kind,model:cfg.model,credentialFingerprint:token(credential)};
+      if(!["openai-compatible","soat"].includes(cfg.kind)) return {available:false,reason:"unsupported_adapter"};
+      if(!cfg.baseUrl || (cfg.kind==="openai-compatible" && !cfg.model)) return {available:false,reason:"incomplete_configuration"};
+      if(cfg.kind==="soat" && !process.env.SOAT_AI_PROVIDER_ID) return {available:false,reason:"missing_soat_ai_provider_id"};
+      return {available:true,kind:cfg.kind,model:cfg.model||null,credentialFingerprint:token(credential)};
     },
     async execute(input){
-      if(cfg.kind!=="openai-compatible") throw new ProviderUnavailableError("Unsupported provider adapter");
+      if(!["openai-compatible","soat"].includes(cfg.kind)) throw new ProviderUnavailableError("Unsupported provider adapter");
       const credential=cfg.credentialEnv ? process.env[cfg.credentialEnv] : null;
       if(!credential) throw new ProviderUnavailableError("Provider credentials are not configured");
-      if(!cfg.baseUrl || !cfg.model) throw new ProviderUnavailableError("Provider configuration is incomplete");
-      const response=await fetch(cfg.baseUrl+"/chat/completions",{
+      if(!cfg.baseUrl || (cfg.kind==="openai-compatible" && !cfg.model)) throw new ProviderUnavailableError("Provider configuration is incomplete");
+      const soatProviderId=cfg.kind==="soat" ? process.env.SOAT_AI_PROVIDER_ID : null;
+      if(cfg.kind==="soat" && !soatProviderId) throw new ProviderUnavailableError("SOAT_AI_PROVIDER_ID is not configured");
+      const response=await fetch((cfg.baseUrl.replace(/\\/$/,""))+"/api/v1/chat/completions",{
         method:"POST",
         headers:{"content-type":"application/json","authorization":"Bearer "+credential},
-        body:JSON.stringify({model:cfg.model,messages:input.messages||[],temperature:input.temperature})
+        body:JSON.stringify({
+          ...(cfg.kind==="soat" ? {ai_provider_id:soatProviderId} : {model:cfg.model}),
+          messages:input.messages||[],
+          ...(input.temperature!==undefined ? {temperature:input.temperature} : {})
+        })
       });
       if(!response.ok){
         const body=await response.text();
