@@ -3,8 +3,6 @@ name: Railway Token Access Smoke
 on:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/railway-token-access-smoke.yml"
   workflow_dispatch:
 
 permissions:
