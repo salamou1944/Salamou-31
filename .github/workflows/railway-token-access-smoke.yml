@@ -27,3 +27,9 @@ jobs:
           unset RAILWAY_TOKEN
           railway status --project "${RAILWAY_PROJECT_ID}" --environment "${RAILWAY_ENVIRONMENT}" --json > /tmp/railway-status.json
           jq 'if type == "object" then {topLevelKeys:(keys), projectId:(.project.id // .projectId // null), environmentId:(.environment.id // .environmentId // null), project:(.project | if type=="object" then {id,name,workspaceId} else . end), environment:(.environment | if type=="object" then {id,name} else . end), services:(.services // [] | if type=="array" then map(if type=="object" then {id,name,status} else . end) else . end), databases:(.databases // [] | if type=="array" then map(if type=="object" then {id,name,type} else . end) else . end), volumes:(.volumes // [] | if type=="array" then map(if type=="object" then {id,name} else . end) else . end)} else {payloadType:type} end' /tmp/railway-status.json
+
+      - name: Test SOAT service creation without touching existing services
+        run: |
+          set -euo pipefail
+          railway add --service soat --json > /tmp/soat-add.json
+          cat /tmp/soat-add.json
