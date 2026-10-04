@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import {createResearchRoute} from "./research-routing.mjs";
+const route=createResearchRoute({backends:["https://primary.example","https://fallback.example"]});
+const plan=route.plan("https://example.com/docs");
+assert.equal(plan.attempts.length,2);
+assert.equal(plan.attempts[0].priority,1);
+assert.equal(plan.attempts[1].priority,2);
+assert.equal(plan.attempts[0].request,"https://primary.example/https://example.com/docs");
+assert.throws(()=>route.plan("ftp://example.com"),/http or https/);
+assert.throws(()=>route.plan("https://user:pass@example.com/"),/credentials/);
+assert.throws(()=>createResearchRoute({backends:["http://unsafe.example"]}),/at least one HTTPS backend/);
+console.log("research routing plan: PASS");
