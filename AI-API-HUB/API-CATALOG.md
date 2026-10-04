@@ -43,3 +43,9 @@ Use names only; put actual values in runtime secret storage.
 - ELEVENLABS_API_KEY
 
 Never place the values themselves in this repository.
+
+## Runtime verification
+
+The API Factory provider boundary is verified against the pinned SOAT runtime with a real local Ollama completion. SOAT system messages are mapped to the runtime `instructions` field, while non-system messages remain in `messages`. The smoke path also verifies authenticated project/provider creation, API Factory authorization, real completion, the official SOAT smoke suite in an isolated Compose project, and cleanup.
+
+This runtime proof is provider-neutral infrastructure evidence; it does not claim that every commercial provider is configured or that external provider credits are available.
