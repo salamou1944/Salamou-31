@@ -26,4 +26,4 @@ jobs:
           test -n "${RAILWAY_API_TOKEN}"
           unset RAILWAY_TOKEN
           railway status --project "${RAILWAY_PROJECT_ID}" --environment "${RAILWAY_ENVIRONMENT}" --json > /tmp/railway-status.json
-          jq '{projectId:(.project.id // .projectId // null), environmentId:(.environment.id // .environmentId // null), services:(.services // [] | map({id,name,status}))}' /tmp/railway-status.json
+          jq 'if type == "object" then {topLevelKeys:(keys), project:(.project // null), environment:(.environment // null), projectId:(.projectId // null), environmentId:(.environmentId // null), serviceCount:(if (.services|type) == "array" then (.services|length) else null end)} else {payloadType:type} end' /tmp/railway-status.json
