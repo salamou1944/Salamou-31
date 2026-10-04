@@ -56,7 +56,7 @@ Generated services include:
 
 ## Provider contract
 
-The core compiler is provider-neutral. Provider-backed operations declare an adapter kind and a credential environment variable name. Credentials are never emitted into generated source. The built-in `openai-compatible` adapter only reaches a provider when credentials and endpoint/model configuration are present.
+The core compiler is provider-neutral. Provider-backed operations declare an adapter kind and a credential environment variable name. Credentials are never emitted into generated source. The built-in `openai-compatible` adapter only reaches a provider when credentials and endpoint/model configuration are present. The built-in `soat` adapter requires credentials, a SOAT base URL, and `SOAT_AI_PROVIDER_ID`; it targets SOAT's OpenAI-compatible `/api/v1/chat/completions` boundary and fails closed when any required dependency is missing.
 
 ## Deployment contract
 
