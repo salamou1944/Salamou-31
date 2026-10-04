@@ -33,5 +33,6 @@ jobs:
           set -euo pipefail
           PRODUCTION_ENVIRONMENT_ID="$(jq -r '.environments.edges[]?.node | select(.name=="production") | .id' /tmp/railway-status.json)"
           test -n "${PRODUCTION_ENVIRONMENT_ID}"
-          railway --project "${RAILWAY_PROJECT_ID}" --environment "${PRODUCTION_ENVIRONMENT_ID}" add --service soat --yes --json > /tmp/soat-add.json
+          railway link --project "${RAILWAY_PROJECT_ID}" --environment "${PRODUCTION_ENVIRONMENT_ID}" --json
+          railway add --service soat --yes --json > /tmp/soat-add.json
           cat /tmp/soat-add.json
