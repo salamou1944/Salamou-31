@@ -43,7 +43,7 @@ export function createProviderAdapter(config){
       if(!cfg.baseUrl || (cfg.kind==="openai-compatible" && !cfg.model)) throw new ProviderUnavailableError("Provider configuration is incomplete");
       const soatProviderId=cfg.kind==="soat" ? process.env.SOAT_AI_PROVIDER_ID : null;
       if(cfg.kind==="soat" && !soatProviderId) throw new ProviderUnavailableError("SOAT_AI_PROVIDER_ID is not configured");
-      const response=await fetch((cfg.baseUrl.replace(/\\/$/,""))+"/api/v1/chat/completions",{
+      const response=await fetch((cfg.baseUrl.replace(/\/$/,""))+"/api/v1/chat/completions",{
         method:"POST",
         headers:{"content-type":"application/json","authorization":"Bearer "+credential},
         body:JSON.stringify({
