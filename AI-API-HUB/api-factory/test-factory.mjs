@@ -3,7 +3,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {spawn,execFileSync} from "node:child_process";
+import {createServer} from "node:http";
 import {validateSpec,compileApi} from "./factory.mjs";
+import {createProviderAdapter} from "./provider.mjs";
 
 const root=fs.mkdtempSync(path.join(os.tmpdir(),"api-factory-"));
 const spec={name:"demo-orders",version:"v1",description:"Generated test API",auth:"api-key",capabilities:["commerce"],operations:[
@@ -106,4 +108,27 @@ assert.equal(soatReadyBody.provider.reason,"missing_soat_ai_provider_id");
 soatChild.kill("SIGTERM");
 await wait(300);
 
-console.log("api-factory compiler + generated runtime + auth + idempotency + provider fail-closed + SOAT fail-closed: PASS");
+const mockSoat=createServer((request,response)=>{
+  assert.equal(request.method,"GET");
+  assert.equal(request.url,"/api/v1/projects");
+  assert.equal(request.headers.authorization,"Bearer soat-live-token");
+  response.writeHead(200,{"content-type":"application/json"});
+  response.end(JSON.stringify([{id:"proj_test",name:"Integration Test"}]));
+});
+await new Promise((resolve,reject)=>{
+  mockSoat.once("error",reject);
+  mockSoat.listen(0,"127.0.0.1",resolve);
+});
+const mockPort=mockSoat.address().port;
+process.env.SOAT_TEST_KEY="soat-live-token";
+process.env.SOAT_AI_PROVIDER_ID="aip_test";
+const soatAdapter=createProviderAdapter({
+  kind:"soat",
+  baseUrl:"http://127.0.0.1:"+mockPort,
+  credentialEnv:"SOAT_TEST_KEY"
+});
+const probe=await soatAdapter.probe();
+assert.deepEqual(probe,{ok:true,kind:"soat",transport:true,authorization:true,status:200});
+await new Promise(resolve=>mockSoat.close(resolve));
+
+console.log("api-factory compiler + generated runtime + auth + idempotency + provider fail-closed + SOAT fail-closed + SOAT connectivity probe: PASS");
