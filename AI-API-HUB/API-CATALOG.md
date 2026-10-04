@@ -54,3 +54,9 @@ This runtime proof is provider-neutral infrastructure evidence; it does not clai
 ## Autonomous engineering fallback
 
 The Elite supervisor can use GitHub Copilot CLI through the GitHub Actions token when the repository's Copilot CLI policy permits `copilot-requests: write`. This is an execution fallback for engineering automation, not a commercial API-provider credential and not a claim that external model credits are configured.
+
+### 2026-10-04 autonomous-engineering provider-path verification
+
+- SOAT runtime/API Factory completion is independently verified in CI.
+- Elite's provider path is now expected to permit the GitHub Copilot CLI fallback when no API provider credential is configured; no GitHub Models endpoint is used.
+- ARMY-14 workspace scanning must reject real credentials while avoiding false positives from generated runtime credentials in CI configuration.
