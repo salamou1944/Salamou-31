@@ -16,7 +16,19 @@ function auth(request,reply){if(process.env.FACTORY_API_KEY&&request.headers["x-
 function registryEntry(spec,artifact){return {identity:spec.name,name:spec.name,version:spec.version,status:"COMPILED",evidence:"COMPILED",capabilities:spec.capabilities,auth:spec.auth,operations:spec.operations.length,provider:spec.provider?.kind||null,runtime:"node-fastify",deployment:{status:"NOT_DEPLOYED"},artifact,updatedAt:new Date().toISOString()};}
 function register(spec,artifact){const registry=readRegistry();registry.apis=registry.apis.filter(x=>x.name!==spec.name);registry.apis.push(registryEntry(spec,artifact));writeRegistry(registry);return registry.apis.find(x=>x.name===spec.name);}
 app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:"manifest-to-runnable-api"}));
-app.post("/v1/factory/research/username",async(request,reply)=>{\n  const denied=auth(request,reply);if(denied)return denied;\n  try{\n    const result=await runSherlock(request.body?.username,{\n      executable:process.env.SHERLOCK_BIN||"sherlock",\n      timeoutMs:request.body?.timeoutMs??30_000\n    });\n    return {ok:true,source:"sherlock",...result};\n  }catch(e){\n    const status=e.code==="SHERLOCK_UNAVAILABLE"?503:e.code==="SHERLOCK_TIMEOUT"?504:502;\n    return reply.code(status).send({ok:false,source:"sherlock",error:e.message,code:e.code,evidence:e.evidence||[]});\n  }\n});\napp.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","compile","register","inspect","username-discovery"],artifact:["server.mjs","package.json","openapi.json","README.md","ledger.mjs","usage.mjs","quota.mjs"],apiClasses:["ai","llm","vision","image","ocr","speech","translation","research","data","webhook","commerce","lead","custom-business"],evidence:["SPEC_VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","E2E_VERIFIED","BUSINESS_VERIFIED","HARDENED","DISCOVERY_UNVERIFIED"],providers:"adapter-based; unavailable providers fail closed"}));
+app.post("/v1/factory/research/username",async(request,reply)=>{
+  const denied=auth(request,reply);if(denied)return denied;
+  try{
+    const result=await runSherlock(request.body?.username,{
+      executable:process.env.SHERLOCK_BIN||"sherlock",
+      timeoutMs:request.body?.timeoutMs??30_000
+    });
+    return {ok:true,source:"sherlock",...result};
+  }catch(e){
+    const status=e.code==="SHERLOCK_UNAVAILABLE"?503:e.code==="SHERLOCK_TIMEOUT"?504:502;
+    return reply.code(status).send({ok:false,source:"sherlock",error:e.message,code:e.code,evidence:e.evidence||[]});
+  }
+});
 app.post("/v1/factory/deploy/plan",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,plan:deploymentPlan({target:request.body?.target,serviceName:request.body?.serviceName})};}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
 app.get("/v1/factory/apis",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;return {ok:true,apis:readRegistry().apis};});
 app.post("/v1/factory/validate",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,spec:validateSpec(request.body)}}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
