@@ -131,4 +131,30 @@ const probe=await soatAdapter.probe();
 assert.deepEqual(probe,{ok:true,kind:"soat",transport:true,authorization:true,status:200});
 await new Promise(resolve=>mockSoat.close(resolve));
 
+for(const scenario of [
+  {status:401,expected:{ok:false,kind:"soat",transport:true,authorization:false,status:401,reason:"invalid_credentials"}},
+  {status:403,expected:{ok:false,kind:"soat",transport:true,authorization:false,status:403,reason:"insufficient_permissions"}},
+  {status:404,expected:{ok:false,kind:"soat",transport:true,authorization:null,status:404,reason:"endpoint_not_found"}},
+  {status:500,expected:{ok:false,kind:"soat",transport:true,authorization:null,status:500,reason:"unexpected_response"}}
+]){
+  const server=createServer((request,response)=>{
+    assert.equal(request.method,"GET");
+    assert.equal(request.url,"/api/v1/projects");
+    assert.equal(request.headers.authorization,"Bearer soat-live-token");
+    response.writeHead(scenario.status,{"content-type":"application/json"});
+    response.end(JSON.stringify({error:"test"}));
+  });
+  await new Promise((resolve,reject)=>{server.once("error",reject);server.listen(0,"127.0.0.1",resolve);});
+  const adapter=createProviderAdapter({kind:"soat",baseUrl:"http://127.0.0.1:"+server.address().port,credentialEnv:"SOAT_TEST_KEY"});
+  assert.deepEqual(await adapter.probe(),scenario.expected);
+  await new Promise(resolve=>server.close(resolve));
+}
+
+const unreachable=createProviderAdapter({kind:"soat",baseUrl:"http://127.0.0.1:1",credentialEnv:"SOAT_TEST_KEY"});
+const unreachableProbe=await unreachable.probe();
+assert.equal(unreachableProbe.ok,false);
+assert.equal(unreachableProbe.kind,"soat");
+assert.equal(unreachableProbe.transport,false);
+assert.equal(unreachableProbe.reason,"unreachable");
+
 console.log("api-factory compiler + generated runtime + auth + idempotency + provider fail-closed + SOAT fail-closed + SOAT connectivity probe: PASS");
