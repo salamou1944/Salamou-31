@@ -56,8 +56,27 @@ Generated services include:
 
 ## Provider contract
 
-The core compiler is provider-neutral. Provider-backed operations declare an adapter kind and a credential environment variable name. Credentials are never emitted into generated source. The built-in `openai-compatible` adapter only reaches a provider when credentials and endpoint/model configuration are present. The built-in `soat` adapter requires credentials, a SOAT base URL, and `SOAT_AI_PROVIDER_ID`; it targets SOAT's OpenAI-compatible `/api/v1/chat/completions` boundary and fails closed when any required dependency is missing. It also exposes a non-mutating `probe()` diagnostic against `GET /api/v1/projects` so transport, authorization, endpoint mismatch, timeout, and unexpected responses can be distinguished without invoking an LLM.
+The core compiler is provider-neutral. Provider-backed operations declare an adapter kind and a credential environment variable name. Credentials are never emitted into generated source.
+
+The built-in `openai-compatible` adapter only reaches a provider when credentials and endpoint/model configuration are present.
+
+The built-in `soat` adapter requires credentials, a SOAT base URL, and `SOAT_AI_PROVIDER_ID`; it targets SOAT's OpenAI-compatible `/api/v1/chat/completions` boundary and fails closed when any required dependency is missing.
+
+### SOAT connectivity probe
+
+The SOAT adapter exposes a non-mutating `probe()` diagnostic. It sends an authenticated GET to `/api/v1/projects` and classifies:
+
+- 2xx -> transport and authorization accepted.
+- 401 -> invalid credentials.
+- 403 -> authenticated request rejected by authorization policy.
+- 404 -> endpoint/base URL mismatch.
+- other HTTP responses -> unexpected provider response.
+- timeout/unreachable -> transport failure.
+
+The endpoint and authentication requirement are verified against SOAT server source revision `600721c1fa30de27c14f6da5e5917049a533903`, where `GET /projects` calls `requireAuth` and lists only projects visible to the authenticated user. The probe is intentionally non-mutating and does not invoke an LLM.
 
 ## Deployment contract
 
 Deployment is an adapter boundary. Railway and Vercel plans explicitly report missing deployment credentials instead of pretending to deploy. A deployment artifact or healthy process is not promoted to provider or business evidence automatically.
+
+SOAT deployment remains blocked until a real self-hosted runtime and PostgreSQL/pgvector substrate are available. A Railway free-plan resource-provisioning failure is an infrastructure constraint, not deployment evidence.
