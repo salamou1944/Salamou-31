@@ -64,11 +64,70 @@ jobs:
           docker compose             -f /tmp/soat/tests/docker-compose.smoke.yml             -f /tmp/soat/tests/docker-compose.ci-override.yml             logs --no-color --tail=400 server
           exit 1
 
-      - name: Verify API Factory against real SOAT auth boundary
+      - name: Bootstrap authenticated local Ollama provider
+        id: soat-bootstrap
         env:
           SOAT_BASE_URL: http://127.0.0.1:50477
-          SOAT_API_KEY: ci-invalid-token
-          SOAT_AI_PROVIDER_ID: ci-provider
+        run: |
+          set -euo pipefail
+          USERNAME="ci-admin"
+          PASSWORD="$(openssl rand -hex 24)"
+
+          TOKEN="$(
+            curl --fail --silent --show-error               -X POST "$SOAT_BASE_URL/api/v1/users/bootstrap"               -H "Content-Type: application/json"               -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD"                 '{username:$u,password:$p}')" |
+            jq -er '.token'
+          )"
+
+          PROJECT_ID="$(
+            curl --fail --silent --show-error               -X POST "$SOAT_BASE_URL/api/v1/projects"               -H "Content-Type: application/json"               -H "Authorization: Bearer $TOKEN"               -d '{"name":"api-factory-runtime-smoke"}' |
+            jq -er '.id'
+          )"
+
+          PROVIDER_ID="$(
+            curl --fail --silent --show-error               -X POST "$SOAT_BASE_URL/api/v1/ai-providers"               -H "Content-Type: application/json"               -H "Authorization: Bearer $TOKEN"               -d "$(jq -nc --arg project "$PROJECT_ID"                 '{
+                  project_id:$project,
+                  name:"Local Ollama",
+                  provider:"ollama",
+                  base_url:"http://ollama-tool-choice:11434",
+                  default_model:"qwen2.5:0.5b"
+                }')" |
+            jq -er '.id'
+          )"
+
+          echo "::add-mask::$TOKEN"
+          echo "SOAT_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          echo "SOAT_AI_PROVIDER_ID=$PROVIDER_ID" >> "$GITHUB_ENV"
+          echo "SOAT_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
+          echo "Authenticated SOAT project/provider created: $PROJECT_ID / $PROVIDER_ID"
+
+      - name: Verify API Factory authenticated probe
+        env:
+          SOAT_BASE_URL: http://127.0.0.1:50477
+          SOAT_API_KEY: ${{ env.SOAT_TOKEN }}
+          SOAT_AI_PROVIDER_ID: ${{ env.SOAT_AI_PROVIDER_ID }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {createProviderAdapter} from "./AI-API-HUB/api-factory/provider.mjs";
+
+          const adapter = createProviderAdapter({
+            kind: "soat",
+            baseUrl: process.env.SOAT_BASE_URL,
+            credentialEnv: "SOAT_API_KEY"
+          });
+
+          const result = await adapter.probe();
+          console.log(JSON.stringify(result));
+          if (!result.ok || result.transport !== true || result.authorization !== true) {
+            process.exit(1);
+          }
+          NODE
+
+      - name: Verify API Factory real AI completion through SOAT and Ollama
+        env:
+          SOAT_BASE_URL: http://127.0.0.1:50477
+          SOAT_API_KEY: ${{ env.SOAT_TOKEN }}
+          SOAT_AI_PROVIDER_ID: ${{ env.SOAT_AI_PROVIDER_ID }}
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
@@ -81,17 +140,24 @@ jobs:
             credentialEnv: "SOAT_API_KEY"
           });
 
-          const result = await adapter.probe();
-          assert.deepEqual(result, {
-            ok: false,
-            kind: "soat",
-            transport: true,
-            authorization: false,
-            status: 401,
-            reason: "invalid_credentials"
+          const result = await adapter.execute({
+            messages: [
+              { role: "system", content: "Reply with a short factual answer." },
+              { role: "user", content: "What is 2 + 2? Reply with just the number." }
+            ],
+            temperature: 0
           });
 
-          console.log(JSON.stringify(result));
+          const content = result?.choices?.[0]?.message?.content;
+          assert.equal(typeof content, "string");
+          assert.ok(content.trim().length > 0, "SOAT returned an empty completion");
+
+          console.log(JSON.stringify({
+            ok: true,
+            provider: "soat",
+            completionChars: content.trim().length,
+            completion: content.trim()
+          }));
           NODE
 
       - name: Run official SOAT smoke suite
@@ -104,7 +170,7 @@ jobs:
         if: failure()
         working-directory: /tmp/soat
         run: |
-          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             logs --no-color --tail=500 server worker ollama-tool-choice || true
+          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             logs --no-color --tail=500 server worker ollama ollama-tool-choice || true
 
       - name: Cleanup SOAT runtime
         if: always()
