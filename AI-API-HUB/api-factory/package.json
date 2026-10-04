@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --check server.mjs && node --check factory.mjs && node --check provider.mjs && node --check research-routing.mjs && node --check research-evidence.mjs && node test-factory.mjs && node research-routing-test.mjs && node research-evidence-test.mjs",
+    "test": "node --check server.mjs && node --check factory.mjs && node --check provider.mjs && node --check research-routing.mjs && node --check research-evidence.mjs && node test-factory.mjs && node test-server.mjs && node research-routing-test.mjs && node research-evidence-test.mjs",
     "soat:probe": "node soat-probe.mjs"
   },
   "dependencies": {
