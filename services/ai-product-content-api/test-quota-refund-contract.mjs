@@ -22,7 +22,7 @@ assert.equal((source.match(/await refundQuotaOnce\(\)/g)||[]).length,4);
 assert.match(source,/releaseIdempotency\(apiKey,idempotencyKey,fingerprint,claim\.ownerToken\)/);
 assert.match(source,/const payload=\{ok:true,model,result\};/);
 const successBlock=source.slice(source.indexOf("const payload={ok:true,model,result};"));
-assert.match(successBlock,/const payload=\{ok:true,model,result\};[\\s\\S]*return payload;/);
+assert.match(successBlock,/const payload=\{ok:true,model,result\};[\s\S]*return payload;/);
 assert.match(successBlock,/if\(!persisted\)\{await refundQuotaOnce\(\);/);
 
 console.log(JSON.stringify({
