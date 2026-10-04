@@ -4,6 +4,7 @@ import path from "node:path";
 import {validateSpec,compileApi} from "./factory.mjs";
 import {deploymentPlan} from "./deployment.mjs";
 import {runSherlock} from "./sherlock-username.mjs";
+import {createExecutionRecord,assertStateExit} from "./execution-contract.mjs";
 
 const app=Fastify({logger:true,bodyLimit:64*1024});
 const port=Number(process.env.PORT||8797);
@@ -38,8 +39,10 @@ app.post("/v1/factory/build",async(request,reply)=>{
   try{
     const spec=validateSpec(request.body);
     const artifact=compileApi(spec,root);
+    const execution=createExecutionRecord({state:"BUILD",artifacts:{artifact},metadata:{api:spec.name,version:spec.version}});
+    assertStateExit(execution);
     const api=register(spec,artifact);
-    return reply.code(201).send({ok:true,artifact,api});
+    return reply.code(201).send({ok:true,artifact,api,execution});
   }catch(e){request.log.error({err:e},"factory build failed");return reply.code(400).send({ok:false,error:e.message});}
 });
 app.post("/v1/factory/register",async(request,reply)=>{
