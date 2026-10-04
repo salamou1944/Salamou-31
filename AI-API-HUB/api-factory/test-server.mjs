@@ -83,6 +83,19 @@ try{
   const missing=await fetch(base+"/v1/factory/inspect/missing-api",{headers:{"x-api-key":"factory-secret"}});
   assert.equal(missing.status,404);
 
+  const deploymentMissing=await fetch(base+"/v1/factory/deploy/plan",{method:"POST",headers,body:JSON.stringify({target:"railway",serviceName:"server-contract-demo"})});
+  assert.equal(deploymentMissing.status,200);
+  const deploymentBody=await deploymentMissing.json();
+  assert.equal(deploymentBody.ok,true);
+  assert.equal(deploymentBody.plan.target,"railway");
+  assert.equal(deploymentBody.plan.serviceName,"server-contract-demo");
+  assert.equal(deploymentBody.plan.deployable,false);
+  assert.deepEqual(deploymentBody.plan.missing,["RAILWAY_TOKEN"]);
+
+  const unsupportedDeployment=await fetch(base+"/v1/factory/deploy/plan",{method:"POST",headers,body:JSON.stringify({target:"unknown",serviceName:"server-contract-demo"})});
+  assert.equal(unsupportedDeployment.status,400);
+  assert.equal((await unsupportedDeployment.json()).ok,false);
+
   const registerUnknown=await fetch(base+"/v1/factory/register",{method:"POST",headers,body:JSON.stringify({...spec,name:"missing-build"})});
   assert.equal(registerUnknown.status,409);
 
