@@ -190,6 +190,26 @@ jobs:
           set -euo pipefail
           docker compose -p soat-official-smoke -f tests/docker-compose.smoke.yml run --rm smoke-test
 
+      - name: Validate execution contract from verified SOAT evidence
+        if: success()
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          import {createExecutionRecord,assertStateExit} from "./AI-API-HUB/api-factory/execution-contract.mjs";
+          const completion=JSON.parse(fs.readFileSync("/tmp/soat-completion.json","utf8"));
+          const probe=JSON.parse(fs.readFileSync("/tmp/soat-probe.json","utf8"));
+          const record=createExecutionRecord({
+            state:"VERIFY",
+            artifacts:{verification:{health:true,authentication:true,provider_resolved:true,api_factory_probe:probe.ok===true,real_chat_completion:completion.ok===true,official_smoke_suite:true}},
+            evidence:["soat-health","soat-authentication","api-factory-probe","real-chat-completion","official-soat-smoke"],
+            metadata:{workflow:"SOAT Runtime Integration Smoke",soat_sha:process.env.SOAT_SHA,run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA}
+          });
+          assertStateExit(record);
+          fs.writeFileSync("soat-execution-record.json",JSON.stringify(record,null,2)+"\n");
+          console.log(JSON.stringify(record));
+          NODE
+
       - name: Persist SOAT verification record
         if: success()
         run: |
