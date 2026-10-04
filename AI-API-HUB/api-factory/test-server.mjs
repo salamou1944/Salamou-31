@@ -49,8 +49,9 @@ try{
   assert.equal((await validate.json()).spec.name,spec.name);
 
   const build=await fetch(base+"/v1/factory/build",{method:"POST",headers,body:JSON.stringify(spec)});
-  assert.equal(build.status,201);
-  const built=await build.json();
+  const buildBody=await build.json();
+  assert.equal(build.status,201,JSON.stringify(buildBody));
+  const built=buildBody;
   assert.equal(built.api.name,spec.name);
   assert.equal(built.api.evidence,"COMPILED");
   assert.equal(built.api.deployment.status,"NOT_DEPLOYED");
