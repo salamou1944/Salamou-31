@@ -49,3 +49,8 @@ Never place the values themselves in this repository.
 The API Factory provider boundary is verified against the pinned SOAT runtime with a real local Ollama completion. SOAT system messages are mapped to the runtime `instructions` field, while non-system messages remain in `messages`. The smoke path also verifies authenticated project/provider creation, API Factory authorization, real completion, the official SOAT smoke suite in an isolated Compose project, and cleanup.
 
 This runtime proof is provider-neutral infrastructure evidence; it does not claim that every commercial provider is configured or that external provider credits are available.
+
+
+## Autonomous engineering fallback
+
+The Elite supervisor can use GitHub Copilot CLI through the GitHub Actions token when the repository's Copilot CLI policy permits `copilot-requests: write`. This is an execution fallback for engineering automation, not a commercial API-provider credential and not a claim that external model credits are configured.
