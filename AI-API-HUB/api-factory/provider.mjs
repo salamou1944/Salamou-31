@@ -36,6 +36,28 @@ export function createProviderAdapter(config){
       if(cfg.kind==="soat" && !process.env.SOAT_AI_PROVIDER_ID) return {available:false,reason:"missing_soat_ai_provider_id"};
       return {available:true,kind:cfg.kind,model:cfg.model||null,credentialFingerprint:token(credential)};
     },
+    async probe(){
+      if(cfg.kind!=="soat") return {ok:true,kind:cfg.kind,reason:"probe_not_required"};
+      const credential=cfg.credentialEnv ? process.env[cfg.credentialEnv] : null;
+      if(!credential) return {ok:false,kind:"soat",reason:"missing_credentials"};
+      if(!cfg.baseUrl) return {ok:false,kind:"soat",reason:"incomplete_configuration"};
+      if(!process.env.SOAT_AI_PROVIDER_ID) return {ok:false,kind:"soat",reason:"missing_soat_ai_provider_id"};
+      const endpoint=cfg.baseUrl+"/api/v1/projects";
+      try{
+        const response=await fetch(endpoint,{
+          method:"GET",
+          headers:{"authorization":"Bearer "+credential},
+          signal:AbortSignal.timeout(5000)
+        });
+        if(response.status>=200 && response.status<300) return {ok:true,kind:"soat",transport:true,authorization:true,status:response.status};
+        if(response.status===401) return {ok:false,kind:"soat",transport:true,authorization:false,status:401,reason:"invalid_credentials"};
+        if(response.status===403) return {ok:false,kind:"soat",transport:true,authorization:false,status:403,reason:"insufficient_permissions"};
+        if(response.status===404) return {ok:false,kind:"soat",transport:true,authorization:null,status:404,reason:"endpoint_not_found"};
+        return {ok:false,kind:"soat",transport:true,authorization:null,status:response.status,reason:"unexpected_response"};
+      }catch(error){
+        return {ok:false,kind:"soat",transport:false,reason:error?.name==="TimeoutError"?"timeout":"unreachable"};
+      }
+    },
     async execute(input){
       if(!["openai-compatible","soat"].includes(cfg.kind)) throw new ProviderUnavailableError("Unsupported provider adapter");
       const credential=cfg.credentialEnv ? process.env[cfg.credentialEnv] : null;
