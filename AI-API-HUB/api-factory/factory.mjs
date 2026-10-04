@@ -18,7 +18,7 @@ export function validateSpec(spec){
   if(typeof spec.version!=="string"||!/^v[0-9]+$/.test(spec.version)) throw new Error("version must look like v1");
   if(!Array.isArray(spec.operations)||spec.operations.length<1||spec.operations.length>100) throw new Error("operations must contain 1..100 items");
   if(!AUTH.test(spec.auth||"none")) throw new Error("auth must be none or api-key");
-  const provider=spec.provider;
+  const provider=spec.provider ?? undefined;
   if(provider!==undefined){
     if(!provider||typeof provider!=="object"||Array.isArray(provider)) throw new Error("provider must be an object");
     if(typeof provider.kind!=="string"||!/^[a-z][a-z0-9-]{2,62}$/.test(provider.kind)) throw new Error("provider.kind is invalid");
