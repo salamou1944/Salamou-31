@@ -66,7 +66,7 @@ jobs:
         working-directory: /tmp/soat
         run: |
           set -euo pipefail
-          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             up --build -d database ollama ollama-tool-choice formation-handler server worker
+          docker compose -p soat-runtime -f tests/docker-compose.smoke.yml -f tests/docker-compose.ci-override.yml up --build -d database ollama ollama-tool-choice formation-handler server worker
 
       - name: Verify SOAT health
         run: |
@@ -78,7 +78,7 @@ jobs:
             fi
             sleep 5
           done
-          docker compose             -f /tmp/soat/tests/docker-compose.smoke.yml             -f /tmp/soat/tests/docker-compose.ci-override.yml             logs --no-color --tail=400 server
+          docker compose -p soat-runtime -f /tmp/soat/tests/docker-compose.smoke.yml -f /tmp/soat/tests/docker-compose.ci-override.yml logs --no-color --tail=400 server
           exit 1
 
       - name: Bootstrap authenticated local Ollama provider
@@ -190,16 +190,18 @@ jobs:
         working-directory: /tmp/soat
         run: |
           set -euo pipefail
-          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             run --rm smoke-test
+          docker compose -p soat-official-smoke -f tests/docker-compose.smoke.yml run --rm smoke-test
 
       - name: Collect runtime diagnostics
         if: failure()
         working-directory: /tmp/soat
         run: |
-          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             logs --no-color --tail=500 server worker ollama ollama-tool-choice || true
+          docker compose -p soat-official-smoke -f tests/docker-compose.smoke.yml logs --no-color --tail=500 server worker ollama ollama-tool-choice || true
+          docker compose -p soat-runtime -f tests/docker-compose.smoke.yml -f tests/docker-compose.ci-override.yml logs --no-color --tail=500 server worker ollama ollama-tool-choice || true
 
       - name: Cleanup SOAT runtime
         if: always()
         working-directory: /tmp/soat
         run: |
-          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             down --volumes --remove-orphans || true
+          docker compose -p soat-official-smoke -f tests/docker-compose.smoke.yml down --volumes --remove-orphans || true
+          docker compose -p soat-runtime -f tests/docker-compose.smoke.yml -f tests/docker-compose.ci-override.yml down --volumes --remove-orphans || true
