@@ -51,7 +51,7 @@ npm install
 AI_PROVIDER_API_KEY=your_provider_key AI_MODEL=your_model SERVICE_API_KEYS=customer_key npm start
 ```
 
-Health check: `GET /health`. It returns HTTP 503 until both required credentials are configured.
+Human entry point: `GET /` returns a small customer-facing description of the API and the 7-day pilot.\n\nHealth check: `GET /health`. It returns HTTP 503 until both required credentials are configured.
 
 ## Commercial MVP
 
