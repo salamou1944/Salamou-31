@@ -14,7 +14,7 @@ assert.match(source,/return reply\.code\(502\)\.send\(\{error:"Generation failed
 assert.match(source,/if\(!isAuthorized\(request\)\)return reply\.code\(401\)/);
 assert.match(source,/const allowedFields=new Set\(\["product_name","product_details","language","image_url"\]\)/);
 assert.match(source,/if\(unknownFields\.length\)return reply\.code\(400\)/);
-assert.match(source,/const quotaReserved=await consumeDailyQuota/);
+assert.match(source,/quotaReserved = await consumeDailyQuota/);
 assert.match(source,/const refundQuotaOnce=async\(\)=>/);
 assert.match(source,/await refundQuotaOnce\(\);if\(idempotencyKey\)/);
 
