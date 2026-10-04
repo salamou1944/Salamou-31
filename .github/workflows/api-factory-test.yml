@@ -22,4 +22,8 @@ jobs:
         with:
           node-version: 22
       - run: npm install --ignore-scripts
+      - name: Install Sherlock
+        run: python -m pip install --user sherlock-project
+      - name: Verify Sherlock installation
+        run: python -m sherlock_project --version
       - run: npm test
