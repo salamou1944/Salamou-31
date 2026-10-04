@@ -85,4 +85,25 @@ assert.equal(readyBody.ready,false);
 assert.equal(readyBody.provider.reason,"missing_credentials");
 providerChild.kill("SIGTERM");
 await wait(300);
-console.log("api-factory compiler + generated runtime + auth + idempotency + provider fail-closed: PASS");
+const soatSpec={name:"soat-demo",version:"v1",auth:"none",provider:{kind:"soat",baseUrl:"http://127.0.0.1:5047",credentialEnv:"SOAT_TEST_KEY"},operations:[
+ {method:"POST",path:"/v1/generate",summary:"Generate through SOAT",handler:"provider",requestSchema:{type:"object"}}
+]};
+const soatArtifact=compileApi(soatSpec,root);
+const soatDir=path.join(root,"soat-demo");
+assert(soatArtifact.files.includes("provider.mjs"));
+execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:soatDir,stdio:"inherit"});
+const soatChild=spawn(process.execPath,["server.mjs"],{cwd:soatDir,env:{...process.env,PORT:"3009",SOAT_TEST_KEY:"soat-test-token",SOAT_AI_PROVIDER_ID:""},stdio:["ignore","pipe","pipe"]});
+let soatOutput="";
+soatChild.stdout.on("data",d=>{soatOutput+=d.toString();});
+soatChild.stderr.on("data",d=>{soatOutput+=d.toString();});
+await wait(1200);
+assert.equal(soatChild.exitCode,null,"SOAT runtime exited early: "+soatOutput);
+const soatReady=await fetch("http://127.0.0.1:3009/ready");
+assert.equal(soatReady.status,503);
+const soatReadyBody=await soatReady.json();
+assert.equal(soatReadyBody.ready,false);
+assert.equal(soatReadyBody.provider.reason,"missing_soat_ai_provider_id");
+soatChild.kill("SIGTERM");
+await wait(300);
+
+console.log("api-factory compiler + generated runtime + auth + idempotency + provider fail-closed + SOAT fail-closed: PASS");
