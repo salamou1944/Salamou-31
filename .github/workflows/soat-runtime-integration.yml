@@ -101,7 +101,7 @@ jobs:
             curl --fail --silent --show-error \
               -X POST "$SOAT_BASE_URL/api/v1/users/login" \
               -H "Content-Type: application/json" \
-              -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" \
+              -d "$(jq -nc --arg u "$USERNAME" --arg p "$BOOTSTRAP_CRED" \
                 '{username:$u,password:$p}')" |
             jq -er '.token'
           )"
