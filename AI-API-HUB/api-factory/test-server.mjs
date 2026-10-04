@@ -52,6 +52,9 @@ try{
   const buildBody=await build.json();
   assert.equal(build.status,201,JSON.stringify(buildBody));
   const built=buildBody;
+  assert.equal(built.execution.schema,"execution-contract/v1");
+  assert.equal(built.execution.state,"BUILD");
+  assert.equal(built.execution.artifacts.artifact.directory,built.artifact.directory);
   assert.equal(built.api.name,spec.name);
   assert.equal(built.api.evidence,"COMPILED");
   assert.equal(built.api.deployment.status,"NOT_DEPLOYED");
