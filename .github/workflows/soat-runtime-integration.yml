@@ -27,6 +27,23 @@ jobs:
       - name: Checkout Salamou-31
         uses: actions/checkout@v4
 
+      - name: Verify SOAT system-message request mapping
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const source = fs.readFileSync("./AI-API-HUB/api-factory/provider.mjs", "utf8");
+          for (const required of [
+            'const systemMessages=cfg.kind==="soat"',
+            'instructions:systemMessages.map((message)=>message.content).join("\\n\\n")',
+            'const requestMessages=cfg.kind==="soat"',
+            'messages:requestMessages'
+          ]) {
+            if (!source.includes(required)) throw new Error(`Missing SOAT request mapping: ${required}`);
+          }
+          console.log("SOAT system-message mapping guard: OK");
+          NODE
+
       - name: Checkout pinned SOAT
         shell: bash
         run: |
