@@ -39,3 +39,9 @@ The factory now compiles contracts into isolated Fastify services with:
 - deployment credential gating for Railway/Vercel
 
 A provider-backed API without real credentials remains **COMPILED** and can be **RUNTIME_VERIFIED** only for its fail-closed behavior; it is not **PROVIDER_VERIFIED** until a real provider response is observed.
+
+## Research evidence boundary
+
+The factory includes a provider-neutral evidence ledger extracted from the multi-source research pattern used by Panniantong/last30days-skill. It normalizes source URLs, removes duplicates, records retrieval time, classifies evidence as `fresh`, `stale`, `undated`, or `future`, and can fail closed when a minimum amount of fresh evidence is required.
+
+This is a contract layer only: it does not fetch external content or invent citations. A caller supplies observed research results, and the ledger preserves the evidence boundary for COLLECTION, revenue intelligence, and other research workflows.
