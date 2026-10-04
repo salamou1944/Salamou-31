@@ -31,5 +31,5 @@ jobs:
       - name: Test SOAT service creation without touching existing services
         run: |
           set -euo pipefail
-          railway add --service soat --json > /tmp/soat-add.json
+          railway add --service soat --project "${RAILWAY_PROJECT_ID}" --environment "${RAILWAY_ENVIRONMENT}" --yes --json > /tmp/soat-add.json
           cat /tmp/soat-add.json
