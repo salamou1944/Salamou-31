@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --check server.mjs && node --check factory.mjs && node --check provider.mjs && node test-factory.mjs"
+    "test": "node --check server.mjs && node --check factory.mjs && node --check provider.mjs && node test-factory.mjs",
+    "soat:probe": "node soat-probe.mjs"
   },
   "dependencies": {
     "fastify": "5.6.1"
