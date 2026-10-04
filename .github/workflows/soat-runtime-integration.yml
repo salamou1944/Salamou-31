@@ -73,8 +73,19 @@ jobs:
           USERNAME="ci-admin"
           PASSWORD="$(openssl rand -hex 24)"
 
+          # Bootstrap creates the first admin user; authentication is a separate login call.
+          curl --fail --silent --show-error \\
+            -X POST "$SOAT_BASE_URL/api/v1/users/bootstrap" \\
+            -H "Content-Type: application/json" \\
+            -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" \\
+              '{username:$u,password:$p}')" >/tmp/soat-bootstrap.json
+
           TOKEN="$(
-            curl --fail --silent --show-error               -X POST "$SOAT_BASE_URL/api/v1/users/bootstrap"               -H "Content-Type: application/json"               -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD"                 '{username:$u,password:$p}')" |
+            curl --fail --silent --show-error \\
+              -X POST "$SOAT_BASE_URL/api/v1/users/login" \\
+              -H "Content-Type: application/json" \\
+              -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" \\
+                '{username:$u,password:$p}')" |
             jq -er '.token'
           )"
 
