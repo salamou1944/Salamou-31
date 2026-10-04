@@ -1,0 +1,113 @@
+name: SOAT Runtime Integration Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "AI-API-HUB/api-factory/**"
+      - ".github/workflows/soat-runtime-integration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: soat-runtime-integration
+  cancel-in-progress: true
+
+jobs:
+  runtime-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SOAT_SHA: 600721c1fa30de27c14f6da5e5917049a5339036
+      SOAT_DIR: /tmp/soat
+
+    steps:
+      - name: Checkout Salamou-31
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned SOAT
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --no-checkout https://github.com/ttoss/soat.git "$SOAT_DIR"
+          git -C "$SOAT_DIR" checkout --detach "$SOAT_SHA"
+          test "$(git -C "$SOAT_DIR" rev-parse HEAD)" = "$SOAT_SHA"
+
+      - name: Create host-port override
+        shell: bash
+        run: |
+          cat > "$SOAT_DIR/tests/docker-compose.ci-override.yml" <<'EOF'
+          services:
+            server:
+              ports:
+                - "50477:50477"
+          EOF
+
+      - name: Start pinned SOAT runtime
+        working-directory: /tmp/soat
+        run: |
+          set -euo pipefail
+          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             up --build -d database ollama ollama-tool-choice formation-handler server worker
+
+      - name: Verify SOAT health
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:50477/health >/tmp/soat-health.json; then
+              cat /tmp/soat-health.json
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose             -f /tmp/soat/tests/docker-compose.smoke.yml             -f /tmp/soat/tests/docker-compose.ci-override.yml             logs --no-color --tail=400 server
+          exit 1
+
+      - name: Verify API Factory against real SOAT auth boundary
+        env:
+          SOAT_BASE_URL: http://127.0.0.1:50477
+          SOAT_API_KEY: ci-invalid-token
+          SOAT_AI_PROVIDER_ID: ci-provider
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import {createProviderAdapter} from "./AI-API-HUB/api-factory/provider.mjs";
+
+          const adapter = createProviderAdapter({
+            kind: "soat",
+            baseUrl: process.env.SOAT_BASE_URL,
+            credentialEnv: "SOAT_API_KEY"
+          });
+
+          const result = await adapter.probe();
+          assert.deepEqual(result, {
+            ok: false,
+            kind: "soat",
+            transport: true,
+            authorization: false,
+            status: 401,
+            reason: "invalid_credentials"
+          });
+
+          console.log(JSON.stringify(result));
+          NODE
+
+      - name: Run official SOAT smoke suite
+        working-directory: /tmp/soat
+        run: |
+          set -euo pipefail
+          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             run --rm smoke-test
+
+      - name: Collect runtime diagnostics
+        if: failure()
+        working-directory: /tmp/soat
+        run: |
+          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             logs --no-color --tail=500 server worker ollama-tool-choice || true
+
+      - name: Cleanup SOAT runtime
+        if: always()
+        working-directory: /tmp/soat
+        run: |
+          docker compose             -f tests/docker-compose.smoke.yml             -f tests/docker-compose.ci-override.yml             down --volumes --remove-orphans || true
