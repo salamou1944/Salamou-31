@@ -114,7 +114,6 @@ jobs:
       - name: Verify API Factory authenticated probe
         env:
           SOAT_BASE_URL: http://127.0.0.1:50477
-          SOAT_API_KEY: ${{ env.SOAT_TOKEN }}
           SOAT_AI_PROVIDER_ID: ${{ env.SOAT_AI_PROVIDER_ID }}
         run: |
           set -euo pipefail
@@ -124,7 +123,7 @@ jobs:
           const adapter = createProviderAdapter({
             kind: "soat",
             baseUrl: process.env.SOAT_BASE_URL,
-            credentialEnv: "SOAT_API_KEY"
+            credentialEnv: "SOAT_TOKEN"
           });
 
           const result = await adapter.probe();
@@ -148,7 +147,7 @@ jobs:
           const adapter = createProviderAdapter({
             kind: "soat",
             baseUrl: process.env.SOAT_BASE_URL,
-            credentialEnv: "SOAT_API_KEY"
+            credentialEnv: "SOAT_TOKEN"
           });
 
           const result = await adapter.execute({
