@@ -66,14 +66,19 @@ export function createProviderAdapter(config){
       const soatProviderId=cfg.kind==="soat" ? process.env.SOAT_AI_PROVIDER_ID : null;
       if(cfg.kind==="soat" && !soatProviderId) throw new ProviderUnavailableError("SOAT_AI_PROVIDER_ID is not configured");
       const endpoint=cfg.kind==="soat" ? cfg.baseUrl+"/api/v1/chat/completions" : cfg.baseUrl+"/chat/completions";
+      const messages=Array.isArray(input.messages) ? input.messages : [];
+      const systemMessages=cfg.kind==="soat" ? messages.filter((message)=>message?.role==="system") : [];
+      const requestMessages=cfg.kind==="soat" ? messages.filter((message)=>message?.role!=="system") : messages;
+      const requestBody={
+        ...(cfg.kind==="soat" ? {ai_provider_id:soatProviderId} : {model:cfg.model}),
+        ...(systemMessages.length ? {instructions:systemMessages.map((message)=>message.content).join("\n\n")} : {}),
+        messages:requestMessages,
+        ...(input.temperature!==undefined ? {temperature:input.temperature} : {})
+      };
       const response=await fetch(endpoint,{
         method:"POST",
         headers:{"content-type":"application/json","authorization":"Bearer "+credential},
-        body:JSON.stringify({
-          ...(cfg.kind==="soat" ? {ai_provider_id:soatProviderId} : {model:cfg.model}),
-          messages:input.messages||[],
-          ...(input.temperature!==undefined ? {temperature:input.temperature} : {})
-        })
+        body:JSON.stringify(requestBody)
       });
       if(!response.ok){
         const body=await response.text();
