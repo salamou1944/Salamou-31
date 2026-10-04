@@ -88,13 +88,13 @@ jobs:
         run: |
           set -euo pipefail
           USERNAME="ci-admin"
-          PASSWORD="$(openssl rand -hex 24)"
+          BOOTSTRAP_CRED="$(openssl rand -hex 24)"
 
           # Bootstrap creates the first admin user; authentication is a separate login call.
           curl --fail --silent --show-error \
             -X POST "$SOAT_BASE_URL/api/v1/users/bootstrap" \
             -H "Content-Type: application/json" \
-            -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" \
+            -d "$(jq -nc --arg u "$USERNAME" --arg p "$BOOTSTRAP_CRED" \
               '{username:$u,password:$p}')" >/tmp/soat-bootstrap.json
 
           TOKEN="$(
