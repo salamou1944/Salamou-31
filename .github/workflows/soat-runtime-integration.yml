@@ -74,17 +74,17 @@ jobs:
           PASSWORD="$(openssl rand -hex 24)"
 
           # Bootstrap creates the first admin user; authentication is a separate login call.
-          curl --fail --silent --show-error \\
-            -X POST "$SOAT_BASE_URL/api/v1/users/bootstrap" \\
-            -H "Content-Type: application/json" \\
-            -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" \\
+          curl --fail --silent --show-error \
+            -X POST "$SOAT_BASE_URL/api/v1/users/bootstrap" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" \
               '{username:$u,password:$p}')" >/tmp/soat-bootstrap.json
 
           TOKEN="$(
-            curl --fail --silent --show-error \\
-              -X POST "$SOAT_BASE_URL/api/v1/users/login" \\
-              -H "Content-Type: application/json" \\
-              -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" \\
+            curl --fail --silent --show-error \
+              -X POST "$SOAT_BASE_URL/api/v1/users/login" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -nc --arg u "$USERNAME" --arg p "$PASSWORD" \
                 '{username:$u,password:$p}')" |
             jq -er '.token'
           )"
@@ -136,7 +136,6 @@ jobs:
       - name: Verify API Factory real AI completion through SOAT and Ollama
         env:
           SOAT_BASE_URL: http://127.0.0.1:50477
-          SOAT_API_KEY: ${{ env.SOAT_TOKEN }}
           SOAT_AI_PROVIDER_ID: ${{ env.SOAT_AI_PROVIDER_ID }}
         run: |
           set -euo pipefail
