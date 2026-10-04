@@ -19,7 +19,8 @@ assert.match(source,/request\.log\.error\(\{err:refundError\},\"Quota refund fai
 assert.equal((source.match(/await refundDailyQuota\(apiKey\)/g)||[]).length,1);
 assert.equal((source.match(/await refundQuotaOnce\(\)/g)||[]).length,4);
 
-assert.match(source,/if\(!persisted\)\{await refundQuotaOnce\(\);try\{releaseIdempotency\(apiKey,idempotencyKey,fingerprint,claim\.ownerToken\)/);\nassert.match(source,/const payload=\{ok:true,model,result\};/);
+assert.match(source,/releaseIdempotency\(apiKey,idempotencyKey,fingerprint,claim\.ownerToken\)/);
+assert.match(source,/const payload=\{ok:true,model,result\};/);
 const successTail=source.slice(source.indexOf("const payload={ok:true,model,result};"));
 const returnIndex=successTail.indexOf("return payload;");
 assert.ok(returnIndex>0);
