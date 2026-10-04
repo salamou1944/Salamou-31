@@ -13,16 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: 778678c6-dd6e-40fe-a33e-63d0953ab7d4
       RAILWAY_ENVIRONMENT: production
     steps:
       - name: Install Railway CLI
         run: npm install --global @railway/cli
 
-      - name: Verify token can read the target project
+      - name: Verify workspace token can read the target project
         run: |
           set -euo pipefail
-          test -n "${RAILWAY_TOKEN}"
+          test -n "${RAILWAY_API_TOKEN}"
+          unset RAILWAY_TOKEN
           railway status --project "${RAILWAY_PROJECT_ID}" --environment "${RAILWAY_ENVIRONMENT}" --json > /tmp/railway-status.json
           jq '{projectId:(.project.id // .projectId // null), environmentId:(.environment.id // .environmentId // null), services:(.services // [] | map({id,name,status}))}' /tmp/railway-status.json
