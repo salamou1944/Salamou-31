@@ -25,6 +25,15 @@ export function validateSpec(spec){
     if(provider.credentialEnv!==undefined && (typeof provider.credentialEnv!=="string"||!/^[A-Z][A-Z0-9_]{1,127}$/.test(provider.credentialEnv))) throw new Error("provider.credentialEnv is invalid");
     if(provider.baseUrl!==undefined && (typeof provider.baseUrl!=="string"||!/^https?:\/\//.test(provider.baseUrl))) throw new Error("provider.baseUrl must be an http(s) URL");
     if(provider.model!==undefined && typeof provider.model!=="string") throw new Error("provider.model must be a string");
+    if(provider.freePolicy!==undefined){
+      const fp=provider.freePolicy;
+      if(!fp || typeof fp!=="object" || Array.isArray(fp)) throw new Error("provider.freePolicy must be an object");
+      if(fp.zeroCostOnly!==undefined && typeof fp.zeroCostOnly!=="boolean") throw new Error("provider.freePolicy.zeroCostOnly must be boolean");
+      for(const field of ["providerId","accessClass","freeStatus","quotaBasis","eligibilityGate","tosRisk","sourceLastResearched","sourceUrl"]){
+        if(fp[field]!==undefined && typeof fp[field]!=="string") throw new Error("provider.freePolicy."+field+" must be a string");
+      }
+      if(fp.hardStop!==undefined && typeof fp.hardStop!=="boolean") throw new Error("provider.freePolicy.hardStop must be boolean");
+    }
   }
   const seen=new Set();
   const operations=spec.operations.map((op)=>{
@@ -49,7 +58,20 @@ export function validateSpec(spec){
       kind:provider.kind,
       baseUrl:provider.baseUrl||null,
       model:provider.model||null,
-      credentialEnv:provider.credentialEnv||null
+      credentialEnv:provider.credentialEnv||null,
+      freePolicy:provider.freePolicy ? {
+        zeroCostOnly:provider.freePolicy.zeroCostOnly===true,
+        providerId:provider.freePolicy.providerId||null,
+        accessClass:provider.freePolicy.accessClass||null,
+        freeStatus:provider.freePolicy.freeStatus||null,
+        quotaBasis:provider.freePolicy.quotaBasis||null,
+        estimatedMonthlyTokens:provider.freePolicy.estimatedMonthlyTokens??null,
+        hardStop:provider.freePolicy.hardStop??null,
+        eligibilityGate:provider.freePolicy.eligibilityGate||null,
+        tosRisk:provider.freePolicy.tosRisk||null,
+        sourceLastResearched:provider.freePolicy.sourceLastResearched||null,
+        sourceUrl:provider.freePolicy.sourceUrl||null
+      } : null
     } : null,
     capabilities:Array.isArray(spec.capabilities)?spec.capabilities.filter(x=>typeof x==="string").slice(0,50):[],
     operations
