@@ -29,9 +29,7 @@ jobs:
           test -n "${RAILWAY_TOKEN}"
           unset RAILWAY_API_TOKEN
           railway status --project "${RAILWAY_PROJECT_ID}" --environment "${RAILWAY_ENVIRONMENT}" --json > /tmp/railway-status.json
-          jq --arg expected_project "${RAILWAY_EXPECTED_PROJECT_NAME}" \
-             --arg expected_service "${RAILWAY_EXPECTED_SERVICE_NAME}" \
-             --arg expected_repo "${RAILWAY_EXPECTED_REPO}" '
+          jq --arg expected_project "${RAILWAY_EXPECTED_PROJECT_NAME}"              --arg expected_service "${RAILWAY_EXPECTED_SERVICE_NAME}"              --arg expected_repo "${RAILWAY_EXPECTED_REPO}" '
             if .name != $expected_project then error("unexpected Railway project name") else . end |
             {
               projectId:.id,
@@ -52,3 +50,5 @@ jobs:
           test "${ACTUAL_REPO}" = "${EXPECTED_REPO}"
           echo "Verified Railway project and existing service: ${RAILWAY_EXPECTED_SERVICE_NAME} -> ${ACTUAL_REPO}"
           echo "Railway token access smoke target is valid."
+
+# Token-path smoke must use the project-scoped RAILWAY_TOKEN secret; API-token auth is intentionally disabled.
