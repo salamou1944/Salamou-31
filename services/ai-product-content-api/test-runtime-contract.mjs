@@ -16,6 +16,12 @@ assert.match(source,/const allowedFields=new Set\(\["product_name","product_deta
 assert.match(source,/if\(unknownFields\.length\)return reply\.code\(400\)/);
 assert.match(source,/quotaReserved = await consumeDailyQuota/);
 assert.match(source,/const refundQuotaOnce=async\(\)=>/);
+assert.match(source,/app\.post\("\/v1\/leads\/qualify"/);
+assert.match(source,/const leadQualificationSchema=/);
+assert.match(source,/name","company","email","phone","message","source/);
+assert.match(source,/name:\"lead_qualification\"/);
+assert.match(source,/Lead qualification failed/);
+
 assert.match(source,/await refundQuotaOnce\(\);if\(idempotencyKey\)/);
 
 const validationIndex=source.indexOf("const allowedFields=");
