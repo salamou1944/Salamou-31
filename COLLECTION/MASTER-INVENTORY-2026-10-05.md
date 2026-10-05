@@ -34,6 +34,7 @@ This section is the **account/source layer**. It is distinct from the repository
 - `firecrawl` — GitHub account/organization source; repository count previously verified as 111, not merely `firecrawl/firecrawl`.
 - `msitarzewski` — GitHub account/source; repository inventory to be scanned in full, including independent ready-made project potential.
 - `KorroAi` — GitHub account/source; MUE-X is one repository in this account; the account must be scanned in full under the universal two-axis rule.
+- `continuedev` — GitHub account/organization source; full repository inventory required. Continue/Checks are relevant coding-agent/CI assets, while archived/deprecated material must be separated from active candidates.
 - Agent Reach
 - mcporter
 - Ruflo
@@ -90,6 +91,7 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 - Firecrawl organization: full repository inventory below.
 - `msitarzewski`: newly added source account; full repository inventory scan pending.
 - `KorroAi`: newly added source account from `KorroAi/mue-x`; full account inventory required, not just MUE-X.
+- `continuedev`: newly added source account from `continuedev/continue`; full account inventory required, not just the main Continue repository.
 - Current Top Five queue (2026-10-04): debpalash/VoiceStudio; eternity4719/HowToLiveBetter; Niko1221/Strata; NVIDIA/OpenShell; KKKKhazix/AIHOT.
 
 ## Current Top Five — independent project scan
