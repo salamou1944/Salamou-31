@@ -87,6 +87,35 @@ assert.equal(readyBody.ready,false);
 assert.equal(readyBody.provider.reason,"missing_credentials");
 providerChild.kill("SIGTERM");
 await wait(300);
+const zeroCostRejectedSpec={name:"zero-cost-rejected",version:"v1",auth:"none",provider:{
+  kind:"openai-compatible",baseUrl:"https://example.invalid/v1",model:"test-model",credentialEnv:"TEST_PROVIDER_KEY",
+  freePolicy:{zeroCostOnly:true,providerId:"gemini",accessClass:"api_key",freeStatus:"recurring",quotaBasis:"provider-defined free quota",hardStop:false,eligibilityGate:"account_and_api_key",tosRisk:"review",sourceLastResearched:"2026-10-05",sourceUrl:"https://github.com/diegosouzapw/OmniRoute"}
+},operations:[{method:"POST",path:"/v1/generate",summary:"Zero cost policy rejection",handler:"provider",requestSchema:{type:"object"}}]};
+const rejectedArtifact=compileApi(zeroCostRejectedSpec,root);
+const rejectedDir=path.join(root,"zero-cost-rejected");
+execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:rejectedDir,stdio:"inherit"});
+const rejectedChild=spawn(process.execPath,["server.mjs"],{cwd:rejectedDir,env:{...process.env,PORT:"3010",TEST_PROVIDER_KEY:"present"},stdio:["ignore","pipe","pipe"]});
+await wait(1000);
+assert.equal(rejectedChild.exitCode,null);
+const rejectedReady=await fetch("http://127.0.0.1:3010/ready");
+assert.equal(rejectedReady.status,503);
+assert.equal((await rejectedReady.json()).provider.reason,"free_policy_not_hard_stop");
+rejectedChild.kill("SIGTERM");
+await wait(300);
+
+const zeroCostAllowedSpec={...zeroCostRejectedSpec,name:"zero-cost-allowed",provider:{...zeroCostRejectedSpec.provider,providerId:"ollama-local",model:"llama3",freePolicy:{zeroCostOnly:true,providerId:"ollama-local",accessClass:"local",freeStatus:"recurring",quotaBasis:"local_compute",hardStop:true,eligibilityGate:"local_runtime",tosRisk:"ok",sourceLastResearched:"2026-10-05",sourceUrl:"https://github.com/diegosouzapw/OmniRoute"}}};
+const allowedArtifact=compileApi(zeroCostAllowedSpec,root);
+const allowedDir=path.join(root,"zero-cost-allowed");
+execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:allowedDir,stdio:"inherit"});
+const allowedChild=spawn(process.execPath,["server.mjs"],{cwd:allowedDir,env:{...process.env,PORT:"3011",TEST_PROVIDER_KEY:"present"},stdio:["ignore","pipe","pipe"]});
+await wait(1000);
+assert.equal(allowedChild.exitCode,null);
+const allowedReady=await fetch("http://127.0.0.1:3011/ready");
+assert.equal(allowedReady.status,200);
+assert.equal((await allowedReady.json()).ready,true);
+allowedChild.kill("SIGTERM");
+await wait(300);
+
 const soatSpec={name:"soat-demo",version:"v1",auth:"none",provider:{kind:"soat",baseUrl:"http://127.0.0.1:5047",credentialEnv:"SOAT_TEST_KEY"},operations:[
  {method:"POST",path:"/v1/generate",summary:"Generate through SOAT",handler:"provider",requestSchema:{type:"object"}}
 ]};
