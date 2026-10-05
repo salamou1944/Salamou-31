@@ -20,6 +20,10 @@ Prioritized from the existing EASY API registry and current market demand.
 | Analytics | PostHog, Mixpanel, Google Analytics Data API | P1 | product/marketing analytics |
 | Moderation | OpenAI Moderation, Google NLP | P1 | content safety pipelines |
 
+## Free-provider policy
+
+The zero-cost routing boundary is defined in `FREE-PROVIDER-POLICY.md`, with a machine-readable fixture in `free-provider-policy-fixture.json` and a contract test in `test-free-provider-policy.mjs`. These artifacts adopt the Collection's verified OmniRoute provider-intelligence schema without importing OmniRoute runtime code.
+
 ## Credential variables
 Use names only; put actual values in runtime secret storage.
 
