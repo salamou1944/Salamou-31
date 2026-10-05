@@ -23,11 +23,26 @@ export function providerConfig(manifest={}){
 
 function token(value){return crypto.createHash("sha256").update(value).digest("hex").slice(0,16);}
 
+function zeroCostDecision(config){
+  const policy=config?.freePolicy;
+  if(!policy?.zeroCostOnly) return {allowed:true,mode:"normal"};
+  const required=["providerId","accessClass","freeStatus","quotaBasis","hardStop","eligibilityGate","tosRisk","sourceLastResearched","sourceUrl"];
+  for(const field of required){
+    if(policy[field]===undefined || policy[field]===null || policy[field]==="") return {allowed:false,reason:"free_policy_incomplete",field};
+  }
+  if(policy.hardStop!==true) return {allowed:false,reason:"free_policy_not_hard_stop"};
+  if(["avoid"].includes(policy.tosRisk)) return {allowed:false,reason:"free_policy_tos_risk"};
+  if(["none","unknown"].includes(policy.freeStatus)) return {allowed:false,reason:"free_policy_not_free"};
+  return {allowed:true,mode:"zero-cost"};
+}
+
 export function createProviderAdapter(config){
   const cfg=providerConfig({provider:config});
+  const zeroCost=zeroCostDecision(config);
   return {
     kind:cfg.kind,
     async health(){
+      if(!zeroCost.allowed) return {available:false,reason:zeroCost.reason};
       if(!cfg.configured) return {available:false,reason:"not_configured"};
       const credential=cfg.credentialEnv ? process.env[cfg.credentialEnv] : null;
       if(!credential) return {available:false,reason:"missing_credentials"};
@@ -59,6 +74,7 @@ export function createProviderAdapter(config){
       }
     },
     async execute(input){
+      if(!zeroCost.allowed) throw new ProviderUnavailableError("Provider rejected by zero-cost policy: "+zeroCost.reason);
       if(!["openai-compatible","soat"].includes(cfg.kind)) throw new ProviderUnavailableError("Unsupported provider adapter");
       const credential=cfg.credentialEnv ? process.env[cfg.credentialEnv] : null;
       if(!credential) throw new ProviderUnavailableError("Provider credentials are not configured");
