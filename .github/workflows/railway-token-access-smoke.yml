@@ -18,7 +18,7 @@ jobs:
       RAILWAY_ENVIRONMENT: production
       RAILWAY_EXPECTED_PROJECT_NAME: EASY Runtime Production
       RAILWAY_EXPECTED_SERVICE_NAME: easy-runtime
-      RAILWAY_EXPECTED_REPO: salamou1944/Salamou-31
+      RAILWAY_EXPECTED_SERVICE_ID: 88769852-0456-478b-b453-b80bc3953231
     steps:
       - name: Install Railway CLI
         run: npm install --global @railway/cli
@@ -29,26 +29,25 @@ jobs:
           test -n "${RAILWAY_TOKEN}"
           unset RAILWAY_API_TOKEN
           railway status --project "${RAILWAY_PROJECT_ID}" --environment "${RAILWAY_ENVIRONMENT}" --json > /tmp/railway-status.json
-          jq --arg expected_project "${RAILWAY_EXPECTED_PROJECT_NAME}"              --arg expected_service "${RAILWAY_EXPECTED_SERVICE_NAME}"              --arg expected_repo "${RAILWAY_EXPECTED_REPO}" '
+          jq --arg expected_project "${RAILWAY_EXPECTED_PROJECT_NAME}" --arg expected_service "${RAILWAY_EXPECTED_SERVICE_NAME}" --arg expected_service_id "${RAILWAY_EXPECTED_SERVICE_ID}" '
             if .name != $expected_project then error("unexpected Railway project name") else . end |
             {
               projectId:.id,
               projectName:.name,
               workspaceId:.workspaceId,
               productionEnvironmentId:(.environments.edges[] | .node | select(.name=="production") | .id),
-              services:(.services.edges | map(.node | {id,name,sourceRepo:(.source.repo // null)}) | map(select(.name==$expected_service))),
-              expectedRepo:$expected_repo
+              services:(.services.edges | map(.node | {id,name}) | map(select(.name==$expected_service))),
+              expectedServiceId:$expected_service_id
             }' /tmp/railway-status.json
 
-      - name: Verify existing Salamou-31 service instead of creating a duplicate
+      - name: Verify existing easy-runtime service instead of creating a duplicate
         run: |
           set -euo pipefail
-          EXPECTED_REPO="${RAILWAY_EXPECTED_REPO}"
           MATCH_COUNT="$(jq --arg name "${RAILWAY_EXPECTED_SERVICE_NAME}" '[.services.edges[]?.node | select(.name==$name)] | length' /tmp/railway-status.json)"
           test "${MATCH_COUNT}" -eq 1
-          ACTUAL_REPO="$(jq -r --arg name "${RAILWAY_EXPECTED_SERVICE_NAME}" '.services.edges[]?.node | select(.name==$name) | (.source.repo // "")' /tmp/railway-status.json)"
-          test "${ACTUAL_REPO}" = "${EXPECTED_REPO}"
-          echo "Verified Railway project and existing service: ${RAILWAY_EXPECTED_SERVICE_NAME} -> ${ACTUAL_REPO}"
+          ACTUAL_ID="$(jq -r --arg name "${RAILWAY_EXPECTED_SERVICE_NAME}" '.services.edges[]?.node | select(.name==$name) | .id' /tmp/railway-status.json)"
+          test "${ACTUAL_ID}" = "${RAILWAY_EXPECTED_SERVICE_ID}"
+          echo "Verified Railway project and existing service: ${RAILWAY_EXPECTED_SERVICE_NAME} (${ACTUAL_ID})"
           echo "Railway token access smoke target is valid."
 
-# Token-path smoke must use the project-scoped RAILWAY_TOKEN secret; API-token auth is intentionally disabled.
+# Token-path smoke uses the project-scoped RAILWAY_TOKEN secret; API-token auth is intentionally disabled.
