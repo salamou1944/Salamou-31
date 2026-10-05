@@ -34,7 +34,7 @@ This section is the **account/source layer**. It is distinct from the repository
 - `firecrawl` — GitHub account/organization source; repository count previously verified as 111, not merely `firecrawl/firecrawl`.
 - `msitarzewski` — GitHub account/source; repository inventory to be scanned in full, including independent ready-made project potential.
 - `KorroAi` — GitHub account/source; MUE-X is one repository in this account; the account must be scanned in full under the universal two-axis rule.
-- `continuedev` — GitHub account/organization source; full repository inventory required. Continue/Checks are relevant coding-agent/CI assets, while archived/deprecated material must be separated from active candidates.
+- `continuedev` — GitHub account/organization source; full repository inventory completed 2026-10-05 across 11 repositories. Continue/Checks/next-geo/Instinct are preserved as distinct candidates; archives and mirrors are separated.
 - Agent Reach
 - mcporter
 - Ruflo
@@ -91,7 +91,7 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 - Firecrawl organization: full repository inventory below.
 - `msitarzewski`: newly added source account; full repository inventory scan pending.
 - `KorroAi`: newly added source account from `KorroAi/mue-x`; full account inventory required, not just MUE-X.
-- `continuedev`: newly added source account from `continuedev/continue`; full account inventory required, not just the main Continue repository.
+- `continuedev`: full account inventory completed 2026-10-05; 11 repositories evaluated under the universal two-axis rule.
 - Current Top Five queue (2026-10-04): debpalash/VoiceStudio; eternity4719/HowToLiveBetter; Niko1221/Strata; NVIDIA/OpenShell; KKKKhazix/AIHOT.
 
 ## Current Top Five — independent project scan
@@ -234,3 +234,31 @@ P1 integrations/agent control: firecrawl-mcp-server, firecrawl-docker-sandbox, n
 5. Run isolated tests/smoke checks.
 6. Only then map into EASY, MONY, SOAT/API Factory, Elite/ARMY-14, YouTube, or a new independent revenue asset.
 7. Never treat collection/research evidence as production proof.
+
+## Newly completed source account — continuedev
+Account inventory evidence: GitHub organization page shows 11 public repositories; connector account listing was empty, so repository discovery was cross-checked through GitHub repository search and the public organization page. The 11-repository set is preserved below. citeturn0search0
+
+Two-axis evaluation:
+
+| Repository | Axis 1 — reusable capability | Axis 2 — independent project potential | Classification / decision |
+|---|---|---|---|
+| `continuedev/continue` | **HIGH** — mature coding-agent core, CLI, VS Code/JetBrains integrations, model/provider/config architecture | **HIGH** — standalone coding agent, but upstream states it is no longer actively maintained/read-only | **READY_PROJECT + COMPONENT/AGENT**; preserve as source/foundation, not as an active dependency without security/fork gate |
+| `continuedev/continue-fork` | **HIGH** — same large codebase lineage and agent infrastructure | **HIGH** — independently usable fork lineage | **READY_PROJECT candidate / FORK**; preserve, but do not duplicate `continue` until exact divergence is inspected |
+| `continuedev/checks` | **VERY HIGH** — markdown judgment-based AI checks, setup skill, local execution and GitHub Actions CI | **MEDIUM-HIGH** — productized quality-gate tool/service potential | **REVENUE_ASSET + COMPONENT/CI**; high priority for Elite/ARMY-14 and repo governance |
+| `continuedev/next-geo` | **VERY HIGH** — Next.js middleware/handler for LLM-readable Markdown, llms.txt, discovery headers, caching/security | **HIGH** — focused deployable package/service with clear product surface | **READY_PROJECT + COMPONENT/SEO/AGENT-WEB**; high priority for web/API assets |
+| `continuedev/instinct` | **HIGH** — next-edit model training/evaluation pipeline | **MEDIUM** — standalone ML/research asset, but archived and hardware/dependency heavy | **RESEARCH/ML_ASSET**; preserve, no production adoption yet |
+| `continuedev/amplified.dev` | LOW-MEDIUM — static-site pattern and project-specific checks | MEDIUM as reusable editorial/static-site template, not a core product | **TEMPLATE/DEMO**; preserve only as reference, low priority |
+| `continuedev/continue-home` | LOW — static archive/site asset | LOW-MEDIUM — deployable static site but explicitly an archive | **ARCHIVE/REFERENCE**; preserve provenance, low adoption priority |
+| `continuedev/continue-blog` | LOW-MEDIUM — fully vendored static Next export with no runtime external dependency | MEDIUM — immediately deployable static content/archive | **ARCHIVE/STATIC-ASSET**; preserve, not a priority product |
+| `continuedev/continue-landing-archive` | NONE | NONE — README explicitly calls it inert/safe to delete | **LOW_VALUE / ARCHIVE**; retain only as provenance record, do not adopt |
+| `continuedev/continuousai.com` | LOW-MEDIUM — small Next.js site scaffold | LOW-MEDIUM — deployable website, but primarily historical brand site | **DEMO/TEMPLATE/ARCHIVE**; low priority |
+| `continuedev/.github` | LOW — organization metadata | NONE | **ORG_METADATA**; no project adoption |
+
+### continuedev conclusions
+- **KEEP the source account.** It contains multiple independent candidates, not merely one coding-agent repository.
+- **P0 candidates:** `checks` and `next-geo`. They have strong direct reuse and independent product potential. The `checks` README documents judgment-based AI checks, a setup command, reusable checks, and CI integration; `next-geo` documents an installable Next.js package with Markdown/LLM discovery, auto-conversion, llms.txt, caching and SSRF protections. citeturn0search0
+- **P1:** `continue` / `continue-fork` as coding-agent foundations; preserve independently, but do not treat the upstream `continue` repo as an actively maintained production dependency because its README explicitly says it is read-only/no longer actively maintained. citeturn0search1turn0search3
+- **P1 research:** `instinct`.
+- **Low-value/archive:** `continue-landing-archive`, `.github`, `continue-home`; retain only where provenance/history matters. The landing archive itself states it is inert and safe to delete. 
+- **License:** the principal code assets examined here are Apache-2.0; commercial reuse still requires checking dependency/model licenses and exact files before adoption.
+- **Evidence boundary:** README/repository evidence is collection evidence, not production proof. Before code adoption, run exact-path inspection, dependency/license audit, isolated tests, security review, and runtime proof.
