@@ -208,11 +208,39 @@ jobs:
           console.log(JSON.stringify(evidence));
           NODE
 
-      - name: Run official SOAT smoke suite
+      - name: Run official SOAT smoke suite with bounded evidence runner
         working-directory: /tmp/soat
         run: |
           set -euo pipefail
-          docker compose -p soat-official-smoke -f tests/docker-compose.smoke.yml run --rm smoke-test
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          import {runEvidenceCommand} from "$GITHUB_WORKSPACE/AI-API-HUB/api-factory/evidence-runner.mjs";
+
+          const result = await runEvidenceCommand({
+            command: "docker",
+            args: [
+              "compose",
+              "-p", "soat-official-smoke",
+              "-f", "tests/docker-compose.smoke.yml",
+              "run", "--rm", "smoke-test"
+            ],
+            cwd: "/tmp/soat",
+            timeoutMs: 10 * 60 * 1000
+          });
+
+          fs.writeFileSync("/tmp/soat-official-smoke-evidence.json", JSON.stringify(result, null, 2) + "\n");
+          console.log(JSON.stringify({
+            schema: result.schema,
+            status: result.status,
+            exitCode: result.exitCode,
+            timedOut: result.timedOut,
+            durationMs: result.durationMs
+          }));
+
+          if (result.status !== "passed") process.exit(1);
+          NODE
+
+      - name: Validate execution contract from verified SOAT evidence
 
       - name: Validate execution contract from verified SOAT evidence
         if: success()
