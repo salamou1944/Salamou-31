@@ -3,6 +3,71 @@
 ## Governing rule
 This inventory is exhaustive at the repository-list level for the sources recorded below. No repository is discarded merely because it does not fit a current project. Every repository is classified for both immediate reuse and independent ready-made project potential. Code-level adoption requires a later evidence gate: exact path inspection, license check, isolated test, and runtime/deployment proof.
 
+## Canonical Collection source-account registry — recovered 2026-10-05
+
+This section is the **account/source layer**. It is distinct from the repository inventory below. Each account/source must be scanned across its full repository list before repository-level classification.
+
+### Primary account inventories
+- `aw-junaid` — prior full account inventory: 33 repositories.
+- `mufeedvh` — prior full account inventory: 43 repositories.
+- `Panniantong` — prior full account inventory: 38 repositories.
+- `salamou1944` — prior account inventory: 8 repositories.
+- Separate Nmap source set — 7 repositories; keep as its own source group.
+
+### Collection intelligence / project sources
+- `agentskillexchange/skills`
+- `msajja5/agent-skills`
+- `maaarcooo/agent-skills`
+- `onfire7777/universal-ai-skills-library`
+- `mnfst/awesome-free-llm-apis`
+- `diegosouzapw/OmniRoute`
+- `firecrawl` — GitHub account/organization source; repository count previously verified as 111, not merely `firecrawl/firecrawl`.
+- Agent Reach
+- mcporter
+- Ruflo
+- Firecrawl
+- Crawl4AI
+- Scrapy
+- Playwright
+- Browser Use
+- Docling
+- OCRmyPDF
+- Qdrant
+- rembg
+- Upscayl
+- whisper.cpp
+- FFmpeg
+- OpenAI Agents SDK
+- PydanticAI
+- smolagents
+- Weaviate
+- Milvus
+- HelixDB
+
+### Weekly / curated Top Five history — preserve as source records, do not overwrite
+The Collection process has used multiple Top Five snapshots over time. They remain historical source records and are not interchangeable:
+- 2026-09-26: `cloudflare/security-audit-skill`; `alibaba/open-code-review`; `affaan-m/ECC`; `stablyai/orca`; `Tencent/WeKnora`.
+- 2026-09-27: `Agent Zero`; `OpenClaw API List`; `agentic-ai-apis`; `AI Engineering From Scratch`; `awesome-free-llm-apis`.
+- 2026-09-27 secondary source sweep: Agent Reach, mcporter, Ruflo, Firecrawl, Crawl4AI, Scrapy, Playwright, Browser Use, Docling, OCRmyPDF, Qdrant, rembg, Upscayl, whisper.cpp, FFmpeg.
+- 2026-09-27 account inventory sweep: `aw-junaid`, `mufeedvh`, `Panniantong`, `salamou1944`, plus the separate Nmap set.
+- 2026-09-27: `cloudflare/security-audit-skill`; `stablyai/orca`; `alibaba/open-code-review`; `affaan-m/ECC`; `DietrichGebert/ponytail`.
+- 2026-10-03: `DietrichGebert/ponytail`; `mattpocock/skills`; `obra/superpowers`; `cloudflare/security-audit-skill`; `JuliusBrussee/caveman`.
+
+### Current Top Five queue already recorded for 2026-10-04
+- `debpalash/VoiceStudio`
+- `eternity4719/HowToLiveBetter`
+- `Niko1221/Strata`
+- `NVIDIA/OpenShell`
+- `KKKKhazix/AIHOT`
+
+### Operating rule
+1. The **account/source list is canonical at the source layer**; Firecrawl is one source account, not the whole Collection.
+2. For every source account, enumerate the complete repository set.
+3. Classify every repository on two independent axes: immediate reusable capability and independent ready-made/near-ready project potential.
+4. Preserve provenance and license boundaries before deduplication.
+5. Only after full-source inventory may candidates be mapped into EASY, MONY, SOAT/API Factory, Elite/ARMY-14, YouTube, or an independent revenue asset.
+6. A historical Top Five snapshot must never replace the full account/source registry.
+
 ## Active source set
 - Skill collections: agentskillexchange/skills; msajja5/agent-skills (VoltAgent-derived); maaarcooo/agent-skills; onfire7777/universal-ai-skills-library.
 - Free-provider intelligence: mnfst/awesome-free-llm-apis.
