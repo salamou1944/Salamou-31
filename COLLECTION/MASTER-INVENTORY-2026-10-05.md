@@ -33,6 +33,7 @@ This section is the **account/source layer**. It is distinct from the repository
 - `diegosouzapw/OmniRoute`
 - `firecrawl` — GitHub account/organization source; repository count previously verified as 111, not merely `firecrawl/firecrawl`.
 - `msitarzewski` — GitHub account/source; repository inventory to be scanned in full, including independent ready-made project potential.
+- `KorroAi` — GitHub account/source; MUE-X is one repository in this account; the account must be scanned in full under the universal two-axis rule.
 - Agent Reach
 - mcporter
 - Ruflo
@@ -88,6 +89,7 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 - Provider/router intelligence: diegosouzapw/OmniRoute.
 - Firecrawl organization: full repository inventory below.
 - `msitarzewski`: newly added source account; full repository inventory scan pending.
+- `KorroAi`: newly added source account from `KorroAi/mue-x`; full account inventory required, not just MUE-X.
 - Current Top Five queue (2026-10-04): debpalash/VoiceStudio; eternity4719/HowToLiveBetter; Niko1221/Strata; NVIDIA/OpenShell; KKKKhazix/AIHOT.
 
 ## Current Top Five — independent project scan
@@ -210,6 +212,11 @@ Repository count returned by GitHub organization search: 111.
 - web-agent — READY_PROJECT
 - webmcp-firecrawl-demo — COMPONENT/OTHER
 - worldguessr — READY_PROJECT
+
+## Newly discovered source — KorroAi / MUE-X
+- `KorroAi/mue-x` — **READY_PROJECT candidate + high-value COMPONENT/INFRA candidate**. MIT licensed. Self-evolving Python agent with AST-level mutation, rollback/validation, persistent SQLite FTS5 memory, GitHub absorption, autonomous drives, MCP/tool creation, multi-interface operation, and REST API. The repository is independently usable and therefore must be preserved as an independent candidate even if its components are later mapped into Elite/ARMY-14 or Collection infrastructure.
+- Source account: `KorroAi`. GitHub currently shows 10 repositories for the account; only MUE-X has been evaluated here. The remaining repositories must receive the same two-axis evaluation before the account is considered fully inventoried.
+- Evidence: MUE-X README and technical whitepaper describe the standalone CLI, self-modification safeguards, memory architecture, GitHub mining, and REST API. External production suitability remains unproven until isolated execution/security/dependency testing is performed.
 
 ## Firecrawl deep-review queue
 P0 independent ready-made products: open-lovable, open-agent-builder, open-scouts, web-agent, fireplexity, firesearch, openwork, openclaude, openclaw, worldguessr, AIHOT-style news/monitoring candidates, firecrawl-ai-chatbot, rag-arena.
