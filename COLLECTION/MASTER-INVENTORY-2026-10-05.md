@@ -1,0 +1,147 @@
+# COLLECTION MASTER INVENTORY — 2026-10-05
+
+## Governing rule
+This inventory is exhaustive at the repository-list level for the sources recorded below. No repository is discarded merely because it does not fit a current project. Every repository is classified for both immediate reuse and independent ready-made project potential. Code-level adoption requires a later evidence gate: exact path inspection, license check, isolated test, and runtime/deployment proof.
+
+## Active source set
+- Skill collections: agentskillexchange/skills; msajja5/agent-skills (VoltAgent-derived); maaarcooo/agent-skills; onfire7777/universal-ai-skills-library.
+- Free-provider intelligence: mnfst/awesome-free-llm-apis.
+- Provider/router intelligence: diegosouzapw/OmniRoute.
+- Firecrawl organization: full repository inventory below.
+- Current Top Five queue (2026-10-04): debpalash/VoiceStudio; eternity4719/HowToLiveBetter; Niko1221/Strata; NVIDIA/OpenShell; KKKKhazix/AIHOT.
+
+## Current Top Five — independent project scan
+- `debpalash/VoiceStudio` — READY_PROJECT candidate; open-source desktop/local voice cloning, design, dubbing, dictation, transcription and audiobook workflow. License: AGPL-3.0. Commercial reuse requires license boundary review.
+- `eternity4719/HowToLiveBetter` — READY_PROJECT / knowledge-product candidate; 665 evidence-graded life/legal/financial guidance entries plus searchable site and AI skill. License: CC BY 4.0. Content jurisdiction is China-specific; reuse requires localization and legal/evidence review.
+- `Niko1221/Strata` — READY_PROJECT candidate; local 125B model runtime for gaming PCs with OpenAI/Anthropic-compatible endpoints and MCP. Free/open source; exact license and model-license chain must be verified before commercial use.
+- `NVIDIA/OpenShell` — READY_PROJECT / INFRA candidate; sandboxed agent runtime with gateway, policy, providers, SDKs and skills. Apache-2.0 per README. Strong candidate for Elite/ARMY-14 execution isolation.
+- `KKKKhazix/AIHOT` — READY_PROJECT candidate; complete industry-news engine with ingestion, ranking, clustering, editions, RSS/API/MCP and customizable prompts. MIT; brand/name excluded from license. Strong independent product candidate and research/revenue asset.
+
+## Firecrawl — full organization inventory
+Repository count returned by GitHub organization search: 111.
+- .github — DOC/THEME
+- agent-browser-plugin-firecrawl — INTEGRATION
+- agent-skills — SKILL/PLUGIN
+- ai-customer-support-bot — COMPONENT/OTHER
+- ai-discord-bot — COMPONENT/OTHER
+- ai-ready-website — READY_PROJECT
+- AI-research-SKILLs — RESEARCH/BENCHMARK
+- ai-slack-bot — READY_PROJECT
+- anydoc — COMPONENT/OTHER
+- auto-draft — COMPONENT/OTHER
+- awesome-agent-skills — SKILL/PLUGIN
+- benchmark-devdex — RESEARCH/BENCHMARK
+- brand-extender — COMPONENT/OTHER
+- calamine — INFRA/LIBRARY
+- claude-plugins-official — SKILL/PLUGIN
+- claude-skill-generator — SKILL/PLUGIN
+- claude37aginews — RESEARCH/BENCHMARK
+- claude37TrendFinder — RESEARCH/BENCHMARK
+- cli — TOOL/TEMPLATE
+- cli-1 — COMPONENT/OTHER
+- company-funding — READY_PROJECT
+- create-llmstxt-py — COMPONENT/OTHER
+- data-connectors — COMPONENT/OTHER
+- docusaurus-theme-mendable — DOC/THEME
+- dsh-firecrawl — COMPONENT/OTHER
+- fastmcp — INFRA/LIBRARY
+- fire-enrich — COMPONENT/OTHER
+- firecrawl — INFRA/LIBRARY
+- firecrawl_base_nextjs — TOOL/TEMPLATE
+- firecrawl-ai-chatbot — READY_PROJECT
+- firecrawl-app-examples — TOOL/TEMPLATE
+- firecrawl-arcade — INTEGRATION
+- firecrawl-claude-plugin — INTEGRATION
+- firecrawl-codex-plugin — INTEGRATION
+- firecrawl-convex — INTEGRATION
+- firecrawl-coupon-finder — READY_PROJECT
+- firecrawl-cursor-plugin — INTEGRATION
+- firecrawl-discord-bot — READY_PROJECT
+- firecrawl-docker-sandbox — INFRA/LIBRARY
+- firecrawl-docs — DOC/THEME
+- firecrawl-example-app-template — TOOL/TEMPLATE
+- firecrawl-go — INTEGRATION
+- firecrawl-go-examples — COMPONENT/OTHER
+- firecrawl-grok-plugin — INTEGRATION
+- firecrawl-java-sdk — INTEGRATION
+- firecrawl-mcp-server — INTEGRATION
+- firecrawl-migrator — INTEGRATION
+- firecrawl-next-supa-in-1 — COMPONENT/OTHER
+- firecrawl-nextjs-template — READY_PROJECT
+- firecrawl-observer — COMPONENT/OTHER
+- firecrawl-obsidian — READY_PROJECT
+- firecrawl-php — INTEGRATION
+- firecrawl-py — INTEGRATION
+- firecrawl-theme — DOC/THEME
+- firecrawl-vercel-integration — INTEGRATION
+- firecrawl-workflows — TOOL/TEMPLATE
+- firegeo — COMPONENT/OTHER
+- firegraph — READY_PROJECT
+- fireplexity — READY_PROJECT
+- firesearch — READY_PROJECT
+- firestarter — COMPONENT/OTHER
+- gemini-aginews — RESEARCH/BENCHMARK
+- gemini-trendfinder — RESEARCH/BENCHMARK
+- gen-ui-firecrawl — COMPONENT/OTHER
+- grok-4-fire-enrich — COMPONENT/OTHER
+- haystack-integrations — INTEGRATION
+- hive — COMPONENT/OTHER
+- html-extractor — COMPONENT/OTHER
+- html-to-markdown — INFRA/LIBRARY
+- jobMatcher — COMPONENT/OTHER
+- langchain-firecrawl — INTEGRATION
+- last30flames — RESEARCH/BENCHMARK
+- llmstxt-generator — COMPONENT/OTHER
+- lopdf — INFRA/LIBRARY
+- mcp-typescript-sdk — COMPONENT/OTHER
+- mendable-cli — COMPONENT/OTHER
+- mendable-nextjs-chatbot — READY_PROJECT
+- mendable-py — COMPONENT/OTHER
+- mhtml2html — INFRA/LIBRARY
+- mineru-api — INFRA/LIBRARY
+- mupdf — INFRA/LIBRARY
+- n8n-nodes-firecrawl — INTEGRATION
+- nextra-test — COMPONENT/OTHER
+- nodesig — COMPONENT/OTHER
+- npx-generate-llmstxt — COMPONENT/OTHER
+- open-agent-builder — READY_PROJECT
+- open-lovable — READY_PROJECT
+- open-researcher — COMPONENT/OTHER
+- open-scouts — READY_PROJECT
+- Open-WebUI-Pipelines — COMPONENT/OTHER
+- openai-skills — SKILL/PLUGIN
+- openai-structured-outputs-with-firecrawl — COMPONENT/OTHER
+- openclaude — READY_PROJECT
+- openclaw — READY_PROJECT
+- opencode-firecrawl — INTEGRATION
+- opendataloader-bench — RESEARCH/BENCHMARK
+- OpenManus — READY_PROJECT
+- openwork — READY_PROJECT
+- pdf-inspector — COMPONENT/OTHER
+- pdfium-rs — INFRA/LIBRARY
+- pi-firecrawl — INTEGRATION
+- pi-skills — SKILL/PLUGIN
+- QA_clustering — RESEARCH/BENCHMARK
+- rag-arena — READY_PROJECT
+- refly-skills — SKILL/PLUGIN
+- simd-html-to-md — INFRA/LIBRARY
+- skills — SKILL/PLUGIN
+- trendCron — COMPONENT/OTHER
+- web-agent — READY_PROJECT
+- webmcp-firecrawl-demo — COMPONENT/OTHER
+- worldguessr — READY_PROJECT
+
+## Firecrawl deep-review queue
+P0 independent ready-made products: open-lovable, open-agent-builder, open-scouts, web-agent, fireplexity, firesearch, openwork, openclaude, openclaw, worldguessr, AIHOT-style news/monitoring candidates, firecrawl-ai-chatbot, rag-arena.
+P0 commercial/data asset: company-funding.
+P1 research/knowledge assets: AI-research-SKILLs, QA_clustering, benchmark-devdex, opendataloader-bench, last30flames.
+P1 integrations/agent control: firecrawl-mcp-server, firecrawl-docker-sandbox, n8n-nodes-firecrawl, langchain-firecrawl, firecrawl-convex, firecrawl-vercel-integration, haystack-integrations, agent-browser-plugin-firecrawl, firecrawl-cursor-plugin, firecrawl-claude-plugin, firecrawl-codex-plugin.
+
+## Adoption gate
+1. Inventory first.
+2. Detect ready-made project separately from reusable component.
+3. Check license and dependency/model-license chain.
+4. Inspect exact implementation path.
+5. Run isolated tests/smoke checks.
+6. Only then map into EASY, MONY, SOAT/API Factory, Elite/ARMY-14, YouTube, or a new independent revenue asset.
+7. Never treat collection/research evidence as production proof.
