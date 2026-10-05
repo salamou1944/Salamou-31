@@ -140,7 +140,19 @@ jobs:
           const adapter = createProviderAdapter({
             kind: "soat",
             baseUrl: process.env.SOAT_BASE_URL,
-            credentialEnv: "SOAT_TOKEN"
+            credentialEnv: "SOAT_TOKEN",
+            freePolicy: {
+              zeroCostOnly: true,
+              providerId: "ollama-local",
+              accessClass: "local",
+              freeStatus: "recurring",
+              quotaBasis: "local-compute",
+              hardStop: true,
+              eligibilityGate: "local-runtime",
+              tosRisk: "ok",
+              sourceLastResearched: "2026-10-05",
+              sourceUrl: "https://ollama.com"
+            }
           });
 
           const result = await adapter.probe();
@@ -164,7 +176,19 @@ jobs:
           const adapter = createProviderAdapter({
             kind: "soat",
             baseUrl: process.env.SOAT_BASE_URL,
-            credentialEnv: "SOAT_TOKEN"
+            credentialEnv: "SOAT_TOKEN",
+            freePolicy: {
+              zeroCostOnly: true,
+              providerId: "ollama-local",
+              accessClass: "local",
+              freeStatus: "recurring",
+              quotaBasis: "local-compute",
+              hardStop: true,
+              eligibilityGate: "local-runtime",
+              tosRisk: "ok",
+              sourceLastResearched: "2026-10-05",
+              sourceUrl: "https://ollama.com"
+            }
           });
 
           const result = await adapter.execute({
