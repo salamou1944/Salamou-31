@@ -1,5 +1,6 @@
 name: SOAT Runtime Integration Smoke
 
+# CI revalidation marker: force a fresh integration run after evidence-consumer changes.
 on:
   push:
     branches: [main]
@@ -89,39 +90,10 @@ jobs:
           set -euo pipefail
           USERNAME="ci-admin"
           BOOTSTRAP_CRED="$(openssl rand -hex 24)"
-
-          # Bootstrap creates the first admin user; authentication is a separate login call.
-          curl --fail --silent --show-error \
-            -X POST "$SOAT_BASE_URL/api/v1/users/bootstrap" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -nc --arg u "$USERNAME" --arg p "$BOOTSTRAP_CRED" \
-              '{username:$u,password:$p}')" >/tmp/soat-bootstrap.json
-
-          TOKEN="$(
-            curl --fail --silent --show-error \
-              -X POST "$SOAT_BASE_URL/api/v1/users/login" \
-              -H "Content-Type: application/json" \
-              -d "$(jq -nc --arg u "$USERNAME" --arg p "$BOOTSTRAP_CRED" \
-                '{username:$u,password:$p}')" |
-            jq -er '.token'
-          )"
-
-          PROJECT_ID="$(
-            curl --fail --silent --show-error               -X POST "$SOAT_BASE_URL/api/v1/projects"               -H "Content-Type: application/json"               -H "Authorization: Bearer $TOKEN"               -d '{"name":"api-factory-runtime-smoke"}' |
-            jq -er '.id'
-          )"
-
-          PROVIDER_ID="$(
-            curl --fail --silent --show-error               -X POST "$SOAT_BASE_URL/api/v1/ai-providers"               -H "Content-Type: application/json"               -H "Authorization: Bearer $TOKEN"               -d "$(jq -nc --arg project "$PROJECT_ID"                 '{
-                  project_id:$project,
-                  name:"Local Ollama",
-                  provider:"ollama",
-                  base_url:"http://ollama-tool-choice:11434",
-                  default_model:"qwen2.5:0.5b"
-                }')" |
-            jq -er '.id'
-          )"
-
+          curl --fail --silent --show-error -X POST "$SOAT_BASE_URL/api/v1/users/bootstrap" -H "Content-Type: application/json" -d "$(jq -nc --arg u "$USERNAME" --arg p "$BOOTSTRAP_CRED" '{username:$u,password:$p}')" >/tmp/soat-bootstrap.json
+          TOKEN="$(curl --fail --silent --show-error -X POST "$SOAT_BASE_URL/api/v1/users/login" -H "Content-Type: application/json" -d "$(jq -nc --arg u "$USERNAME" --arg p "$BOOTSTRAP_CRED" '{username:$u,password:$p}')" | jq -er '.token')"
+          PROJECT_ID="$(curl --fail --silent --show-error -X POST "$SOAT_BASE_URL/api/v1/projects" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"name":"api-factory-runtime-smoke"}' | jq -er '.id')"
+          PROVIDER_ID="$(curl --fail --silent --show-error -X POST "$SOAT_BASE_URL/api/v1/ai-providers" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d "$(jq -nc --arg project "$PROJECT_ID" '{project_id:$project,name:"Local Ollama",provider:"ollama",base_url:"http://ollama-tool-choice:11434",default_model:"qwen2.5:0.5b"}')" | jq -er '.id')"
           echo "::add-mask::$TOKEN"
           echo "SOAT_TOKEN=$TOKEN" >> "$GITHUB_ENV"
           echo "SOAT_AI_PROVIDER_ID=$PROVIDER_ID" >> "$GITHUB_ENV"
@@ -136,31 +108,14 @@ jobs:
           set -euo pipefail
           node --input-type=module <<'NODE'
           import {createProviderAdapter} from "./AI-API-HUB/api-factory/provider.mjs";
-
           const adapter = createProviderAdapter({
-            kind: "soat",
-            baseUrl: process.env.SOAT_BASE_URL,
-            credentialEnv: "SOAT_TOKEN",
-            freePolicy: {
-              zeroCostOnly: true,
-              providerId: "ollama-local",
-              accessClass: "local",
-              freeStatus: "recurring",
-              quotaBasis: "local-compute",
-              hardStop: true,
-              eligibilityGate: "local-runtime",
-              tosRisk: "ok",
-              sourceLastResearched: "2026-10-05",
-              sourceUrl: "https://ollama.com"
-            }
+            kind:"soat",baseUrl:process.env.SOAT_BASE_URL,credentialEnv:"SOAT_TOKEN",
+            freePolicy:{zeroCostOnly:true,providerId:"ollama-local",accessClass:"local",freeStatus:"recurring",quotaBasis:"local-compute",hardStop:true,eligibilityGate:"local-runtime",tosRisk:"ok",sourceLastResearched:"2026-10-05",sourceUrl:"https://ollama.com"}
           });
-
-          const result = await adapter.probe();
+          const result=await adapter.probe();
           console.log(JSON.stringify(result));
           await import("node:fs/promises").then((fs)=>fs.writeFile("/tmp/soat-probe.json",JSON.stringify(result,null,2)+"\n"));
-          if (!result.ok || result.transport !== true || result.authorization !== true) {
-            process.exit(1);
-          }
+          if(!result.ok||result.transport!==true||result.authorization!==true) process.exit(1);
           NODE
 
       - name: Verify API Factory real AI completion through SOAT and Ollama
@@ -172,37 +127,13 @@ jobs:
           node --input-type=module <<'NODE'
           import assert from "node:assert/strict";
           import {createProviderAdapter} from "./AI-API-HUB/api-factory/provider.mjs";
-
-          const adapter = createProviderAdapter({
-            kind: "soat",
-            baseUrl: process.env.SOAT_BASE_URL,
-            credentialEnv: "SOAT_TOKEN",
-            freePolicy: {
-              zeroCostOnly: true,
-              providerId: "ollama-local",
-              accessClass: "local",
-              freeStatus: "recurring",
-              quotaBasis: "local-compute",
-              hardStop: true,
-              eligibilityGate: "local-runtime",
-              tosRisk: "ok",
-              sourceLastResearched: "2026-10-05",
-              sourceUrl: "https://ollama.com"
-            }
+          const adapter=createProviderAdapter({
+            kind:"soat",baseUrl:process.env.SOAT_BASE_URL,credentialEnv:"SOAT_TOKEN",
+            freePolicy:{zeroCostOnly:true,providerId:"ollama-local",accessClass:"local",freeStatus:"recurring",quotaBasis:"local-compute",hardStop:true,eligibilityGate:"local-runtime",tosRisk:"ok",sourceLastResearched:"2026-10-05",sourceUrl:"https://ollama.com"}
           });
-
-          const result = await adapter.execute({
-            messages: [
-              { role: "system", content: "Reply with a short factual answer." },
-              { role: "user", content: "What is 2 + 2? Reply with just the number." }
-            ],
-            temperature: 0
-          });
-
-          const content = result?.choices?.[0]?.message?.content;
-          assert.equal(typeof content, "string");
-          assert.ok(content.trim().length > 0, "SOAT returned an empty completion");
-
+          const result=await adapter.execute({messages:[{role:"system",content:"Reply with a short factual answer."},{role:"user",content:"What is 2 + 2? Reply with just the number."}],temperature:0});
+          const content=result?.choices?.[0]?.message?.content;
+          assert.equal(typeof content,"string"); assert.ok(content.trim().length>0,"SOAT returned an empty completion");
           const evidence={ok:true,provider:"soat",provider_backend:"local-ollama-ci",completionChars:content.trim().length,completion:content.trim()};
           await import("node:fs/promises").then((fs)=>fs.writeFile("/tmp/soat-completion.json",JSON.stringify(evidence,null,2)+"\n"));
           console.log(JSON.stringify(evidence));
@@ -215,31 +146,11 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from "node:fs";
           import {pathToFileURL} from "node:url";
-          const evidenceRunner = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/AI-API-HUB/api-factory/evidence-runner.mjs`).href);
-          const {runEvidenceCommand} = evidenceRunner;
-
-          const result = await runEvidenceCommand({
-            command: "docker",
-            args: [
-              "compose",
-              "-p", "soat-official-smoke",
-              "-f", "tests/docker-compose.smoke.yml",
-              "run", "--rm", "smoke-test"
-            ],
-            cwd: "/tmp/soat",
-            timeoutMs: 10 * 60 * 1000
-          });
-
-          fs.writeFileSync("/tmp/soat-official-smoke-evidence.json", JSON.stringify(result, null, 2) + "\n");
-          console.log(JSON.stringify({
-            schema: result.schema,
-            status: result.status,
-            exitCode: result.exitCode,
-            timedOut: result.timedOut,
-            durationMs: result.durationMs
-          }));
-
-          if (result.status !== "passed") process.exit(1);
+          const {runEvidenceCommand}=await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/AI-API-HUB/api-factory/evidence-runner.mjs`).href);
+          const result=await runEvidenceCommand({command:"docker",args:["compose","-p","soat-official-smoke","-f","tests/docker-compose.smoke.yml","run","--rm","smoke-test"],cwd:"/tmp/soat",timeoutMs:10*60*1000});
+          fs.writeFileSync("/tmp/soat-official-smoke-evidence.json",JSON.stringify(result,null,2)+"\n");
+          console.log(JSON.stringify({schema:result.schema,status:result.status,exitCode:result.exitCode,timedOut:result.timedOut,durationMs:result.durationMs}));
+          if(result.status!=="passed") process.exit(1);
           NODE
 
       - name: Validate execution contract from verified SOAT evidence
@@ -251,12 +162,7 @@ jobs:
           import {createExecutionRecord,assertStateExit} from "./AI-API-HUB/api-factory/execution-contract.mjs";
           const completion=JSON.parse(fs.readFileSync("/tmp/soat-completion.json","utf8"));
           const probe=JSON.parse(fs.readFileSync("/tmp/soat-probe.json","utf8"));
-          const record=createExecutionRecord({
-            state:"VERIFY",
-            artifacts:{verification:{health:true,authentication:true,provider_resolved:true,api_factory_probe:probe.ok===true,real_chat_completion:completion.ok===true,official_smoke_suite:true}},
-            evidence:["soat-health","soat-authentication","api-factory-probe","real-chat-completion","official-soat-smoke"],
-            metadata:{workflow:"SOAT Runtime Integration Smoke",soat_sha:process.env.SOAT_SHA,run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA}
-          });
+          const record=createExecutionRecord({state:"VERIFY",artifacts:{verification:{health:true,authentication:true,provider_resolved:true,api_factory_probe:probe.ok===true,real_chat_completion:completion.ok===true,official_smoke_suite:true}},evidence:["soat-health","soat-authentication","api-factory-probe","real-chat-completion","official-soat-smoke"],metadata:{workflow:"SOAT Runtime Integration Smoke",soat_sha:process.env.SOAT_SHA,run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA}});
           assertStateExit(record);
           fs.writeFileSync("soat-execution-record.json",JSON.stringify(record,null,2)+"\n");
           console.log(JSON.stringify(record));
