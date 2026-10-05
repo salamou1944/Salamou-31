@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [groq, cerebras, openrouter]
+        provider: [groq, openrouter]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -19,7 +19,6 @@ jobs:
     env:
       PROVIDER: ${{ matrix.provider }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-      CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
     steps:
       - uses: actions/checkout@v4
