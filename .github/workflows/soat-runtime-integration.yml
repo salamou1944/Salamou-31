@@ -285,13 +285,6 @@ jobs:
 
       - name: Upload SOAT verification record
         if: success()
-        run: |
-          set -euo pipefail
-          jq -n --arg run_id "$GITHUB_RUN_ID" --arg run_attempt "$GITHUB_RUN_ATTEMPT" --arg commit "$GITHUB_SHA" --arg workflow "SOAT Runtime Integration Smoke" --arg soat_sha "$SOAT_SHA" --arg project_id "$SOAT_PROJECT_ID" --arg provider_id "$SOAT_AI_PROVIDER_ID" --slurpfile health /tmp/soat-health.json --slurpfile probe /tmp/soat-probe.json --slurpfile completion /tmp/soat-completion.json '{schema:"soat-verification-record/v1",evidence_level:"provider",scope:"ci-pinned-local-runtime",workflow:$workflow,run_id:$run_id,run_attempt:$run_attempt,commit:$commit,soat_sha:$soat_sha,project_id:$project_id,provider_id:$provider_id,gates:{health:true,authentication:true,provider_resolved:true,api_factory_probe:true,real_chat_completion:true,official_smoke_suite:true},observations:{health:$health[0],probe:$probe[0],completion:$completion[0]},production_status:"not_proven"}' > soat-verification-record.json
-          cat soat-verification-record.json
-
-      - name: Upload SOAT verification record
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: soat-verification-${{ github.run_id }}
