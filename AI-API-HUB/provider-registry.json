@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "policy": {"routing_mode":"free_first","automatic_paid_fallback":false,"sensitive_data_on_unverified":false,"required_ready_state":"VERIFIED"},
+  "providers": [
+    {"id":"google_ai_studio","status":"DISCOVERED","env":"GOOGLE_AI_API_KEY","base_url":"https://generativelanguage.googleapis.com"},
+    {"id":"groq","status":"DISCOVERED","env":"GROQ_API_KEY","base_url":"https://api.groq.com/openai/v1"},
+    {"id":"cerebras","status":"DISCOVERED","env":"CEREBRAS_API_KEY","base_url":"https://api.cerebras.ai/v1"},
+    {"id":"openrouter","status":"DISCOVERED","env":"OPENROUTER_API_KEY","base_url":"https://openrouter.ai/api/v1"},
+    {"id":"cloudflare_workers_ai","status":"DISCOVERED","env":"CLOUDFLARE_API_TOKEN","base_url":null},
+    {"id":"mistral","status":"DISCOVERED","env":"MISTRAL_API_KEY","base_url":"https://api.mistral.ai/v1"},
+    {"id":"nvidia_nim","status":"DISCOVERED","env":"NVIDIA_NIM_API_KEY","base_url":null},
+    {"id":"huggingface_inference","status":"DISCOVERED","env":"HF_TOKEN","base_url":"https://router.huggingface.co"},
+    {"id":"chutes","status":"DISCOVERED","env":"CHUTES_API_KEY","base_url":"https://llm.chutes.ai/v1"},
+    {"id":"ireze","status":"UNVERIFIED","env":"IREZE_API_KEY","base_url":"https://directrouter.pages.dev/v1","routing_enabled":false}
+  ]
+}
