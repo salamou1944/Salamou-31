@@ -324,3 +324,26 @@ Two-axis evaluation:
 - The `opencode`, `vllm`, `llama.cpp`, `cpython`, and `cline` entries should **not be counted as unique projects until fork deltas are inspected**. Their independent upstream projects remain relevant, but Collection must avoid inflating inventory with mirrors/forks.
 - **P0 follow-up queue:** exact implementation/security/license audit of `free-claude-code`; isolated runtime test with local Ollama/llama.cpp and an OpenAI-compatible provider; compare `gpu-ops-platform` against actual NVML state; compare fork deltas for opencode/vLLM/llama.cpp/CPython/Cline.
 - **Evidence boundary:** this is collection-level evidence. No claim is made that any of these repositories is production-ready for the user's systems until exact code paths, dependency/model licenses, secrets, provider ToS, isolated tests and real runtime smoke evidence are completed.
+
+
+### P0 deep-review — Alishahryar1/free-claude-code
+Code-level inspection materially changes the earlier assessment:
+- **License is AGPL-3.0-only, not MIT.** `pyproject.toml` declares AGPL-3.0-only and LICENSE carries the same SPDX identifier. Any commercial integration, hosted modification, or derivative distribution must therefore pass an AGPL compliance/legal gate. This is a critical adoption constraint.
+- The project is substantial and active: the public repository currently shows more than 1,000 commits, a large test/e2e/smoke layout, and current commits on 2026-10-05. The README describes multi-provider routing, fallback, multiple coding-agent launchers and a local admin surface. citeturn0search1turn0search6
+- The installer is powerful and security-sensitive: it downloads and executes external installers for uv and multiple coding agents, installs/updates tools, modifies PATH/shell state, and supports RTK. It does include dry-run behavior and pinned RTK checksums, but the installer itself must be treated as privileged supply-chain code. Exact installer review is required before any use in our infrastructure. 
+- The project is **not production-approved** merely because it is active. Current open issues include provider ToS/safety concerns and a request to harden the update chain, which reinforces the need for our own provider-policy and supply-chain gate. citeturn0search5
+- **Collection decision:** preserve as a high-value independent project and architecture/reference asset, but do **not** directly embed AGPL code into Salamou-31/SOAT/API Factory until licensing is explicitly accepted. Prefer extracting protocol/architecture ideas or running it as a separate isolated service if compatible with the license and security model.
+
+### P0 deep-review — Alishahryar1/gpu-ops-platform
+Code-level inspection also downgrades its production readiness:
+- Architecture is real enough to preserve: Go daemon + CLI + Python/Starlark policy engine, HTTP API on 8080 and Prometheus on 9090, registry/health/metrics packages. README and code expose an executable operational surface. citeturn0search0
+- **Critical limitation confirmed:** `pkg/gpu/gpu.go` explicitly returns mock GPU data and mock metrics; it says NVML integration is still to be replaced. `cmd/gputld/main.go` independently defines a mock GPU manager with hard-coded RTX 5070 Ti values.
+- API handlers are also partly placeholders: GET GPU details returns a generic text response, while register/unregister handlers return success strings without actually parsing and applying request payloads. Therefore the HTTP/API surface is **prototype-level**, despite the README's operational presentation.
+- **Collection decision:** preserve as a READY_PROJECT/INFRA candidate, but classify it as **prototype/near-ready, not production-ready**. The valuable part is its architecture, metrics model, policy engine and CLI contract; actual deployment requires NVML integration, real GPU state, complete API handlers, authentication/authorization, persistence hardening and runtime tests.
+
+### Revised priority
+1. **free-claude-code:** highest independent-project value, but AGPL + supply-chain/provider-policy gate before reuse.
+2. **gpu-ops-platform:** useful independent GPU-ops architecture, but currently mock-backed and incomplete; no production claim.
+3. **llama.cpp / vLLM / opencode / Cline / CPython forks:** preserve as fork sources; canonical upstream comparison remains mandatory before adoption.
+
+Evidence boundary remains strict: collection/code inspection is not production proof. The next adoption gate is isolated execution plus exact dependency/license/provider-policy/security testing.
