@@ -1,7 +1,17 @@
 # COLLECTION MASTER INVENTORY — 2026-10-05
 
-## Governing rule
-This inventory is exhaustive at the repository-list level for the sources recorded below. No repository is discarded merely because it does not fit a current project. Every repository is classified for both immediate reuse and independent ready-made project potential. Code-level adoption requires a later evidence gate: exact path inspection, license check, isolated test, and runtime/deployment proof.
+## Governing rule — UNIVERSAL COLLECTION ACCOUNT/REPOSITORY RULE
+This rule applies to **every Collection source account and every repository discovered from that account**, without exception. It is not limited to currently relevant projects, Top Five candidates, or repositories that appear useful at first glance.
+
+For each source account, Collection must first enumerate the **complete repository set**. Then, for **every repository**, perform two independent evaluations before deduplication or project mapping:
+1. **Immediate reusable capability** — components, libraries, integrations, skills, workflows, infrastructure, datasets, research, or code that can directly strengthen an existing asset.
+2. **Independent ready-made / near-ready project potential** — a substantially complete product, service, application, agent, tool, dataset/productized workflow, or revenue asset that could be used or commercialized independently, even if it has no current mapping to EASY, MONY, SOAT/API Factory, Elite/ARMY-14, YouTube, or another active project.
+
+A repository must **never be discarded merely because axis 1 is negative**. If axis 2 is positive, preserve it as an independent candidate. Likewise, a component must not be promoted to a standalone product merely because it is reusable. Classification must preserve provenance, license, dependency/model-license chain, implementation evidence, and project status.
+
+The same rule applies recursively to any newly discovered account linked from a repository, README, collection index, Top Five record, fork/source reference, or project dependency: **discover the parent account, enumerate its full repository list, and apply this rule to that account as well**.
+
+Only after both axes are evaluated may repositories be deduplicated and mapped to existing projects. Code-level adoption requires a later evidence gate: exact path inspection, license check, isolated test, and runtime/deployment proof. Collection evidence is never production proof.
 
 ## Canonical Collection source-account registry — recovered 2026-10-05
 
@@ -64,10 +74,13 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 ### Operating rule
 1. The **account/source list is canonical at the source layer**; Firecrawl is one source account, not the whole Collection.
 2. For every source account, enumerate the complete repository set.
-3. Classify every repository on two independent axes: immediate reusable capability and independent ready-made/near-ready project potential.
-4. Preserve provenance and license boundaries before deduplication.
-5. Only after full-source inventory may candidates be mapped into EASY, MONY, SOAT/API Factory, Elite/ARMY-14, YouTube, or an independent revenue asset.
-6. A historical Top Five snapshot must never replace the full account/source registry.
+3. Apply the two-axis evaluation to **every repository**, including repositories that initially appear unrelated to current projects.
+4. If a repository is a standalone/near-standalone project, preserve it as an independent candidate even when it has no current project mapping.
+5. If a repository is only a component, classify it as a component and do not inflate it into a product.
+6. Preserve provenance, license boundaries, dependency/model-license chain, and evidence status before deduplication.
+7. Only after full-source inventory may candidates be mapped into EASY, MONY, SOAT/API Factory, Elite/ARMY-14, YouTube, or an independent revenue asset.
+8. Any newly discovered source account inherits this rule automatically and must itself be fully enumerated.
+9. A historical Top Five snapshot must never replace the full account/source registry.
 
 ## Active source set
 - Skill collections: agentskillexchange/skills; msajja5/agent-skills (VoltAgent-derived); maaarcooo/agent-skills; onfire7777/universal-ai-skills-library.
