@@ -59,3 +59,47 @@ export function createSoatExecutionEvidence(record){
 }
 
 export {REQUIRED_GATES};
+
+const PRODUCTION_GATES=[
+  "health",
+  "authentication",
+  "provider_resolved",
+  "api_factory_probe",
+  "real_chat_completion",
+  "usage_recorded",
+  "error_behavior_recorded"
+];
+
+export function createSoatProductionExecutionEvidence(record){
+  if(!record || typeof record!=="object" || Array.isArray(record)){
+    throw new Error("INVALID_SOAT_PRODUCTION_VERIFICATION_RECORD");
+  }
+  if(record.schema!=="soat-verification-record/v2"){
+    throw new Error("INVALID_SOAT_PRODUCTION_VERIFICATION_SCHEMA");
+  }
+  if(record.production_status!=="proven"){
+    throw new Error("SOAT_PRODUCTION_NOT_PROVEN");
+  }
+  if(record.evidence_level!=="production" || record.scope!=="production-runtime"){
+    throw new Error("INVALID_SOAT_PRODUCTION_SCOPE");
+  }
+  const gates=record.gates;
+  const missing=PRODUCTION_GATES.filter((gate)=>gates?.[gate]!==true);
+  if(missing.length){
+    throw new Error("SOAT_PRODUCTION_EVIDENCE_GATE_FAILED:"+missing.join(","));
+  }
+  return {
+    schema:"execution-evidence/v1",
+    source:"soat-production-verification",
+    verified:true,
+    evidenceLevel:"production",
+    scope:"production-runtime",
+    runId:record.run_id||null,
+    commit:record.commit||null,
+    productionStatus:"proven",
+    gates:Object.fromEntries(PRODUCTION_GATES.map((gate)=>[gate,true])),
+    reusableFor:["VERIFY","REVIEW","PLAN","EXECUTE"]
+  };
+}
+
+export {PRODUCTION_GATES};
