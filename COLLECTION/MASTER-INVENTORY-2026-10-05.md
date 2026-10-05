@@ -92,6 +92,8 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 - `msitarzewski`: newly added source account; full repository inventory scan pending.
 - `KorroAi`: newly added source account from `KorroAi/mue-x`; full account inventory required, not just MUE-X.
 - `continuedev`: full account inventory completed 2026-10-05; 11 repositories evaluated under the universal two-axis rule.
+- `GitHubSecurityLab`: full organization inventory completed 2026-10-05; 17 repositories evaluated under the universal two-axis rule.
+- `GitHubSecurityLab` — GitHub Security Lab organization source; 17 repositories enumerated 2026-10-05 and evaluated at README/repository level under the universal two-axis rule.
 - Current Top Five queue (2026-10-04): debpalash/VoiceStudio; eternity4719/HowToLiveBetter; Niko1221/Strata; NVIDIA/OpenShell; KKKKhazix/AIHOT.
 
 ## Current Top Five — independent project scan
@@ -262,3 +264,37 @@ Two-axis evaluation:
 - **Low-value/archive:** `continue-landing-archive`, `.github`, `continue-home`; retain only where provenance/history matters. The landing archive itself states it is inert and safe to delete. 
 - **License:** the principal code assets examined here are Apache-2.0; commercial reuse still requires checking dependency/model licenses and exact files before adoption.
 - **Evidence boundary:** README/repository evidence is collection evidence, not production proof. Before code adoption, run exact-path inspection, dependency/license audit, isolated tests, security review, and runtime proof.
+
+
+## Newly completed source account — GitHubSecurityLab
+The GitHub Security Lab organization exposes **17 repositories** in the current repository search. The linked `GitHubSecurityLab/gh-secure` repository is therefore treated as an entry point to the **whole source account**, not as a single-repository collection. citeturn0search3turn0search0
+
+Two-axis evaluation:
+
+| Repository | Axis 1 — reusable capability | Axis 2 — independent project potential | Classification / decision |
+|---|---|---|---|
+| `gh-secure` | **VERY HIGH** — one-command GitHub security baseline: branch protection, private vulnerability reporting, secret scanning, Dependabot, CodeQL; dry-run/status support | **HIGH** — complete installable GitHub CLI extension | **P0 READY_PROJECT + SECURITY/INFRA**; preserve and prioritize for Salamou-31 security hardening. MIT. citeturn0search0turn0search1 |
+| `actions-permissions` | **VERY HIGH** — least-privilege GitHub Actions permission monitoring/advisor | **HIGH** — reusable GitHub Action/security product | **P0 SECURITY/CI COMPONENT + READY_PROJECT candidate** |
+| `seclab-taskflow-agent` | **VERY HIGH** — MCP-enabled YAML agent workflows, checkpoints/resume, multiple model backends | **VERY HIGH** — standalone CLI/agent framework | **P0 READY_PROJECT + AGENT/INFRA**; strong Elite/ARMY-14/SOAT leverage |
+| `seclab-taskflows` | **HIGH** — production-style security audit taskflows, MCP servers, SQLite evidence/results | **HIGH** — ready security-audit workflow package when paired with the agent | **P0 REVENUE/SECURITY ASSET + TASKFLOW PACK** |
+| `CodeQL-Community-Packs` | **VERY HIGH** — reusable CodeQL query/library/extension packs | **MEDIUM-HIGH** — independently useful security-analysis asset | **P0 SECURITY COMPONENT / RESEARCH ASSET**; MIT |
+| `gh-mrva` | **HIGH** — GitHub CLI for multi-repository CodeQL variant analysis | **HIGH** — standalone security-analysis CLI | **P1 READY_PROJECT / SECURITY TOOL** |
+| `gh-qldb` | **HIGH** — local CodeQL database lifecycle/organization | **MEDIUM-HIGH** — standalone developer/security utility | **P1 TOOL/INFRA** |
+| `codeql-jupyter-kernel` | **HIGH** — CodeQL/Jupyter integration for interactive analysis | **MEDIUM-HIGH** — specialist analysis environment | **P1 RESEARCH/SECURITY TOOL** |
+| `codeql-extractor-bicep` | **HIGH** — CodeQL extractor/library/queries for Bicep IaC | **MEDIUM** — specialist security-analysis package | **P1 SECURITY COMPONENT**; license/dependency boundary required |
+| `pwn-request-scanner` | **HIGH** — detects risky `pull_request_target` workflow patterns across branches | **HIGH** — deployable GitHub Action/scanner | **P0 SECURITY COMPONENT + READY_PROJECT candidate** |
+| `secure-code-challenge` | **MEDIUM** — practical security-learning material | **MEDIUM** — training/education product potential | **P1 TRAINING/KNOWLEDGE ASSET** |
+| `secure-this` | **MEDIUM-HIGH** — hands-on security hardening workflow covering CodeQL, secrets, Dependabot, branch protection and PVR | **MEDIUM-HIGH** — reusable training/onboarding asset | **P1 TRAINING/SECURITY PLAYBOOK** |
+| `seclab-taskflows-fuzzing` | **HIGH** — fuzzing taskflow material | **MEDIUM** — specialist taskflow/research asset | **P1 SECURITY RESEARCH/TASKFLOW** |
+| `ruby-unsafe-deserialization` | **MEDIUM** — focused vulnerability research/sample | **LOW-MEDIUM** — educational/security research artifact | **RESEARCH/TEST FIXTURE** |
+| `codeql-zero-to-hero` | **HIGH** — CodeQL queries, databases and structured learning challenges | **MEDIUM-HIGH** — educational/security-training package | **P1 KNOWLEDGE/TRAINING ASSET** |
+| `GreHack2023-Workshop` | **MEDIUM-HIGH** — CodeQL workshop, queries, databases and practical labs | **MEDIUM** — training/workshop asset | **P1 TRAINING/RESEARCH** |
+| `.github` | LOW — organization metadata | NONE | **ORG_METADATA / LOW_VALUE** |
+
+### GitHubSecurityLab conclusions
+- **KEEP the source account.** It has multiple high-leverage security and agent assets, not just `gh-secure`.
+- **Immediate Collection priority:** `gh-secure`, `actions-permissions`, `seclab-taskflow-agent`, `seclab-taskflows`, and `pwn-request-scanner`.
+- `gh-secure` is especially valuable because it packages five security controls into one MIT-licensed CLI extension and explicitly supports `--dry-run` and `status`, which makes it suitable for an evidence-first hardening workflow. citeturn0search0turn0search1
+- The Taskflow pair is particularly relevant to **Elite/ARMY-14 and SOAT/API Factory**: the agent provides the execution framework while the taskflows provide reusable security workflows and evidence-producing audit patterns. README evidence confirms MCP integration, YAML taskflows, multiple backends and checkpoint/resume behavior. 
+- **No production adoption yet:** collection evidence is not runtime proof. Before copying code into Salamou-31, perform exact-path inspection, dependency/license review, isolated execution, secret/permission review, and real CI/runtime smoke testing.
+- `gh-secure` itself requires admin/maintain permissions because it changes repository security settings; it does not silently guarantee security and its own README explicitly states that it raises the baseline rather than guaranteeing complete security. citeturn0search0turn0search2
