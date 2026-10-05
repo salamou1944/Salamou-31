@@ -1,0 +1,37 @@
+name: Free Provider Real Probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: Provider to probe
+        required: true
+        type: choice
+        options:
+          - groq
+          - cerebras
+          - openrouter
+      model:
+        description: Optional model override
+        required: false
+        type: string
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    env:
+      PROVIDER: ${{ inputs.provider }}
+      PROVIDER_MODEL: ${{ inputs.model }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe provider
+        run: npm run provider:probe
