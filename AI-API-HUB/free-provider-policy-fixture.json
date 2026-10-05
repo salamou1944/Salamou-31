@@ -1,0 +1,38 @@
+[
+  {
+    "provider_id": "gemini",
+    "access_class": "api_key",
+    "free_status": "recurring",
+    "quota_basis": "provider-defined free quota",
+    "estimated_monthly_tokens": null,
+    "hard_stop": false,
+    "eligibility_gate": "account_and_api_key",
+    "tos_risk": "review",
+    "source_last_researched": "2026-10-05",
+    "source_url": "https://github.com/diegosouzapw/OmniRoute"
+  },
+  {
+    "provider_id": "pollinations",
+    "access_class": "keyless",
+    "free_status": "recurring",
+    "quota_basis": "provider-defined keyless allowance",
+    "estimated_monthly_tokens": null,
+    "hard_stop": false,
+    "eligibility_gate": "none",
+    "tos_risk": "review",
+    "source_last_researched": "2026-10-05",
+    "source_url": "https://github.com/diegosouzapw/OmniRoute"
+  },
+  {
+    "provider_id": "ollama-local",
+    "access_class": "local",
+    "free_status": "recurring",
+    "quota_basis": "local_compute",
+    "estimated_monthly_tokens": null,
+    "hard_stop": true,
+    "eligibility_gate": "local_runtime",
+    "tos_risk": "ok",
+    "source_last_researched": "2026-10-05",
+    "source_url": "https://github.com/diegosouzapw/OmniRoute"
+  }
+]
