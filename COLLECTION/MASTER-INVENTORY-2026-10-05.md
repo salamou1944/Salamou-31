@@ -22,6 +22,7 @@ This section is the **account/source layer**. It is distinct from the repository
 - `mnfst/awesome-free-llm-apis`
 - `diegosouzapw/OmniRoute`
 - `firecrawl` — GitHub account/organization source; repository count previously verified as 111, not merely `firecrawl/firecrawl`.
+- `msitarzewski` — GitHub account/source; repository inventory to be scanned in full, including independent ready-made project potential.
 - Agent Reach
 - mcporter
 - Ruflo
@@ -73,6 +74,7 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 - Free-provider intelligence: mnfst/awesome-free-llm-apis.
 - Provider/router intelligence: diegosouzapw/OmniRoute.
 - Firecrawl organization: full repository inventory below.
+- `msitarzewski`: newly added source account; full repository inventory scan pending.
 - Current Top Five queue (2026-10-04): debpalash/VoiceStudio; eternity4719/HowToLiveBetter; Niko1221/Strata; NVIDIA/OpenShell; KKKKhazix/AIHOT.
 
 ## Current Top Five — independent project scan
