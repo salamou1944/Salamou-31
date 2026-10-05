@@ -214,7 +214,9 @@ jobs:
           set -euo pipefail
           node --input-type=module <<'NODE'
           import fs from "node:fs";
-          import {runEvidenceCommand} from "$GITHUB_WORKSPACE/AI-API-HUB/api-factory/evidence-runner.mjs";
+          import {pathToFileURL} from "node:url";
+          const evidenceRunner = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/AI-API-HUB/api-factory/evidence-runner.mjs`).href);
+          const {runEvidenceCommand} = evidenceRunner;
 
           const result = await runEvidenceCommand({
             command: "docker",
