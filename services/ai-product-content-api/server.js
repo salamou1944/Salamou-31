@@ -111,4 +111,78 @@ Rules:
     return payload;
   }catch(error){await refundQuotaOnce();if(idempotencyKey){try{releaseIdempotency(apiKey,idempotencyKey,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Idempotency claim release failed");}}request.log.error({err:error},"Product content generation failed");return reply.code(502).send({error:"Generation failed"});}
 });
+const leadQualificationSchema={type:"object",additionalProperties:false,properties:{score:{type:"integer",minimum:0,maximum:100},priority:{type:"string",enum:["low","medium","high"]},intent:{type:"string"},summary:{type:"string"},reasons:{type:"array",items:{type:"string"},maxItems:8},next_action:{type:"string"}},required:["score","priority","intent","summary","reasons","next_action"]};
+app.post("/v1/leads/qualify",async(request,reply)=>{
+  if(!isAuthorized(request))return reply.code(401).send({error:"Unauthorized"});
+  const apiKey=request.headers["x-api-key"];
+  const body=request.body&&typeof request.body==="object"&&!Array.isArray(request.body)?request.body:null;
+  if(!body)return reply.code(400).send({error:"Request body must be a JSON object"});
+  const allowedFields=new Set(["name","company","email","phone","message","source"]),unknownFields=Object.keys(body).filter(key=>!allowedFields.has(key));
+  if(unknownFields.length)return reply.code(400).send({error:"Unknown request field"});
+  for(const field of ["name","company","email","phone","message","source"])if(body[field]!==undefined&&typeof body[field]!=="string")return reply.code(400).send({error:`${field} must be a string`});
+  const lead={name:body.name?.trim()||undefined,company:body.company?.trim()||undefined,email:body.email?.trim()||undefined,phone:body.phone?.trim()||undefined,message:body.message?.trim()||"",source:body.source?.trim()||undefined};
+  if(!lead.message)return reply.code(400).send({error:"message is required"});
+  if(lead.message.length>8_000)return reply.code(400).send({error:"message must be 8000 characters or fewer"});
+  for(const [field,value] of Object.entries(lead))if(value!==undefined&&typeof value==="string"&&value.length>1_000&&field!=="message")return reply.code(400).send({error:`${field} is too long`});
+  const idempotencyKey=typeof request.headers["idempotency-key"]==="string"?request.headers["idempotency-key"].trim():"";
+  if(idempotencyKey.length>200)return reply.code(400).send({error:"Idempotency-Key is too long"});
+  const canonicalBody={...lead},fingerprint=requestFingerprint(canonicalBody);
+  let claim;
+  try{
+    claim=idempotencyKey?claimIdempotency(apiKey,`lead-qualification:${idempotencyKey}`,fingerprint):{status:"disabled"};
+  }catch(error){
+    if(error instanceof Error&&error.message==="idempotency_key_reused_with_different_request")return reply.code(409).send({error:"Idempotency-Key was reused with a different request"});
+    request.log.error({err:error},"Lead idempotency claim failed");
+    return reply.code(503).send({error:"Idempotency service unavailable"});
+  }
+  if(claim.status==="completed")return reply.code(200).send(claim.entry.response);
+  if(claim.status==="pending")return reply.code(409).send({error:"Idempotency-Key is already in progress"});
+  if(!rateLimit(apiKey)){
+    if(idempotencyKey){try{releaseIdempotency(apiKey,`lead-qualification:${idempotencyKey}`,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Lead idempotency release failed");}}
+    return reply.code(429).send({error:"Rate limit exceeded"});
+  }
+  let quotaReserved;
+  try{quotaReserved=await consumeDailyQuota(apiKey);}catch(error){
+    if(idempotencyKey){try{releaseIdempotency(apiKey,`lead-qualification:${idempotencyKey}`,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Lead idempotency release failed");}}
+    request.log.error({err:error},"Quota service unavailable");
+    return reply.code(503).send({error:"Quota service unavailable"});
+  }
+  if(!quotaReserved){
+    if(idempotencyKey){try{releaseIdempotency(apiKey,`lead-qualification:${idempotencyKey}`,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Lead idempotency release failed");}}
+    return reply.code(429).send({error:"Daily quota exceeded"});
+  }
+  const prompt=`Qualify this inbound business lead using only the supplied facts.
+
+Lead: ${JSON.stringify(lead)}
+
+Rules:
+- Return only the requested structured fields.
+- Do not invent facts or infer sensitive traits.
+- Score commercial intent and urgency from the message and supplied business context only.
+- priority must be low, medium, or high.
+- reasons must be concise evidence-based reasons.
+- next_action must be a practical sales follow-up step.`;
+  let quotaRefunded=false;
+  const refundQuotaOnce=async()=>{if(quotaRefunded)return false;quotaRefunded=true;try{return await refundDailyQuota(apiKey);}catch(refundError){request.log.error({err:refundError},"Lead quota refund failed");return false;}};
+  try{
+    const client=getClient();
+    const response=await client.responses.create({model,store:false,max_output_tokens:800,input:[{role:"user",content:[{type:"input_text",text:prompt}]}],text:{format:{type:"json_schema",name:"lead_qualification",strict:true,schema:leadQualificationSchema}}},{timeout:30_000});
+    if(!response.output_text||typeof response.output_text!=="string"){await refundQuotaOnce();return reply.code(502).send({error:"No usable model output"});}
+    let qualification;try{qualification=JSON.parse(response.output_text);}catch{await refundQuotaOnce();return reply.code(502).send({error:"Invalid model output"});}
+    const payload={ok:true,model,lead,qualification};
+    if(idempotencyKey)try{
+      const persisted=putIdempotency(apiKey,`lead-qualification:${idempotencyKey}`,fingerprint,payload,claim.ownerToken);
+      if(!persisted){await refundQuotaOnce();try{releaseIdempotency(apiKey,`lead-qualification:${idempotencyKey}`,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Lead idempotency release failed");}return reply.code(409).send({error:"Idempotency-Key ownership was lost; retry the request"});}
+    }catch(error){
+      if(error.message==="idempotency_key_reused_with_different_request")return reply.code(409).send({error:"Idempotency-Key was reused with a different request"});
+      throw error;
+    }
+    return payload;
+  }catch(error){
+    await refundQuotaOnce();
+    if(idempotencyKey){try{releaseIdempotency(apiKey,`lead-qualification:${idempotencyKey}`,fingerprint,claim.ownerToken);}catch(releaseError){request.log.error({err:releaseError},"Lead idempotency release failed");}}
+    request.log.error({err:error},"Lead qualification failed");
+    return reply.code(502).send({error:"Qualification failed"});
+  }
+});
 await app.listen({port,host:"0.0.0.0"});
