@@ -1,0 +1,10 @@
+{
+  "name":"lead-qualification-api",
+  "version":"v1",
+  "description":"Provider-neutral lead qualification API contract.",
+  "auth":"api-key",
+  "capabilities":["sales","lead-qualification"],
+  "operations":[
+    {"method":"POST","path":"/v1/leads/qualify","summary":"Score and qualify an inbound business lead"}
+  ]
+}
