@@ -241,8 +241,6 @@ jobs:
           NODE
 
       - name: Validate execution contract from verified SOAT evidence
-
-      - name: Validate execution contract from verified SOAT evidence
         if: success()
         run: |
           set -euo pipefail
