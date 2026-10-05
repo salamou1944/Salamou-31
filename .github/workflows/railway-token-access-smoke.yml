@@ -51,3 +51,4 @@ jobs:
           ACTUAL_REPO="$(jq -r --arg name "${RAILWAY_EXPECTED_SERVICE_NAME}" '.services.edges[]?.node | select(.name==$name) | (.source.repo // "")' /tmp/railway-status.json)"
           test "${ACTUAL_REPO}" = "${EXPECTED_REPO}"
           echo "Verified Railway project and existing service: ${RAILWAY_EXPECTED_SERVICE_NAME} -> ${ACTUAL_REPO}"
+          echo "Railway token access smoke target is valid."
