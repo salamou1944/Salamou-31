@@ -5,6 +5,7 @@ import {validateSpec,compileApi} from "./factory.mjs";
 import {deploymentPlan} from "./deployment.mjs";
 import {runSherlock} from "./sherlock-username.mjs";
 import {createExecutionRecord,assertStateExit} from "./execution-contract.mjs";
+import {createSoatExecutionEvidence} from "./soat-evidence.mjs";
 
 const app=Fastify({logger:true,bodyLimit:64*1024});
 const port=Number(process.env.PORT||8797);
@@ -17,14 +18,11 @@ function auth(request,reply){if(process.env.FACTORY_API_KEY&&request.headers["x-
 function registryEntry(spec,artifact){return {identity:spec.name,name:spec.name,version:spec.version,status:"COMPILED",evidence:"COMPILED",capabilities:spec.capabilities,auth:spec.auth,operations:spec.operations.length,provider:spec.provider?.kind||null,runtime:"node-fastify",deployment:{status:"NOT_DEPLOYED"},artifact,updatedAt:new Date().toISOString()};}
 function register(spec,artifact){const registry=readRegistry();registry.apis=registry.apis.filter(x=>x.name!==spec.name);registry.apis.push(registryEntry(spec,artifact));writeRegistry(registry);return registry.apis.find(x=>x.name===spec.name);}
 app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:"manifest-to-runnable-api"}));
-app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","build","register","inspect","deploy-plan"],evidence:["VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","BUSINESS_VERIFIED"],deployment:["railway","vercel"]}));
+app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","build","register","inspect","deploy-plan","consume-soat-evidence"],evidence:["VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","BUSINESS_VERIFIED"],deployment:["railway","vercel"]}));
 app.post("/v1/factory/research/username",async(request,reply)=>{
   const denied=auth(request,reply);if(denied)return denied;
   try{
-    const result=await runSherlock(request.body?.username,{
-      executable:process.env.SHERLOCK_BIN||"sherlock",
-      timeoutMs:request.body?.timeoutMs??30_000
-    });
+    const result=await runSherlock(request.body?.username,{executable:process.env.SHERLOCK_BIN||"sherlock",timeoutMs:request.body?.timeoutMs??30_000});
     return {ok:true,source:"sherlock",...result};
   }catch(e){
     const status=e.code==="SHERLOCK_UNAVAILABLE"?503:e.code==="SHERLOCK_TIMEOUT"?504:502;
@@ -32,6 +30,22 @@ app.post("/v1/factory/research/username",async(request,reply)=>{
   }
 });
 app.post("/v1/factory/deploy/plan",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,plan:deploymentPlan({target:request.body?.target,serviceName:request.body?.serviceName})};}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
+app.post("/v1/factory/verify/soat",async(request,reply)=>{
+  const denied=auth(request,reply);if(denied)return denied;
+  try{
+    const evidence=createSoatExecutionEvidence(request.body);
+    const execution=createExecutionRecord({
+      state:"VERIFY",
+      artifacts:{verification:evidence},
+      evidence:Object.entries(evidence.gates).filter(([,ok])=>ok).map(([gate])=>"soat-"+gate),
+      metadata:{source:"SOAT Runtime Integration Smoke",run_id:evidence.runId,soat_sha:evidence.soatSha}
+    });
+    assertStateExit(execution);
+    return {ok:true,evidence,execution};
+  }catch(e){
+    return reply.code(422).send({ok:false,error:e.message});
+  }
+});
 app.get("/v1/factory/apis",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;return {ok:true,apis:readRegistry().apis};});
 app.post("/v1/factory/validate",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,spec:validateSpec(request.body)}}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
 app.post("/v1/factory/build",async(request,reply)=>{
