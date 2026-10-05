@@ -62,3 +62,18 @@ Lead → Research → API → Automation → AI → CRM/communications → Web A
 ## Source note
 
 The historical OpenAI `openai/skills` repository is deprecated and points toward the current OpenAI plugin/skill ecosystem. We therefore prioritize current official material and treat third-party catalogs as candidates rather than automatically trusted code.
+
+## Collection operating rule — full-list + Top Five
+
+The Collection process is not limited to current-project fit. Every source must be evaluated on two axes: (1) immediate reusable capability and (2) independent ready-made / near-ready project potential. Repositories are not discarded merely because they do not map to today's projects.
+
+The current master inventory is maintained at `COLLECTION/MASTER-INVENTORY-2026-10-05.md` and includes the complete Firecrawl organization inventory plus the current Top Five queue.
+
+### Current Top Five queue
+- `debpalash/VoiceStudio` — voice/creative product candidate; AGPL-3.0 boundary review required.
+- `eternity4719/HowToLiveBetter` — evidence-backed knowledge product candidate; CC BY 4.0 and China-specific content.
+- `Niko1221/Strata` — local large-model runtime candidate; verify software/model licenses before commercial use.
+- `NVIDIA/OpenShell` — agent sandbox/control-plane candidate; strong Elite/ARMY-14 infrastructure fit.
+- `KKKKhazix/AIHOT` — ready-made industry news/monitoring product candidate; MIT code, brand/name excluded.
+
+This rule also applies to future Top Five lists: preserve the full source queue, classify every entry, and retain independent project candidates for later revenue mapping.
