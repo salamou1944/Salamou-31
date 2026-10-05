@@ -1,3 +1,5 @@
+// SOAT evidence consumer: CI/provider evidence remains distinct from production proof.
+
 const REQUIRED_GATES=[
   "health",
   "authentication",
