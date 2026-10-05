@@ -1,6 +1,6 @@
-# AI Product Content API — MVP 0.1
+# Commercial AI API Runtime — MVP 0.2
 
-A small B2B API that turns seller-supplied product information (and optionally a product image URL) into structured, sales-ready content.
+A provider-neutral B2B API runtime exposing two reusable commercial endpoints: product-content generation and inbound lead qualification.
 
 ## Endpoint
 
@@ -23,6 +23,30 @@ Example request:
 
 The API returns a title, short description, full description, selling points, ad copy, CTA, target audience, and cautions for unknown facts.
 
+## Commercial endpoints
+
+### 1. Product content
+
+`POST /v1/product-content` generates structured, sales-ready ecommerce content from factual product inputs.
+
+### 2. Lead qualification
+
+`POST /v1/leads/qualify` turns an inbound business lead into a score, priority, intent, evidence-based reasons, and a concrete next action.
+
+Example request:
+
+```json
+{
+  "name": "Jane Doe",
+  "company": "Acme SaaS",
+  "email": "jane@example.com",
+  "message": "We need to automate lead routing into our CRM this month.",
+  "source": "website"
+}
+```
+
+Both endpoints use the same `X-API-Key`, rate-limit, daily-quota, provider-neutral runtime, and fail-closed provider boundary. `Idempotency-Key` may be supplied to prevent duplicate billable processing.
+
 ## Required environment
 
 - `AI_PROVIDER_API_KEY` — required; provider credential, never commit it. `OPENAI_API_KEY` remains accepted as a compatibility alias.
@@ -40,7 +64,7 @@ For a multi-instance production deployment, use a shared transactional datastore
 
 ## Safety controls
 
-The generation endpoint fails closed when required credentials are missing, requires an API key, applies per-key rate limiting and a daily quota, rejects unknown or incorrectly typed fields, caps input sizes, validates HTTP(S) image URLs, limits model output, disables provider response storage, ignores prompt-injection instructions inside seller data, and does not return provider error details to callers.
+The endpoints fail closed when required credentials are missing, requires an API key, applies per-key rate limiting and a daily quota, rejects unknown or incorrectly typed fields, caps input sizes, validates HTTP(S) image URLs, limits model output, disables provider response storage, ignores prompt-injection instructions inside seller data, and does not return provider error details to callers.
 
 Invalid request bodies and fields are fully validated before daily quota is consumed. A request that fails validation therefore does not spend a daily generation quota. Quota is reserved immediately before the billable provider call.
 
@@ -55,7 +79,7 @@ Human entry point: `GET /` returns a small customer-facing description of the AP
 
 ## Commercial MVP
 
-The first offer is intentionally narrow: **send product details once and receive ready-to-publish product copy in the customer's language**. It can be offered to e-commerce sellers, agencies, catalogs, and retailers as an API or done-for-you service.
+The commercial runtime now supports two narrow paid offers: **product-content API** for ecommerce sellers/agencies/catalog teams and **lead-qualification API** for agencies, SaaS, ecommerce, and service businesses. These can be sold independently or combined into a small sales/ecommerce automation pilot.
 
 ## First customer trial
 
@@ -63,4 +87,4 @@ Use one real product from a small e-commerce seller. Ask for the product name, f
 
 ## Provider-neutral factory contract
 
-The service is an API-factory component: callers use the same POST /v1/product-content contract while the runtime selects an OpenAI-compatible provider through AI_PROVIDER_BASE_URL, AI_PROVIDER_API_KEY, and AI_MODEL. No provider credential is committed to Git. EASY can consume this service through its stable API contract without coupling its application code to a specific vendor.
+The service is an API-factory component: callers use the same POST /v1/product-content contract while the runtime selects an OpenAI-compatible provider through AI_PROVIDER_BASE_URL, AI_PROVIDER_API_KEY, and AI_MODEL. No provider credential is committed to Git. EASY already consumes the stable product-content contract through its provider adapter. Other projects can consume either endpoint through the same authenticated runtime without coupling application code to a specific vendor.
