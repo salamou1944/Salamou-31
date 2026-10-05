@@ -5,7 +5,7 @@ import {validateSpec,compileApi} from "./factory.mjs";
 import {deploymentPlan} from "./deployment.mjs";
 import {runSherlock} from "./sherlock-username.mjs";
 import {createExecutionRecord,assertStateExit} from "./execution-contract.mjs";
-import {createSoatExecutionEvidence} from "./soat-evidence.mjs";
+import {createSoatExecutionEvidence,createSoatProductionExecutionEvidence} from "./soat-evidence.mjs";
 
 const app=Fastify({logger:true,bodyLimit:64*1024});
 const port=Number(process.env.PORT||8797);
@@ -33,7 +33,7 @@ app.post("/v1/factory/deploy/plan",async(request,reply)=>{const denied=auth(requ
 app.post("/v1/factory/verify/soat",async(request,reply)=>{
   const denied=auth(request,reply);if(denied)return denied;
   try{
-    const evidence=createSoatExecutionEvidence(request.body);
+    const evidence=request.body?.schema==="soat-verification-record/v2"?createSoatProductionExecutionEvidence(request.body):createSoatExecutionEvidence(request.body);
     const execution=createExecutionRecord({
       state:"VERIFY",
       artifacts:{verification:evidence},
