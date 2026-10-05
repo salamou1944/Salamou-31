@@ -57,3 +57,17 @@ Do not mark the integration production-ready until all are proven:
 7. The result is linked to the corresponding verification record.
 
 No secret belongs in Git, this file, or chat messages.
+
+## Automated production proof
+
+The repository now contains a manual `SOAT Production Verification` workflow at `.github/workflows/soat-production-verification.yml`.
+
+Configure these GitHub Actions secrets before running it:
+
+- `SOAT_BASE_URL` — HTTPS public SOAT URL
+- `SOAT_API_KEY` — project-scoped SOAT bearer key
+- `SOAT_AI_PROVIDER_ID` — configured provider record ID
+
+The workflow proves health, authentication, provider resolution, API Factory probe, real chat completion, usage capture, and error-behavior recording. It emits `soat-verification-record/v2` with `production_status: proven` only when every gate passes.
+
+The `/v1/factory/verify/soat` endpoint accepts both the existing CI `v1` verification record and the production `v2` record. Production evidence is never inferred from CI evidence.
