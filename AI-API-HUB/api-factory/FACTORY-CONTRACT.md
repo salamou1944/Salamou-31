@@ -75,6 +75,17 @@ The SOAT adapter exposes a non-mutating `probe()` diagnostic. It sends an authen
 
 The endpoint and authentication requirement are verified against SOAT server source revision `600721c1fa30de27c14f6da5e5917049a533903`, where `GET /projects` calls `requireAuth` and lists only projects visible to the authenticated user. The probe is intentionally non-mutating and does not invoke an LLM.
 
+## Provider reliability contract
+
+Generated provider-backed APIs inherit a bounded reliability layer:
+
+- retries use exponential backoff with jitter and honor `Retry-After` when present;
+- automatic retries are permitted only when the caller supplies `Idempotency-Key`, preventing unsafe duplicate billable POST processing;
+- retryable responses are limited to transient HTTP failures (`408`, `425`, `429`, `5xx`);
+- a per-provider circuit breaker opens after repeated failures and reports fail-closed readiness;
+- credentials and provider response bodies are never persisted by the reliability layer.
+
+Reliability behavior improves execution resilience but never upgrades evidence from provider or business readiness. A successful retry is still only runtime/provider execution evidence when independently observed.
 ## Deployment contract
 
 Deployment is an adapter boundary. Railway and Vercel plans explicitly report missing deployment credentials instead of pretending to deploy. A deployment artifact or healthy process is not promoted to provider or business evidence automatically.
