@@ -327,17 +327,25 @@ jobs:
 
       - name: Collect runtime diagnostics
         if: failure()
-        working-directory: /tmp/soat
         run: |
-          docker compose -p soat-official-smoke -f tests/docker-compose.smoke.yml logs --no-color --tail=500 server worker ollama ollama-tool-choice || true
-          docker compose -p soat-runtime -f tests/docker-compose.smoke.yml -f tests/docker-compose.ci-override.yml logs --no-color --tail=500 server worker ollama ollama-tool-choice || true
+          set -euo pipefail
+          if [ -d "$SOAT_DIR" ]; then
+            docker compose -p soat-official-smoke -f "$SOAT_DIR/tests/docker-compose.smoke.yml" logs --no-color --tail=500 server worker ollama ollama-tool-choice || true
+            docker compose -p soat-runtime -f "$SOAT_DIR/tests/docker-compose.smoke.yml" -f "$SOAT_DIR/tests/docker-compose.ci-override.yml" logs --no-color --tail=500 server worker ollama ollama-tool-choice || true
+          else
+            echo "SOAT source directory was never created; no runtime diagnostics available."
+          fi
 
       - name: Cleanup SOAT runtime
         if: always()
-        working-directory: /tmp/soat
         run: |
-          docker compose -p soat-official-smoke -f tests/docker-compose.smoke.yml down --volumes --remove-orphans || true
-          docker compose -p soat-runtime -f tests/docker-compose.smoke.yml -f tests/docker-compose.ci-override.yml down --volumes --remove-orphans || true
+          set -euo pipefail
+          if [ -d "$SOAT_DIR" ]; then
+            docker compose -p soat-official-smoke -f "$SOAT_DIR/tests/docker-compose.smoke.yml" down --volumes --remove-orphans || true
+            docker compose -p soat-runtime -f "$SOAT_DIR/tests/docker-compose.smoke.yml" -f "$SOAT_DIR/tests/docker-compose.ci-override.yml" down --volumes --remove-orphans || true
+          else
+            echo "SOAT source directory was never created; cleanup is a no-op."
+          fi
 
 # revalidation-marker
 # consumer-revalidation-2026-10-06
