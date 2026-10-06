@@ -70,10 +70,12 @@
       "id": "nvidia_nim",
       "status": "DISCOVERED",
       "env": "NVIDIA_NIM_API_KEY",
-      "base_url": null,
+      "base_url": "https://integrate.api.nvidia.com/v1",
       "routing_enabled": false,
       "free_access": "NVIDIA Developer Program provides free NIM API endpoints for prototyping",
-      "source": "https://docs.api.nvidia.com/nim/docs/product"
+      "source": "https://docs.api.nvidia.com/nim/docs/product",
+      "evidence": "NOT_YET_PROBED",
+      "probe_model": "meta/llama-3.1-8b-instruct"
     },
     {
       "id": "huggingface_inference",
