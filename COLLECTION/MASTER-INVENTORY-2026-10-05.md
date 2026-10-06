@@ -410,3 +410,35 @@ GitHub repository search returned **40 distinct public repositories** for `msita
 - Fork/mirror candidates (`openai-php-client`, `mysql-nio`) remain provenance records until exact upstream divergence is checked.
 - **Evidence boundary:** repository/README inspection is collection evidence, not production proof. P0 candidates now enter exact-path, dependency/license, security and isolated-runtime gates.
 
+
+
+## Newly completed source account — KorroAi
+
+GitHub repository search returned **13 public repositories** for `KorroAi`. The public profile currently exposes a smaller visible set, so Collection preserves the broader repository-search result and evaluates all 13 rather than assuming the profile list is exhaustive. MUE-X remains the entry-point repository, but the account is now treated as a full source account. citeturn1search6turn1search1
+
+| Repository | Axis 1 — reusable capability | Axis 2 — independent project potential | Classification / decision |
+|---|---|---|---|
+| `mue-x` | VERY HIGH — self-modification, AST mutation, autonomous drives, persistent memory, GitHub absorption, MCP/tool creation | VERY HIGH — standalone self-evolving agent with CLI | **P0 READY_PROJECT + AGENT/INFRA**; MIT; security/runtime gate required |
+| `drunk-claude` | MEDIUM — creative ideation persona/skill | MEDIUM — standalone Claude Code skill | **P2 SKILL/CREATIVE ASSET**; preserve, not core infrastructure |
+| `onklaud-5` | VERY HIGH — multi-model council/fusion, verification, cost-saving pipeline layers | VERY HIGH — standalone AI quality/verification pipeline | **P0 REVENUE/AI VERIFICATION ASSET**; BSL 1.1 / future MIT boundary requires license gate |
+| `claude-creativity` | MEDIUM-HIGH — structured multi-technique creative reasoning skill | MEDIUM-HIGH — standalone skill/product | **P1 SKILL/CREATIVE ASSET**; preserve for ideation workflows |
+| `korrodesign` | HIGH — design governance skill + 14-rule AST/ESLint enforcement | HIGH — deployable AI-design quality product | **P0 REVENUE/QUALITY ASSET**; MIT |
+| `oddly` | HIGH — SEC EDGAR extraction + 11-gate odd-lot tender verification | HIGH — focused financial research product | **P0 REVENUE/DATA ASSET**; financial/legal/data-source gate required |
+| `readme-roast` | MEDIUM — automated README truthfulness/quality evaluation | MEDIUM-HIGH — productized developer tool | **P1 DEV-QUALITY ASSET**, MIT |
+| `claude-is-tripping` | HIGH — multi-agent adversarial ideation/dialectic | HIGH — standalone creative reasoning skill | **P1 AI-REASONING/SKILL ASSET**, MIT |
+| `pinelint` | HIGH — deterministic Pine Script bug detection with offline CLI/tests | HIGH — standalone TradingView developer tool | **P0 REVENUE/DEV TOOL**, MIT; not a profitability predictor |
+| `solana-agent-mcp` | VERY HIGH — MCP blockchain read/write, swaps/trading, local signing | VERY HIGH — standalone agentic crypto tool | **P1 READY_PROJECT / FINTECH INFRA**, AGPL-3.0; high security and financial-risk gate |
+| `steerio` | HIGH — representation-engineering/CAA implementation + controlled experiments | MEDIUM-HIGH — research/ML tool | **P1 RESEARCH/ML ASSET**; experimental, not production inference |
+| `mue-2` | VERY HIGH — self-modification with measured noise floor, certification, rollback and offline verification | VERY HIGH — standalone self-evolving agent framework | **P0 READY_PROJECT + AGENT GOVERNANCE ASSET**; particularly valuable because it addresses MUE-X's trust gap; license/dependency gate |
+| `baguette-ar` | MEDIUM-HIGH — WebXR/AR surface hit-testing, 3D drawing and shaders | HIGH — complete browser AR application | **P2 READY_PROJECT / XR**; preserve independently |
+
+### KorroAi conclusions
+
+- **KEEP the source account.** It contains multiple independent products, not just MUE-X.
+- **Highest leverage discovery:** `mue-2`. Its design makes self-modification contingent on measured improvement, carries certificates that can be recomputed, and reports 705 tests plus 193 verification properties offline. This is a materially different safety/evidence model from MUE-X and should be preserved separately rather than deduplicated away.
+- **Immediate AI infrastructure candidates:** `mue-2`, `mue-x`, `onklaud-5`, `korrodesign`.
+- **Immediate independent revenue candidates:** `oddly`, `pinelint`, `korrodesign`, `onklaud-5`.
+- `solana-agent-mcp` is technically substantial but remains a high-risk financial/transaction system; preserve it as an independent candidate without adopting it into Salamou-31 until key handling, transaction authorization, limits, dependency chain and legal/compliance boundaries are independently audited.
+- `onklaud-5` is especially relevant to the existing provider-neutral verification direction, but its BSL 1.1 license means code adoption must pass a commercial-license gate.
+- `mue-x` remains valuable as a ready-made independent project; its README explicitly documents AST validation, backups, import-test rollback, integrity sealing and dangerous-command blocking, but these are repository claims and are not yet our production proof. citeturn1search1turn1search2
+- **Evidence boundary:** all account-level findings are collection evidence. P0 candidates require exact-path inspection, dependency/license review, isolated execution, security testing and real runtime evidence before adoption.
