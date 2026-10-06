@@ -5,6 +5,10 @@ on:
     paths:
       - 'AI-API-HUB/api-factory/free-provider-probe.mjs'
       - '.github/workflows/free-provider-real-probe-auto.yml'
+  pull_request:
+    paths:
+      - 'AI-API-HUB/api-factory/free-provider-probe.mjs'
+      - '.github/workflows/free-provider-real-probe-auto.yml'
 
 jobs:
   probe:
