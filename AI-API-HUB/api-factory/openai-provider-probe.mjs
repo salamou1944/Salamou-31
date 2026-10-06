@@ -1,4 +1,4 @@
-const https = require("node:https");
+import https from "node:https";
 
 const key = process.env.OPENAI_API_KEY;
 if (!key) {
