@@ -1,16 +1,15 @@
 name: P1 Cloudflare Workers AI Real Probe
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - 'AI-API-HUB/api-factory/cloudflare-workers-ai-probe.mjs'
       - '.github/workflows/p1-cloudflare-workers-ai-real-probe.yml'
-  workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
   cloudflare:
@@ -31,7 +30,11 @@ jobs:
         id: config
         shell: bash
         run: |
-          if [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CLOUDFLARE_API_TOKEN" ]; then echo "configured=true" >> "$GITHUB_OUTPUT"; else echo "configured=false" >> "$GITHUB_OUTPUT"; fi
+          if [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Probe Cloudflare Workers AI
         if: steps.config.outputs.configured == 'true'
         shell: bash
@@ -40,10 +43,10 @@ jobs:
           node cloudflare-workers-ai-probe.mjs | tee provider-evidence.json
       - name: Validate provider evidence
         if: steps.config.outputs.configured == 'true'
-        run: node -e 'import fs from "node:fs"; import {assertProviderEvidence} from "./provider-evidence.mjs"; assertProviderEvidence(JSON.parse(fs.readFileSync("provider-evidence.json","utf8"))); console.log("provider evidence gate: PASS");'
-
+        run: |
+          node -e 'import fs from "node:fs"; import {assertProviderEvidence} from "./provider-evidence.mjs"; assertProviderEvidence(JSON.parse(fs.readFileSync("provider-evidence.json","utf8"))); console.log("provider evidence gate: PASS");'
       - name: Upload provider evidence
-        if: steps.config.outputs.configured == 'true' && success()
+        if: steps.config.outputs.configured == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: p1-cloudflare-provider-evidence-${{ github.run_id }}
