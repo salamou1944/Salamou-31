@@ -31,10 +31,11 @@ This record is based on successful GitHub Actions runtime executions of the SOAT
 9. Execution-contract validation.
 10. Verification-record persistence/upload.
 11. Runtime cleanup.
+12. Business-outcome gate consumed the verified SOAT evidence and accepted the `ENTRY_POINT_VERIFIED` transition.
 
 ## Evidence boundary
 
-This proves the SOAT + API Factory runtime integration path using a real local Ollama provider.
+This proves the SOAT + API Factory runtime integration path using a real local Ollama provider. The latest revalidation also proves the complete evidence-consumption path through the API Factory business-outcome gate.
 
 It does **not** prove commercial OpenAI billing/provider readiness.
 
