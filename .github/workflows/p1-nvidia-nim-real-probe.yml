@@ -1,0 +1,29 @@
+name: P1 NVIDIA NIM Real Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'AI-API-HUB/api-factory/nvidia-nim-probe.mjs'
+      - '.github/workflows/p1-nvidia-nim-real-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nvidia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    env:
+      NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe NVIDIA NIM
+        run: node nvidia-nim-probe.mjs
