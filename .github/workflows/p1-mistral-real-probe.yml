@@ -28,8 +28,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Check provider configuration
+        id: config
+        shell: bash
+        run: |
+          if [ -n "$MISTRAL_API_KEY" ]; then echo "configured=true" >> "$GITHUB_OUTPUT"; else echo "configured=false" >> "$GITHUB_OUTPUT"; fi
       - name: Probe Mistral real completion
-        run: node free-provider-probe.mjs
+        if: steps.config.outputs.configured == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          node free-provider-probe.mjs | tee provider-evidence.json
+      - name: Validate provider evidence
+        if: steps.config.outputs.configured == 'true'
+        run: node -e 'import fs from "node:fs"; import {assertProviderEvidence} from "./provider-evidence.mjs"; assertProviderEvidence(JSON.parse(fs.readFileSync("provider-evidence.json","utf8"))); console.log("provider evidence gate: PASS");'
 
       - name: Upload provider evidence
         if: steps.config.outputs.configured == 'true' && success()
