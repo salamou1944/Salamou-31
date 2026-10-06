@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {validateSoatVerificationRecord,createSoatExecutionEvidence} from "./soat-evidence.mjs";
+import {validateSoatVerificationRecord,createSoatExecutionEvidence,createSoatProviderEvidence} from "./soat-evidence.mjs";
 
 const record={
   schema:"soat-verification-record/v1",
@@ -31,3 +31,11 @@ const failed={...record,gates:{...record.gates,real_chat_completion:false}};
 assert.equal(validateSoatVerificationRecord(failed).code,"SOAT_EVIDENCE_GATE_FAILED");
 
 console.log("SOAT evidence consumer: OK");
+
+const providerEvidence={evidence_level:"REAL_COMPLETION",provider:"test-provider",base_url:"https://example.invalid/v1",models_status:200,selected_model:"test-model",completion_status:200,completion_received:true,exact_output_match:true,secret_committed:false};
+const providerSoat=createSoatProviderEvidence(providerEvidence);
+assert.equal(providerSoat.verified,true);
+assert.equal(providerSoat.productionStatus,"not_proven_by_provider_probe_alone");
+assert.deepEqual(providerSoat.soatRequiredNext,["health","authentication","official_smoke_suite"]);
+
+console.log("SOAT provider evidence consumer: OK");
