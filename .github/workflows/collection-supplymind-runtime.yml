@@ -33,6 +33,37 @@ jobs:
         working-directory: _candidate/supplymind-sales-outreach
         run: npm install --no-audit --no-fund
 
+      - name: Apply minimal integration adapter
+        working-directory: _candidate/supplymind-sales-outreach
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          replacements = {
+              "src/App.tsx": [
+                  ('<Generate  session={session} />', '<Generate />'),
+                  ('<Contacts  session={session} />', '<Contacts />'),
+                  ('<Tracker   session={session} />', '<Tracker />'),
+                  ('<Settings  session={session} />', '<Settings />'),
+              ],
+              "src/pages/Dashboard.tsx": [
+                  ('<Generate session={session} />', '<Generate />'),
+              ],
+              "src/tabs/Sequence.tsx": [
+                  ('<OutputBox text={seq[k]} />', '<OutputBox>{seq[k]}</OutputBox>'),
+              ],
+          }
+          for name, pairs in replacements.items():
+              p = Path(name)
+              s = p.read_text()
+              for old, new in pairs:
+                  if old not in s:
+                      raise SystemExit(f"expected integration pattern missing: {name}: {old}")
+                  s = s.replace(old, new)
+              p.write_text(s)
+          print("SUPPLYMIND_ADAPTER=APPLIED")
+          PY
+
       - name: Typecheck candidate
         working-directory: _candidate/supplymind-sales-outreach
         run: npm run typecheck
