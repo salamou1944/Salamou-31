@@ -1,0 +1,85 @@
+name: Collection CodeQL Jupyter Kernel Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-codeql-jupyter-kernel-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collection-codeql-jupyter-kernel-runtime
+  cancel-in-progress: true
+
+env:
+  CODEQL_KERNEL_REF: e6bcf9774af2f25bd5570b4b8980563aef3be96b
+
+jobs:
+  runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+      - name: Checkout pinned CodeQL kernel
+        uses: actions/checkout@v4
+        with:
+          repository: GitHubSecurityLab/codeql-jupyter-kernel
+          ref: ${{ env.CODEQL_KERNEL_REF }}
+          path: /tmp/codeql-jupyter-kernel
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install and test
+        working-directory: /tmp/codeql-jupyter-kernel
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+          make data-files
+          pytest -q
+      - name: Kernel packaging smoke
+        working-directory: /tmp/codeql-jupyter-kernel
+        run: |
+          set -euo pipefail
+          python -m build .
+          python -m pip install dist/*.whl
+          jupyter kernelspec list --json | python -c 'import json,sys; d=json.load(sys.stdin); assert "codeql" in d["kernelspecs"]; print("CODEQL_KERNEL_SPEC_OK")'
+      - name: Emit evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-codeql-jupyter-kernel-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/codeql-jupyter-kernel",
+            "source_ref": "e6bcf9774af2f25bd5570b4b8980563aef3be96b",
+            "license": "BSD-3-Clause",
+            "classification": {
+              "axis_1_capability": "HIGH",
+              "axis_2_independent_project": "HIGH",
+              "priority": "P1"
+            },
+            "gates": {
+              "source_pinned": true,
+              "installation": true,
+              "tests": true,
+              "package_build": true,
+              "jupyter_kernel_registration": true
+            },
+            "real_codeql_query_execution": "NOT_ATTEMPTED",
+            "verified": true,
+            "promotion": "READY_TO_USE",
+            "blocker": "Actual CodeQL query execution still requires a compatible CodeQL CLI/database."
+          }
+          JSON
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-jupyter-kernel-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-codeql-jupyter-kernel-runtime.json
+          if-no-files-found: ignore
