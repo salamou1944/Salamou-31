@@ -64,3 +64,15 @@ The Elite supervisor can use GitHub Copilot CLI through the GitHub Actions token
 - SOAT runtime/API Factory completion is independently verified in CI.
 - Elite's provider path is now expected to permit the GitHub Copilot CLI fallback when no API provider credential is configured; no GitHub Models endpoint is used.
 - ARMY-14 workspace scanning must reject real credentials while avoiding false positives from generated runtime credentials in CI configuration.
+
+
+## Product 001 — Username Research API
+
+- Entry: POST /v1/factory/research/username
+- Current implementation: API Factory Sherlock endpoint
+- Buyer outcome: machine-readable public-profile discovery for lead research and prospect enrichment
+- Technical state: IMPLEMENTED; external runtime verification still required after the latest reliability changes
+- Business state: DISCOVERED
+- Revenue state: NOT_OBSERVED
+- Commercial blocker: a separate Salamou-31 Railway resource could not be provisioned because the connected workspace returned `Free plan resource provision limit exceeded`. No new paid resource was provisioned.
+- Product contract: AI-API-HUB/products/username-research-api/
