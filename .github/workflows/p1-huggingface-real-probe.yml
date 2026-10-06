@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   huggingface:
@@ -27,5 +28,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Probe Hugging Face Inference Providers
-        run: node free-provider-probe.mjs
+      - name: Check provider configuration
+        id: config
+        shell: bash
+        run: |
+          if [ -n "$HF_TOKEN" ]; then echo "configured=true" >> "$GITHUB_OUTPUT"; else echo "configured=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Probe real completion
+        if: steps.config.outputs.configured == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          node free-provider-probe.mjs | tee provider-evidence.json
+      - name: Validate and publish evidence
+        if: steps.config.outputs.configured == 'true'
+        run: node -e 'import fs from "node:fs"; import {assertProviderEvidence} from "./provider-evidence.mjs"; const e=JSON.parse(fs.readFileSync("provider-evidence.json","utf8")); assertProviderEvidence(e); console.log("provider evidence gate: PASS");'
+
+      - name: Upload provider evidence
+        if: steps.config.outputs.configured == 'true' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-huggingface-provider-evidence-${{ github.run_id }}
+          path: AI-API-HUB/api-factory/provider-evidence.json
+          if-no-files-found: error
