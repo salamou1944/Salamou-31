@@ -7,6 +7,9 @@ on:
       - 'AI-API-HUB/FREE-PROVIDER-POLICY.md'
       - 'AI-API-HUB/free-provider-policy-fixture.json'
       - 'AI-API-HUB/test-free-provider-policy.mjs'
+      - 'AI-API-HUB/evaluation-fixture.schema.json'
+      - 'AI-API-HUB/evaluation-fixture-example.json'
+      - 'AI-API-HUB/test-evaluation-fixture-contract.mjs'
       - '.github/workflows/api-factory-test.yml'
   pull_request:
     paths:
@@ -35,4 +38,7 @@ jobs:
       - name: Verify free-provider policy
         working-directory: AI-API-HUB
         run: node test-free-provider-policy.mjs
+      - name: Verify evaluation fixture contract
+        working-directory: AI-API-HUB
+        run: node test-evaluation-fixture-contract.mjs
       - run: npm test
