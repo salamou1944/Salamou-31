@@ -1,0 +1,31 @@
+name: P1 Hugging Face Real Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'AI-API-HUB/api-factory/free-provider-probe.mjs'
+      - 'AI-API-HUB/api-factory/package.json'
+      - '.github/workflows/p1-huggingface-real-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  huggingface:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    env:
+      PROVIDER: huggingface_inference
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe Hugging Face Inference Providers
+        run: node free-provider-probe.mjs
