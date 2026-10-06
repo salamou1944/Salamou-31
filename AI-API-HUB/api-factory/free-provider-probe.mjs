@@ -29,7 +29,7 @@ try { models = JSON.parse(modelsText); } catch { models = { raw: modelsText.slic
 const discovered = Array.isArray(models?.data) ? models.data.map((m) => m?.id).filter(Boolean) : [];
 const freeModels = discovered.filter((id) => /:free$/i.test(id) || /^openrouter\/free$/i.test(id));
 const model = process.env.PROVIDER_MODEL ??
-  (provider === "openrouter" ? "openrouter/free" : discovered[0]);
+  (provider === "openrouter" ? "openrouter/free" : provider === "huggingface_inference" ? "openai/gpt-oss-120b:fastest" : discovered[0]);
 
 if (!model) {
   console.error(JSON.stringify({
