@@ -21,7 +21,10 @@ jobs:
     with:
       goal: >-
         Continue the highest-value unfinished engineering work in this repository toward a practical,
-        sellable AI/API capability. Inspect the real repository state first. Preserve SECURITY.md and never
+        sellable AI/API capability.
+      soat_base_url: ${{ vars.SOAT_BASE_URL || '' }}
+      soat_ai_provider_id: ${{ vars.SOAT_AI_PROVIDER_ID || '' }}
+      soat_model: ${{ vars.SOAT_MODEL || '' }} Inspect the real repository state first. Preserve SECURITY.md and never
         expose or create secrets. Prioritize incomplete services, tests, API usability, documentation needed
         for real use, and production-readiness blockers. Implement only safe, minimal changes; test and
         verify every change; repair failures introduced by the change; leave concrete evidence. Do not modify
