@@ -1532,3 +1532,36 @@ A collected project is not considered operationally closed until either:
 - it has a documented, concrete blocker with the exact missing input/action required from the user or an external system.
 
 This rule is universal for all Collection source accounts and repositories, including Top Five, newly discovered parent accounts, and independent ready-made projects.
+
+
+## WORK-READY EXECUTION QUEUE — 2026-10-06
+
+The new work-ready rule is now active. Collection must move from inventory into execution using the following queue discipline:
+
+### P0 — execute first
+- Any retained READY_PROJECT / VERY HIGH candidate that can run with existing/free infrastructure.
+- Any candidate that directly strengthens Elite/ARMY-14, SOAT/API Factory, revenue acquisition, or $0/local inference.
+- Security/evaluation gates required before promoting agent/skill assets.
+
+### P1 — prepare after P0
+- READY_PROJECT candidates requiring moderate adaptation.
+- High-value components that can be packaged into a reusable service or adapter.
+- Independent products with a plausible revenue path but no immediate system dependency.
+
+### P2 — preserve, do not prematurely build
+- Research, templates, archives, forks, hardware-specific projects, or candidates with unresolved license/provider dependencies.
+
+### Execution artifact required per candidate
+Each P0/P1 candidate must eventually have a work-ready record containing:
+- source + exact ref/commit;
+- license/dependency gate;
+- entrypoint and runtime requirements;
+- files/configuration needed to run;
+- adaptation status;
+- test/smoke evidence;
+- deployment path;
+- exact blocker, if any;
+- promotion state (READY_TO_USE, READY_TO_DEPLOY, PRODUCTION_VERIFIED, BLOCKED, or REJECTED).
+
+### Immediate rule
+Do not continue expanding Collection indefinitely while high-value collected assets remain merely catalogued. After each meaningful source-account sweep, switch to work-readiness execution for the highest-leverage candidates. New discovery and operationalization proceed as a loop, not as separate phases.
