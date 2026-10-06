@@ -1,0 +1,96 @@
+name: Collection CodeQL Bicep Extractor Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-codeql-extractor-bicep-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: collection-codeql-extractor-bicep-runtime
+  cancel-in-progress: true
+
+env:
+  BICEP_REF: bf21a68158c80269b7fc86542d3376d6f19a8bac
+
+jobs:
+  runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+      - name: Checkout pinned extractor
+        uses: actions/checkout@v4
+        with:
+          repository: GitHubSecurityLab/codeql-extractor-bicep
+          ref: ${{ env.BICEP_REF }}
+          path: /tmp/codeql-extractor-bicep
+          submodules: true
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@nightly
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install CodeQL CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh extension install github/gh-codeql
+          gh codeql set-version latest
+          gh codeql version
+      - name: Build extractor pack
+        working-directory: /tmp/codeql-extractor-bicep
+        run: |
+          set -euo pipefail
+          ./scripts/create-extractor-pack.sh
+          test -x extractor-pack/tools/*/extractor
+          gh codeql resolve languages --format=json --search-path ./extractor-pack | tee /tmp/codeql-bicep-languages.json
+      - name: Run real CodeQL test suites
+        working-directory: /tmp/codeql-extractor-bicep
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ./scripts/run-tests.sh "ql/test/library-tests"
+          ./scripts/run-tests.sh "ql/test/queries-tests"
+      - name: Emit evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-codeql-extractor-bicep-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/codeql-extractor-bicep",
+            "source_ref": "bf21a68158c80269b7fc86542d3376d6f19a8bac",
+            "license": "MIT",
+            "classification": {
+              "axis_1_capability": "VERY_HIGH",
+              "axis_2_independent_project": "HIGH",
+              "priority": "P1"
+            },
+            "gates": {
+              "source_pinned": true,
+              "rust_build": true,
+              "extractor_pack": true,
+              "codeql_language_resolution": true,
+              "library_tests": true,
+              "query_tests": true
+            },
+            "verified": true,
+            "promotion": "READY_TO_USE"
+          }
+          JSON
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-extractor-bicep-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-codeql-extractor-bicep-runtime.json
+          if-no-files-found: ignore
