@@ -2,7 +2,6 @@ import process from "node:process";
 
 const PROVIDERS = {
   groq: { env: "GROQ_API_KEY", base: "https://api.groq.com/openai/v1" },
-  cerebras: { env: "CEREBRAS_API_KEY", base: "https://api.cerebras.ai/v1" },
   openrouter: { env: "OPENROUTER_API_KEY", base: "https://openrouter.ai/api/v1" },
   mistral: { env: "MISTRAL_API_KEY", base: "https://api.mistral.ai/v1" },
   chutes: { env: "CHUTES_API_KEY", base: "https://llm.chutes.ai/v1" }
@@ -26,9 +25,18 @@ const modelsText = await modelsResponse.text();
 let models;
 try { models = JSON.parse(modelsText); } catch { models = { raw: modelsText.slice(0, 500) }; }
 
-const model = process.env.PROVIDER_MODEL ?? models?.data?.[0]?.id;
+const discovered = Array.isArray(models?.data) ? models.data.map((m) => m?.id).filter(Boolean) : [];
+const freeModels = discovered.filter((id) => /:free$/i.test(id) || /^openrouter\/free$/i.test(id));
+const model = process.env.PROVIDER_MODEL ?? (provider === "openrouter" ? freeModels[0] : discovered[0]);
+
 if (!model) {
-  console.error(JSON.stringify({ provider, models_status: modelsResponse.status, error: "NO_MODEL_DISCOVERED" }));
+  console.error(JSON.stringify({
+    provider,
+    models_status: modelsResponse.status,
+    discovered_models: discovered.length,
+    free_models: freeModels.length,
+    error: provider === "openrouter" ? "NO_FREE_MODEL_DISCOVERED" : "NO_MODEL_DISCOVERED"
+  }));
   process.exit(4);
 }
 
@@ -47,11 +55,13 @@ try { completion = JSON.parse(completionText); } catch { completion = { raw: com
 
 const output = completion?.choices?.[0]?.message?.content ?? "";
 const evidence = {
-  evidence_level: completionResponse.ok && output.includes("FREE_PROVIDER_REAL_OK") ? "REAL_COMPLETION" : "FAILED",
+  evidence_level: completionResponse.ok && output.trim() === "FREE_PROVIDER_REAL_OK" ? "REAL_COMPLETION" : "FAILED",
   provider,
   base_url: cfg.base,
   models_status: modelsResponse.status,
   model_discovered: Boolean(model),
+  discovered_models: discovered.length,
+  free_models_discovered: freeModels.length,
   selected_model: model,
   completion_status: completionResponse.status,
   completion_received: Boolean(output),
