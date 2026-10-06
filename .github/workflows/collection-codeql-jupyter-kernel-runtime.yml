@@ -57,7 +57,7 @@ jobs:
             "schema": "collection-runtime-evidence/v1",
             "candidate": "GitHubSecurityLab/codeql-jupyter-kernel",
             "source_ref": "e6bcf9774af2f25bd5570b4b8980563aef3be96b",
-            "license": "BSD-3-Clause",
+            "license": "MIT",
             "classification": {
               "axis_1_capability": "HIGH",
               "axis_2_independent_project": "HIGH",
