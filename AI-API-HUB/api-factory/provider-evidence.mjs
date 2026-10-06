@@ -1,4 +1,4 @@
-const REQUIRED_FIELDS=["provider","base_url","models_status","selected_model","completion_status","completion_received","exact_output_match","secret_committed"];
+const REQUIRED_FIELDS=["provider","base_url","selected_model","completion_status","completion_received","exact_output_match","secret_committed"];
 
 export function validateProviderEvidence(evidence={}){
   if(!evidence || typeof evidence!=="object" || Array.isArray(evidence)) return {ok:false,code:"INVALID_PROVIDER_EVIDENCE"};
@@ -8,7 +8,8 @@ export function validateProviderEvidence(evidence={}){
   if(evidence.evidence_level!=="REAL_COMPLETION" || evidence.completion_received!==true || evidence.exact_output_match!==true){
     return {ok:false,code:"REAL_COMPLETION_GATE_FAILED"};
   }
-  if(Number(evidence.models_status)!==200 || Number(evidence.completion_status)!==200){
+  if(evidence.models_status!==undefined && Number(evidence.models_status)!==200) return {ok:false,code:"MODEL_DISCOVERY_GATE_FAILED"};
+  if(Number(evidence.completion_status)!==200){
     return {ok:false,code:"HTTP_SUCCESS_GATE_FAILED"};
   }
   return {ok:true,provider:evidence.provider,model:evidence.selected_model,evidenceLevel:"REAL_COMPLETION"};

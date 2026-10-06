@@ -1,0 +1,48 @@
+name: P1 Provider Probe Contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'AI-API-HUB/api-factory/**'
+      - '.github/workflows/p1-provider-probe-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check provider probes
+        run: |
+          node --check free-provider-probe.mjs
+          node --check cloudflare-workers-ai-probe.mjs
+          node --check nvidia-nim-probe.mjs
+          node --check provider-evidence.mjs
+          node --check soat-evidence.mjs
+      - name: Run evidence and SOAT contract tests
+        run: |
+          node provider-evidence-test.mjs
+          node soat-evidence-test.mjs
+      - name: Verify P1 providers remain non-routable
+        working-directory: .
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const registry=JSON.parse(fs.readFileSync("AI-API-HUB/provider-registry.json","utf8"));
+          for (const id of ["cloudflare_workers_ai","mistral","nvidia_nim","huggingface_inference"]) {
+            const p=registry.providers.find(x=>x.id===id);
+            if(!p || p.routing_enabled!==false) throw new Error("P1 provider unexpectedly routable: "+id);
+          }
+          console.log("P1 routing safety gate: PASS");
+          NODE
