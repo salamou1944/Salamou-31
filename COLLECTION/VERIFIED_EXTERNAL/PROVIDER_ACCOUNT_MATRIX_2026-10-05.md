@@ -2,6 +2,8 @@
 
 ## Decision
 
+OpenAI API access is **PROBED but billing-blocked**: the real probe authenticated successfully, discovered 127 models, selected `gpt-5-mini`, and received HTTP 429 with `billing_not_active`. Do not route OpenAI and do not treat it as free capacity.
+
 IREZE is **not** a production dependency. Keep it **UNVERIFIED / DO NOT ROUTE** until authentication and key provisioning are independently verified.
 
 Preferred strategy: first-party free-tier accounts + AI-API-HUB routing, with explicit quota/health evidence and a hard stop on exhausted free capacity. No silent paid fallback.
@@ -10,9 +12,10 @@ Preferred strategy: first-party free-tier accounts + AI-API-HUB routing, with ex
 
 | Priority | Provider | Role | Free status | Compatibility | State |
 |---|---|---|---|---|---|
-| P0 | Google AI Studio / Gemini API | Primary free model capacity | Official free tier for eligible models | Native Gemini; adapter required | DISCOVERED |
-| P0 | Groq | Fast inference | Free-plan rate limits documented | OpenAI-compatible | VERIFIED |
+| P0 | Google AI Studio / Gemini API | Primary free model capacity | Official free tier for eligible models | Native Gemini; adapter required | VERIFIED / REAL_COMPLETION |
+| P0 | Groq | Fast inference | Free-plan rate limits documented | OpenAI-compatible | VERIFIED / REAL_COMPLETION |
 | P0 | OpenRouter | Multi-provider aggregation | Official Free plan and free models | OpenAI-compatible | PROBED / NEEDS FREE-MODEL RETEST |
+| HOLD | OpenAI API | Optional paid API capacity | Billing inactive; not free-core | Responses API | PROBED / BILLING BLOCKED |
 | P1 | Cloudflare Workers AI | Free compute/provider capacity | 10,000 Neurons/day on Workers Free | Adapter required | DISCOVERED |
 | P1 | Mistral | First-party provider | Verify current direct free terms | OpenAI-compatible | DISCOVERED |
 | P1 | NVIDIA NIM | Model/provider capacity | Verify current direct free terms | Verify | DISCOVERED |
@@ -20,6 +23,10 @@ Preferred strategy: first-party free-tier accounts + AI-API-HUB routing, with ex
 | P2 | Chutes | Optional inference | Not free-core; current catalog shows paid token prices | OpenAI/Anthropic-compatible | DISCOVERED |
 | HOLD | Cerebras | Optional paid/credit-dependent provider | Current official pricing requires a valid payment method for the $5 promotional credit; not part of the $0 core | OpenAI-compatible | HOLD / NOT FREE-CORE |
 | HOLD | IREZE | Experimental gateway | Key provisioning unverified | Advertised OpenAI-compatible | UNVERIFIED / DO NOT ROUTE |
+
+## OpenAI evidence
+
+The real probe on commit `5c4dfd8e86d87c515e79bbe852b84fd9c4a76c52` authenticated successfully: `/v1/models` returned HTTP 200 with 127 models. The completion request then returned HTTP 429 with `billing_not_active`. This proves API access/model discovery, but not a usable completion. OpenAI remains out of automatic routing until a real completion succeeds.
 
 ## Evidence rules
 
