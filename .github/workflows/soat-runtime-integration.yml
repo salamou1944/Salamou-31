@@ -295,7 +295,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: soat-verification-${{ github.run_id }}
-          path: soat-verification-record.json
+          path: |
+            soat-verification-record.json
+            soat-execution-record.json
+            soat-execution-evidence.json
           if-no-files-found: error
 
       - name: Collect runtime diagnostics
