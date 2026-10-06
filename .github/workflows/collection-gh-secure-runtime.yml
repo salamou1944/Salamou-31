@@ -27,7 +27,7 @@ jobs:
 
       - name: Fetch pinned gh-secure
         run: |
-          curl -fsSL "https://raw.githubusercontent.com/GitHubSecurityLab/gh-secure/main/gh-secure" -o /tmp/gh-secure
+          curl -fsSL "https://raw.githubusercontent.com/GitHubSecurityLab/gh-secure/164276eaa120fb09b1bae632ec0fe9d09d33d0bd/gh-secure" -o /tmp/gh-secure
           chmod +x /tmp/gh-secure
           actual="$(sha256sum /tmp/gh-secure | awk '{print $1}')"
           test -n "$actual"
