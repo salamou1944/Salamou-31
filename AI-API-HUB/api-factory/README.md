@@ -45,3 +45,10 @@ A provider-backed API without real credentials remains **COMPILED** and can be *
 The factory includes a provider-neutral evidence ledger extracted from the multi-source research pattern used by Panniantong/last30days-skill. It normalizes source URLs, removes duplicates, records retrieval time, classifies evidence as `fresh`, `stale`, `undated`, or `future`, and can fail closed when a minimum amount of fresh evidence is required.
 
 This is a contract layer only: it does not fetch external content or invent citations. A caller supplies observed research results, and the ledger preserves the evidence boundary for COLLECTION, revenue intelligence, and other research workflows.
+
+
+## First commercial product
+
+The first productized entry is the Username Research API at `POST /v1/factory/research/username`. Product contract, commercial runbook, and evidence ledger are maintained under `AI-API-HUB/products/username-research-api/`.
+
+The repository-level operating pipeline is defined in `SALAMOU-31-OPERATING-PLAN.md`.
