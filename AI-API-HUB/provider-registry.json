@@ -25,10 +25,13 @@
     },
     {
       "id": "openrouter",
-      "status": "DISCOVERED",
+      "status": "VERIFIED",
       "env": "OPENROUTER_API_KEY",
       "base_url": "https://openrouter.ai/api/v1",
-      "routing_enabled": false
+      "evidence": "REAL_COMPLETION",
+      "selected_model": "openrouter/free",
+      "free_models_discovered": 17,
+      "routing_enabled": true
     },
     {
       "id": "openai",
