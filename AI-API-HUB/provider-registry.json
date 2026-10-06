@@ -46,10 +46,16 @@
       "id": "cloudflare_workers_ai",
       "status": "DISCOVERED",
       "env": "CLOUDFLARE_API_TOKEN",
-      "base_url": null,
+      "base_url": "https://api.cloudflare.com/client/v4",
       "routing_enabled": false,
       "free_access": "10,000 Neurons/day on Workers Free; some models require paid billing",
-      "source": "https://developers.cloudflare.com/workers-ai/platform/pricing/"
+      "source": "https://developers.cloudflare.com/workers-ai/platform/pricing/",
+      "evidence": "NOT_YET_PROBED",
+      "probe_model": "@cf/meta/llama-3.1-8b-instruct",
+      "required_env": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_API_TOKEN"
+      ]
     },
     {
       "id": "mistral",
