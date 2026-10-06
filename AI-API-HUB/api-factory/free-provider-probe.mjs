@@ -4,7 +4,8 @@ const PROVIDERS = {
   groq: { env: "GROQ_API_KEY", base: "https://api.groq.com/openai/v1" },
   openrouter: { env: "OPENROUTER_API_KEY", base: "https://openrouter.ai/api/v1" },
   mistral: { env: "MISTRAL_API_KEY", base: "https://api.mistral.ai/v1" },
-  chutes: { env: "CHUTES_API_KEY", base: "https://llm.chutes.ai/v1" }
+  chutes: { env: "CHUTES_API_KEY", base: "https://llm.chutes.ai/v1" },
+  huggingface_inference: { env: "HF_TOKEN", base: "https://router.huggingface.co/v1" }
 };
 
 const provider = process.env.PROVIDER ?? "groq";
