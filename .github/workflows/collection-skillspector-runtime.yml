@@ -1,0 +1,95 @@
+name: Collection SkillSpector Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-skillspector-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collection-skillspector-runtime
+  cancel-in-progress: true
+
+env:
+  SKILLSPECTOR_REF: ef0f96d76f197b80a8e25c32dac39cc85b104e4d
+
+jobs:
+  runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned SkillSpector source
+        uses: actions/checkout@v4
+        with:
+          repository: NVIDIA/SkillSpector
+          ref: ${{ env.SKILLSPECTOR_REF }}
+          path: .collection/skillspector
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install SkillSpector
+        working-directory: .collection/skillspector
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Unit and static test gate
+        working-directory: .collection/skillspector
+        run: |
+          pytest -m "not integration and not provider" tests/
+
+      - name: CLI smoke
+        working-directory: .collection/skillspector
+        run: |
+          skillspector --version
+          skillspector scan tests/fixtures/safe_skill --no-llm --format json --output /tmp/skillspector-report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("/tmp/skillspector-report.json").read_text())
+          assert isinstance(data, dict), "scanner output is not a JSON object"
+          print("SKILLSPECTOR_REAL_SMOKE_OK")
+          PY
+
+      - name: Docker smoke
+        working-directory: .collection/skillspector
+        run: |
+          docker build -t collection-skillspector .
+          tests/docker/smoke.sh
+
+      - name: Emit promotion evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-NVIDIA-SkillSpector-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "NVIDIA/SkillSpector",
+            "source_ref": "ef0f96d76f197b80a8e25c32dac39cc85b104e4d",
+            "python": "3.12",
+            "gates": {
+              "unit_tests": true,
+              "cli_smoke": true,
+              "docker_smoke": true
+            },
+            "verified": true,
+            "promotion": "READY_TO_USE"
+          }
+          JSON
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skillspector-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-NVIDIA-SkillSpector-runtime.json
+          if-no-files-found: ignore
