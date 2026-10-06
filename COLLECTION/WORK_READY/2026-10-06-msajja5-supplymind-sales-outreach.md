@@ -65,3 +65,48 @@ Run the repository's real build/typecheck and then perform an authenticated end-
 
 ## Spending rule
 No paid service should be enabled solely to complete this gate. Prefer the existing Supabase/Vercel free path and the already-selected provider configuration.
+
+
+## Runtime proof update — 2026-10-06
+
+A real GitHub-hosted runtime proof was executed from the control plane against the current upstream `main`.
+
+### Initial failure discovered
+- Run: `37462352511`
+- Job: `112264796997`
+- Upstream commit tested: `ae966b1d95f6f6c4d46583444d54693797da6f8b`
+- `npm install --no-audit --no-fund`: PASS (80 packages installed)
+- `npm run typecheck`: FAIL
+- Exact defects:
+  - `src/App.tsx`: stale `session` props passed to `Generate`, `Contacts`, `Tracker`, and `Settings`.
+  - `src/pages/Dashboard.tsx`: stale `session` prop passed to `Generate`.
+  - `src/tabs/Sequence.tsx`: `OutputBox` was called with a `text` prop although the component contract accepts `children`.
+
+### Minimal adapter applied
+The upstream repository was not modified. A control-plane runtime adapter was applied transiently inside the verification runner:
+- remove obsolete `session` props where current component contracts no longer accept them;
+- change `<OutputBox text={seq[k]} />` to `<OutputBox>{seq[k]}</OutputBox>`.
+
+Adapter commit in control plane: `74dc83057ac03a0a06b2667b9014bd2b7c1437a9`.
+
+### Successful adapted runtime proof
+- Run: `37462588269`
+- Job: `112265588733`
+- Candidate checkout: upstream `msajja5/supplymind-sales-outreach@main`
+- `npm install --no-audit --no-fund`: PASS
+- minimal integration adapter: PASS
+- `npm run typecheck`: PASS
+- `npm run build`: PASS
+- runtime contract verification: PASS
+- `dist/index.html`: present
+- Frontend promotion: **READY_TO_USE (adapted frontend path)**
+
+### Remaining backend gate
+- Supabase Auth/database/RLS runtime: NOT YET PROVEN
+- `generate-message` real provider invocation: NOT YET PROVEN
+- Public deployed end-to-end smoke: NOT YET PROVEN
+- Therefore overall candidate remains **BLOCKED_PENDING_BACKEND_RUNTIME_PROOF**, not production verified.
+- No provider credentials or paid services were added.
+
+### Next executable action
+Use an authenticated Supabase test account and the existing `generate-message` Edge Function to perform the real end-to-end message-generation smoke. If provider credentials/quota are absent, record the exact provider blocker and retain the validated frontend as an independently usable asset.
