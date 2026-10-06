@@ -27,7 +27,8 @@ try { models = JSON.parse(modelsText); } catch { models = { raw: modelsText.slic
 
 const discovered = Array.isArray(models?.data) ? models.data.map((m) => m?.id).filter(Boolean) : [];
 const freeModels = discovered.filter((id) => /:free$/i.test(id) || /^openrouter\/free$/i.test(id));
-const model = process.env.PROVIDER_MODEL ?? (provider === "openrouter" ? freeModels[0] : discovered[0]);
+const model = process.env.PROVIDER_MODEL ??
+  (provider === "openrouter" ? "openrouter/free" : discovered[0]);
 
 if (!model) {
   console.error(JSON.stringify({
@@ -36,6 +37,18 @@ if (!model) {
     discovered_models: discovered.length,
     free_models: freeModels.length,
     error: provider === "openrouter" ? "NO_FREE_MODEL_DISCOVERED" : "NO_MODEL_DISCOVERED"
+  }));
+  process.exit(4);
+}
+
+if (provider === "openrouter" && model !== "openrouter/free" && !freeModels.includes(model)) {
+  console.error(JSON.stringify({
+    provider,
+    models_status: modelsResponse.status,
+    discovered_models: discovered.length,
+    free_models: freeModels.length,
+    selected_model: model,
+    error: "SELECTED_MODEL_NOT_FREE"
   }));
   process.exit(4);
 }
