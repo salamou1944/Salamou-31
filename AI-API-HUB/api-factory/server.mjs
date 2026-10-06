@@ -7,6 +7,7 @@ import {runSherlock} from "./sherlock-username.mjs";
 import {createExecutionRecord,assertStateExit} from "./execution-contract.mjs";
 import {createSoatExecutionEvidence,createSoatProductionExecutionEvidence} from "./soat-evidence.mjs";
 import {createAiOperatingEvidence,classifyAiOperatingOutcome} from "./ai-operating-evidence.mjs";
+import {createBusinessOutcomeEvidence,assertBusinessOutcomeTransition} from "./business-outcome-evidence.mjs";
 
 const app=Fastify({logger:true,bodyLimit:64*1024});
 const port=Number(process.env.PORT||8797);
@@ -64,6 +65,14 @@ app.post("/v1/factory/verify/soat",async(request,reply)=>{
   }catch(e){
     return reply.code(422).send({ok:false,error:e.message});
   }
+});
+app.post("/v1/factory/verify/business-outcome",async(request,reply)=>{
+  const denied=auth(request,reply);if(denied)return denied;
+  try{
+    const evidence=createBusinessOutcomeEvidence(request.body||{});
+    const transition=assertBusinessOutcomeTransition(request.body?.previousOutcome||"DISCOVERED",evidence.outcome);
+    return {ok:true,evidence,transition};
+  }catch(e){return reply.code(422).send({ok:false,error:e.message});}
 });
 app.get("/v1/factory/apis",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;return {ok:true,apis:readRegistry().apis};});
 app.post("/v1/factory/validate",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,spec:validateSpec(request.body)}}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
