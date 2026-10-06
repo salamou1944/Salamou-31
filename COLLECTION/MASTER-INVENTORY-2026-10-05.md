@@ -1436,3 +1436,59 @@ The first NVIDIA account screen found **815 repositories**. The P0 queue was the
 **External evidence:** NVIDIA currently describes OpenShell as an open agent-safety platform/runtime, and the current repository documentation says it enforces runtime policies and formally verifies policy changes. NemoClaw is an Apache-2.0 reference stack built around OpenShell, with managed inference and network-policy controls. citeturn0news0turn0news1turn0search11
 
 **Adoption rule:** none of these becomes a production dependency merely from this review. Next step is isolated proof-of-concept against the existing Elite/ARMY-14 and AI-API-Hub paths, with no spending and no changes to EASY while its provider credit is exhausted.
+
+
+## Completed source-account enumeration — skill/agent source accounts
+
+The following four source accounts were previously represented only by selected repositories. They are now enumerated at account level and every discovered repository is preserved under the two-axis rule.
+
+### agentskillexchange — 4 repositories
+| Repository | Axis 1 | Axis 2 | Classification |
+|---|---|---|---|
+| `skills` | VERY HIGH — AgentSkills corpus | VERY HIGH — standalone skill catalog | **P0 COLLECTION/AGENT ASSET** |
+| `verification-security` | VERY HIGH — verification/security patterns | HIGH — standalone security asset | **P0 SECURITY/VERIFICATION** |
+| `agent-skills-resources` | HIGH — skill resources | HIGH — standalone resource corpus | **P1 COLLECTION ASSET** |
+| `ase-showcase` | MEDIUM-HIGH — examples/showcase | MEDIUM-HIGH — deployable reference | **P1 REFERENCE/DEMO** |
+
+### msajja5 — 3 repositories
+| Repository | Axis 1 | Axis 2 | Classification |
+|---|---|---|---|
+| `zeiss-scm-copilot-agent` | HIGH — enterprise SCM agent pattern | HIGH — standalone agent/reference | **P1 AGENT/REVENUE CANDIDATE** |
+| `supplymind-sales-outreach` | VERY HIGH — sales/outreach automation | VERY HIGH — directly productizable revenue workflow | **P0 REVENUE ASSET** |
+| `agent-skills` | VERY HIGH — reusable skill corpus | HIGH — standalone skill source | **P0 COLLECTION/AGENT ASSET** |
+
+### maaarcooo — 10 repositories
+| Repository | Axis 1 | Axis 2 | Classification |
+|---|---|---|---|
+| `agent-skills` | VERY HIGH | HIGH | **P0 COLLECTION/AGENT ASSET** |
+| `ios-encrypted-dns-profiles` | HIGH — privacy/network config | HIGH — standalone utility | **P1 INFRA/PRIVACY** |
+| `llm-custom-instructions` | HIGH — LLM instruction corpus | HIGH — reusable skill/prompt asset | **P1 SKILL ASSET** |
+| `gcse-anki-flashcards` | MEDIUM | HIGH — complete education product | **P1 READY_PROJECT** |
+| `alevel-compsci-coding` | MEDIUM-HIGH | HIGH — complete education corpus | **P1 READY_PROJECT** |
+| `uYouPlus` | HIGH — iOS app modification | HIGH — standalone app/fork | **P1 READY_PROJECT; licensing gate** |
+| `alevel-revision-materials` | MEDIUM | HIGH — standalone education product | **P1 READY_PROJECT** |
+| `beetle_lab` | MEDIUM-HIGH | MEDIUM-HIGH | **P1 RESEARCH/PROJECT** |
+| `sort` | MEDIUM | MEDIUM | **P2 UTILITY** |
+| `Event_Score_Count` | MEDIUM | HIGH — standalone event utility | **P1 READY_PROJECT** |
+
+### onfire7777 — 16 repositories
+| Repository | Axis 1 | Axis 2 | Classification |
+|---|---|---|---|
+| `universal-ai-skills-library` | VERY HIGH | VERY HIGH | **P0 COLLECTION/AGENT ASSET** |
+| `manus-skills-organized` | VERY HIGH | HIGH | **P0 SKILL ASSET** |
+| `Mnemosyne` | HIGH — memory/knowledge | HIGH | **P0 MEMORY/AGENT ASSET** |
+| `jake-unified-ai-updates` | HIGH — AI update aggregation | HIGH | **P1 INTELLIGENCE ASSET** |
+| `gh-best-pratices` | HIGH — GitHub engineering practices | MEDIUM-HIGH | **P1 ENGINEERING ASSET** |
+| `VoCript` | HIGH — voice/AI utility | HIGH | **P1 READY_PROJECT** |
+| `claude-gpt-image-bridge` | HIGH — image-model bridge | HIGH | **P1 INTEGRATION/REVENUE** |
+| `manus-skills-marketplace` | VERY HIGH — skill marketplace | VERY HIGH | **P0 REVENUE/COLLECTION ASSET** |
+| `five-agent-dev-team` | VERY HIGH — multi-agent team pattern | VERY HIGH | **P0 ELITE/AGENT ASSET** |
+| `hermes-agent` | VERY HIGH — agent runtime | VERY HIGH | **P0 READY_PROJECT/AGENT** |
+| `gbrain` | HIGH — AI/knowledge utility | HIGH | **P1 AGENT/KNOWLEDGE** |
+| `Proper-Thinking-AI` | HIGH — reasoning/prompt system | HIGH | **P1 SKILL/REASONING** |
+| `bridge-horror-house-V2` | MEDIUM | HIGH — complete game/project | **P2 READY_PROJECT** |
+| `gstack` | HIGH — developer/agent workflow | HIGH | **P1 ENGINEERING/AGENT** |
+| `one-click-extensions-manager-V2` | HIGH — extension lifecycle | HIGH | **P1 READY_PROJECT** |
+| `Axiometric` | MEDIUM-HIGH | MEDIUM-HIGH | **P1 RESEARCH/PROJECT** |
+
+**Account-level status:** all four accounts are now enumerated. This closes the previously partial account-level gap for these Collection sources. License and implementation deep-review remains an adoption gate; enumeration is not production certification.
