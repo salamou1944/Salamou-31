@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "policy": {
+    "routing_mode": "free_first",
+    "automatic_paid_fallback": false,
+    "sensitive_data_on_unverified": false,
+    "required_ready_state": "VERIFIED"
+  },
+  "providers": [
+    {
+      "id": "google_ai_studio",
+      "status": "VERIFIED",
+      "env": "GOOGLE_AI_API_KEY",
+      "base_url": "https://generativelanguage.googleapis.com",
+      "evidence": "REAL_COMPLETION",
+      "routing_enabled": true
+    },
+    {
+      "id": "groq",
+      "status": "VERIFIED",
+      "env": "GROQ_API_KEY",
+      "base_url": "https://api.groq.com/openai/v1",
+      "evidence": "REAL_COMPLETION",
+      "routing_enabled": true
+    },
+    {
+      "id": "openrouter",
+      "status": "VERIFIED",
+      "env": "OPENROUTER_API_KEY",
+      "base_url": "https://openrouter.ai/api/v1",
+      "evidence": "REAL_COMPLETION",
+      "selected_model": "openrouter/free",
+      "free_models_discovered": 17,
+      "routing_enabled": true
+    },
+    {
+      "id": "openai",
+      "status": "PROBED",
+      "env": "OPENAI_API_KEY",
+      "base_url": "https://api.openai.com/v1",
+      "evidence": "MODELS_DISCOVERED_BUT_BILLING_BLOCKED",
+      "provider_error": "billing_not_active",
+      "routing_enabled": false
+    },
+    {
+      "id": "cloudflare_workers_ai",
+      "status": "DISCOVERED",
+      "env": "CLOUDFLARE_API_TOKEN",
+      "base_url": null,
+      "routing_enabled": false
+    },
+    {
+      "id": "mistral",
+      "status": "DISCOVERED",
+      "env": "MISTRAL_API_KEY",
+      "base_url": "https://api.mistral.ai/v1",
+      "routing_enabled": false
+    },
+    {
+      "id": "nvidia_nim",
+      "status": "DISCOVERED",
+      "env": "NVIDIA_NIM_API_KEY",
+      "base_url": null,
+      "routing_enabled": false
+    },
+    {
+      "id": "huggingface_inference",
+      "status": "DISCOVERED",
+      "env": "HF_TOKEN",
+      "base_url": "https://router.huggingface.co",
+      "routing_enabled": false
+    },
+    {
+      "id": "chutes",
+      "status": "DISCOVERED",
+      "env": "CHUTES_API_KEY",
+      "base_url": "https://llm.chutes.ai/v1",
+      "routing_enabled": false
+    },
+    {
+      "id": "cerebras",
+      "status": "HOLD",
+      "env": "CEREBRAS_API_KEY",
+      "base_url": "https://api.cerebras.ai/v1",
+      "routing_enabled": false,
+      "reason": "NOT_FREE_CORE"
+    },
+    {
+      "id": "ireze",
+      "status": "UNVERIFIED",
+      "env": "IREZE_API_KEY",
+      "base_url": "https://directrouter.pages.dev/v1",
+      "routing_enabled": false
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+name: OpenAI API Real Probe
+
+on:
+  push:
+    paths:
+      - 'AI-API-HUB/api-factory/openai-provider-probe.mjs'
+      - '.github/workflows/openai-real-probe.yml'
+      - 'AI-API-HUB/api-factory/package.json'
+  workflow_dispatch:
+
+jobs:
+  openai:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    env:
+      OPENAI_API_KEY: ${{ secrets.chatgpt_API_Key }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe OpenAI API
+        run: node openai-provider-probe.mjs

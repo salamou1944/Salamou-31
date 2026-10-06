@@ -1,0 +1,24 @@
+name: Free Provider Native Real Probe
+
+on:
+  push:
+    paths:
+      - 'AI-API-HUB/api-factory/google-provider-probe.mjs'
+      - 'AI-API-HUB/api-factory/package.json'
+      - '.github/workflows/free-provider-native-real-probe.yml'
+
+jobs:
+  google:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    env:
+      GOOGLE_AI_API_KEY: ${{ secrets.Gemini_API_Key }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe Google AI Studio
+        run: npm run google:probe

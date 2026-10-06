@@ -1,0 +1,36 @@
+name: Free Provider Real Probe Auto
+
+on:
+  push:
+    paths:
+      - 'AI-API-HUB/api-factory/free-provider-probe.mjs'
+      - '.github/workflows/free-provider-real-probe-auto.yml'
+  pull_request:
+    paths:
+      - 'AI-API-HUB/api-factory/free-provider-probe.mjs'
+      - '.github/workflows/free-provider-real-probe-auto.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [groq, openrouter]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    env:
+      PROVIDER: ${{ matrix.provider }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe provider
+        run: npm run provider:probe
