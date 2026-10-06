@@ -1,0 +1,47 @@
+name: Collection OpenShell Runtime Proof
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/collection-openshell-runtime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  openshell-runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+
+      - name: Checkout OpenShell
+        uses: actions/checkout@v4
+        with:
+          repository: NVIDIA/OpenShell
+          ref: b7afc156137e7300c8fb266261c9f18a1a497ea9
+          path: _candidate/openshell
+          fetch-depth: 1
+
+      - name: Setup mise
+        uses: jdx/mise-action@v5
+        with:
+          working_directory: _candidate/openshell
+
+      - name: Run OpenShell Python unit tests
+        working-directory: _candidate/openshell
+        run: mise run --no-deps --skip-deps test:python
+
+      - name: Run OpenShell Docker E2E
+        working-directory: _candidate/openshell
+        run: mise run --no-deps --skip-deps e2e:docker
+
+      - name: Emit runtime promotion evidence
+        run: |
+          set -euo pipefail
+          echo "OPENSHELL_REF=b7afc156137e7300c8fb266261c9f18a1a497ea9"
+          echo "OPENSHELL_LICENSE=Apache-2.0"
+          echo "OPENSHELL_PYTHON_UNIT=PASS"
+          echo "OPENSHELL_DOCKER_E2E=PASS"
+          echo "OPENSHELL_RUNTIME_PROOF=PASS"
