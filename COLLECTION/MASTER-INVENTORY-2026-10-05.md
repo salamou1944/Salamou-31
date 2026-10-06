@@ -1565,3 +1565,20 @@ Each P0/P1 candidate must eventually have a work-ready record containing:
 
 ### Immediate rule
 Do not continue expanding Collection indefinitely while high-value collected assets remain merely catalogued. After each meaningful source-account sweep, switch to work-readiness execution for the highest-leverage candidates. New discovery and operationalization proceed as a loop, not as separate phases.
+
+
+## WORK-READY EXECUTION — 2026-10-06 — msajja5/supplymind-sales-outreach
+
+First P0 work-ready execution has been started against the highest-priority **revenue acquisition** candidate, rather than adding another discovery rule.
+
+- Repository: `msajja5/supplymind-sales-outreach`
+- Classification: **P0 REVENUE ASSET**; Axis 1 VERY HIGH; Axis 2 VERY HIGH.
+- Exact inspection completed: `README.md`, `package.json`, and relevant generation-path commits.
+- Implementation: React 18 + TypeScript + Vite; Supabase Auth/Postgres/RLS; Supabase Edge Function `generate-message`; Vercel deployment path.
+- Runtime contract identified: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`; AI generation depends on the deployed Edge Function/provider configuration.
+- Evidence artifact: `COLLECTION/WORK_READY/2026-10-06-msajja5-supplymind-sales-outreach.md`.
+- Evidence commit: `2642f5aae0c2d7c25e902a2b817d27f0d0e2c082`.
+- Current state: **BLOCKED_PENDING_RUNTIME_PROOF** — repository inspection is complete, but no real isolated build/typecheck or authenticated end-to-end Supabase/provider smoke result has been produced in this pass.
+- Non-negotiable: do not promote from inspection evidence to READY_TO_USE/PRODUCTION_VERIFIED until the real runtime path passes.
+
+This is the first execution of the work-ready queue. Next P0 candidates should be processed using the same gate, with revenue acquisition and $0/local leverage prioritized over further passive catalog expansion.
