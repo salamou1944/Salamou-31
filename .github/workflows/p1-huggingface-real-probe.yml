@@ -1,17 +1,17 @@
 name: P1 Hugging Face Real Probe
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - 'AI-API-HUB/api-factory/free-provider-probe.mjs'
       - 'AI-API-HUB/api-factory/package.json'
+      - 'AI-API-HUB/api-factory/provider-evidence.mjs'
       - '.github/workflows/p1-huggingface-real-probe.yml'
-  workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
   huggingface:
@@ -32,7 +32,11 @@ jobs:
         id: config
         shell: bash
         run: |
-          if [ -n "$HF_TOKEN" ]; then echo "configured=true" >> "$GITHUB_OUTPUT"; else echo "configured=false" >> "$GITHUB_OUTPUT"; fi
+          if [ -n "$HF_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Probe real completion
         if: steps.config.outputs.configured == 'true'
         shell: bash
@@ -41,10 +45,10 @@ jobs:
           node free-provider-probe.mjs | tee provider-evidence.json
       - name: Validate and publish evidence
         if: steps.config.outputs.configured == 'true'
-        run: node -e 'import fs from "node:fs"; import {assertProviderEvidence} from "./provider-evidence.mjs"; const e=JSON.parse(fs.readFileSync("provider-evidence.json","utf8")); assertProviderEvidence(e); console.log("provider evidence gate: PASS");'
-
+        run: |
+          node -e 'import fs from "node:fs"; import {assertProviderEvidence} from "./provider-evidence.mjs"; const e=JSON.parse(fs.readFileSync("provider-evidence.json","utf8")); assertProviderEvidence(e); console.log("provider evidence gate: PASS");'
       - name: Upload provider evidence
-        if: steps.config.outputs.configured == 'true' && success()
+        if: steps.config.outputs.configured == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: p1-huggingface-provider-evidence-${{ github.run_id }}
