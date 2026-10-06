@@ -1,0 +1,21 @@
+{
+  "schema": "sal31-product-evidence/v1",
+  "product_id": "username-research-api",
+  "technical": {
+    "state": "IMPLEMENTED",
+    "verified": false
+  },
+  "business": {
+    "state": "DISCOVERED",
+    "verified": false
+  },
+  "revenue": {
+    "state": "NOT_OBSERVED",
+    "verified": false
+  },
+  "payout": {
+    "state": "NOT_OBSERVED",
+    "verified": false
+  },
+  "observations": []
+}
