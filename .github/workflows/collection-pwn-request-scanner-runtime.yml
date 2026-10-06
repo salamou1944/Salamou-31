@@ -1,0 +1,105 @@
+name: Collection pwn-request-scanner Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-pwn-request-scanner-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collection-pwn-request-scanner-runtime
+  cancel-in-progress: true
+
+env:
+  PWN_SCANNER_REF: fc487628032621aa59eaccd24b6fd43f8b14cca2
+
+jobs:
+  runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned pwn-request-scanner
+        uses: actions/checkout@v4
+        with:
+          repository: GitHubSecurityLab/pwn-request-scanner
+          ref: ${{ env.PWN_SCANNER_REF }}
+          path: /tmp/pwn-request-scanner
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install and build
+        working-directory: /tmp/pwn-request-scanner
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          npm run build
+          test -s dist/index.js
+          node --check dist/index.js
+
+      - name: CLI contract
+        working-directory: /tmp/pwn-request-scanner
+        run: |
+          set -euo pipefail
+          test -s action.yml
+          grep -q "using: 'node20'" action.yml
+          grep -q "main: 'dist/index.js'" action.yml
+          grep -q "owner-repo:" action.yml
+          echo "PWN_REQUEST_SCANNER_ACTION_CONTRACT_OK"
+
+      - name: Real read-only repository scan
+        working-directory: /tmp/pwn-request-scanner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node dist/index.js salamou1944/Salamou-31 --verbose 2>&1 | tee /tmp/pwn-request-scan.log
+          grep -q "Done." /tmp/pwn-request-scan.log
+          echo "PWN_REQUEST_SCANNER_REAL_SCAN_OK"
+
+      - name: Emit evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-pwn-request-scanner-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/pwn-request-scanner",
+            "source_ref": "fc487628032621aa59eaccd24b6fd43f8b14cca2",
+            "license": "MIT",
+            "classification": {
+              "axis_1_capability": "HIGH",
+              "axis_2_independent_project": "HIGH",
+              "priority": "P1"
+            },
+            "gates": {
+              "source_pinned": true,
+              "installation": true,
+              "build": true,
+              "dist_entrypoint": true,
+              "action_contract": true,
+              "real_read_only_scan": true
+            },
+            "mutations_applied": false,
+            "target": "salamou1944/Salamou-31",
+            "promotion": "PRODUCTION_VERIFIED"
+          }
+          JSON
+
+      - name: Upload evidence and scan log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwn-request-scanner-runtime-evidence
+          path: |
+            COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-pwn-request-scanner-runtime.json
+            /tmp/pwn-request-scan.log
+          if-no-files-found: ignore
