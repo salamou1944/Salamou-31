@@ -1,0 +1,151 @@
+name: Collection CodeQL Community Packs Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-codeql-community-packs-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: collection-codeql-community-packs-runtime
+  cancel-in-progress: true
+
+env:
+  COMMUNITY_PACKS_REF: 049838044493936b00d9008015173e882376bc19
+  CODEQL_CLI_VERSION: "2.27.1"
+
+jobs:
+  compile-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [cpp, csharp, go, java, javascript, python, ruby]
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned CodeQL Community Packs
+        uses: actions/checkout@v4
+        with:
+          repository: GitHubSecurityLab/CodeQL-Community-Packs
+          ref: ${{ env.COMMUNITY_PACKS_REF }}
+          path: /tmp/codeql-community-packs
+          submodules: true
+
+      - name: Install CodeQL CLI
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Verify pinned source and workspace
+        working-directory: /tmp/codeql-community-packs
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${COMMUNITY_PACKS_REF}"
+          test -f .codeqlversion
+          test "$(cat .codeqlversion)" = "${CODEQL_CLI_VERSION}"
+          test -f codeql-workspace.yml
+
+      - name: Install and compile packs
+        working-directory: /tmp/codeql-community-packs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          codeql pack install "${{ matrix.language }}/lib"
+          codeql pack install "${{ matrix.language }}/src"
+          codeql pack install "${{ matrix.language }}/test"
+          codeql pack check "${{ matrix.language }}/lib"
+          codeql pack check "${{ matrix.language }}/src"
+          codeql pack check "${{ matrix.language }}/test"
+
+      - name: Run CodeQL tests
+        working-directory: /tmp/codeql-community-packs
+        run: |
+          set -euo pipefail
+          codeql test run --failing-exitcode=122 --verbosity=progress --ram=2048 "${{ matrix.language }}/test"
+
+      - name: Emit language evidence
+        if: success()
+        run: |
+          mkdir -p /tmp/evidence
+          printf '%s\n' '{"language":"${{ matrix.language }}","verified":true}' > "/tmp/evidence/${{ matrix.language }}.json"
+
+      - name: Upload language evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-community-packs-${{ matrix.language }}-evidence
+          path: /tmp/evidence/${{ matrix.language }}.json
+          if-no-files-found: ignore
+
+  extensions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp, go, java, python]
+    steps:
+      - name: Checkout pinned CodeQL Community Packs
+        uses: actions/checkout@v4
+        with:
+          repository: GitHubSecurityLab/CodeQL-Community-Packs
+          ref: ${{ env.COMMUNITY_PACKS_REF }}
+          path: /tmp/codeql-community-packs
+          submodules: true
+      - name: Install CodeQL CLI
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+      - name: Create extension pack
+        working-directory: /tmp/codeql-community-packs
+        run: |
+          set -euo pipefail
+          codeql pack check "${{ matrix.language }}/ext"
+          codeql pack create "${{ matrix.language }}/ext"
+
+  evidence:
+    needs: [compile-and-test, extensions]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Emit control-plane evidence
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          if [ "${{ needs.compile-and-test.result }}" = "success" ] && [ "${{ needs.extensions.result }}" = "success" ]; then
+            promotion="READY_TO_USE"
+            verified=true
+          else
+            promotion="BLOCKED_RUNTIME_PROOF"
+            verified=false
+          fi
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-CodeQL-Community-Packs-runtime.json <<JSON
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/CodeQL-Community-Packs",
+            "source_ref": "049838044493936b00d9008015173e882376bc19",
+            "license": "MIT",
+            "codeql_cli_version": "2.27.1",
+            "languages": ["cpp","csharp","go","java","javascript","python","ruby"],
+            "extension_languages": ["csharp","go","java","python"],
+            "gates": {
+              "pack_install": ${{ needs.compile-and-test.result == 'success' }},
+              "pack_check": ${{ needs.compile-and-test.result == 'success' }},
+              "query_tests": ${{ needs.compile-and-test.result == 'success' }},
+              "extension_pack_create": ${{ needs.extensions.result == 'success' }}
+            },
+            "verified": $verified,
+            "promotion": "$promotion"
+          }
+          JSON
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-community-packs-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-CodeQL-Community-Packs-runtime.json
