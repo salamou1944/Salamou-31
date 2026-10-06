@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://salamou1944.github.io/contracts/evaluation-fixture/v1.schema.json",
+  "title": "Evaluation Fixture Contract",
+  "description": "Provider-neutral evidence contract for reproducible AI/model/RAG/agent evaluations. Secrets and credentials are forbidden.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fixture_id","schema_version","task_contract","dataset","system","model","rubric","run","results"],
+  "properties": {
+    "fixture_id": {"type":"string","minLength":1},
+    "schema_version": {"const":"evaluation-fixture/v1"},
+    "task_contract": {
+      "type":"object","additionalProperties":false,"required":["objective","risk_tier"],
+      "properties":{
+        "objective":{"type":"string","minLength":1},
+        "risk_tier":{"enum":["low","medium","high","critical"]},
+        "scope":{"type":"string"},
+        "unacceptable_outcomes":{"type":"array","items":{"type":"string"}}
+      }
+    },
+    "dataset": {
+      "type":"object","additionalProperties":false,"required":["source","revision","case_ids"],
+      "properties":{
+        "source":{"type":"string","minLength":1},
+        "revision":{"type":"string","minLength":1},
+        "case_ids":{"type":"array","minItems":1,"items":{"type":"string"}},
+        "corpus_revision":{"type":"string"},
+        "expected_sources":{"type":"array","items":{"type":"string"}},
+        "provenance":{"type":"string"}
+      }
+    },
+    "system": {
+      "type":"object","additionalProperties":false,"required":["repository","commit","component"],
+      "properties":{
+        "repository":{"type":"string","minLength":1},
+        "commit":{"type":"string","minLength":1},
+        "component":{"type":"string","minLength":1}
+      }
+    },
+    "model": {
+      "type":"object","additionalProperties":false,"required":["provider","model"],
+      "properties":{
+        "provider":{"type":"string","minLength":1},
+        "model":{"type":"string","minLength":1},
+        "version":{"type":"string"},
+        "config":{"type":"object","additionalProperties":true}
+      }
+    },
+    "prompt_revision":{"type":"string"},
+    "tools":{"type":"array","items":{"type":"string"}},
+    "retrieval":{"type":"object","additionalProperties":true},
+    "rubric": {
+      "type":"object","additionalProperties":false,"required":["name","criteria","thresholds"],
+      "properties":{
+        "name":{"type":"string","minLength":1},
+        "criteria":{"type":"array","minItems":1,"items":{"type":"string"}},
+        "thresholds":{"type":"object","additionalProperties":{"type":["number","string","boolean"]}}
+      }
+    },
+    "run": {
+      "type":"object","additionalProperties":false,"required":["run_id","timestamp","case_count"],
+      "properties":{
+        "run_id":{"type":"string","minLength":1},
+        "timestamp":{"type":"string","minLength":1},
+        "case_count":{"type":"integer","minimum":1},
+        "environment":{"type":"string"},
+        "repeat_count":{"type":"integer","minimum":1}
+      }
+    },
+    "results": {
+      "type":"object","additionalProperties":false,"required":["metrics","failures","invalid_cases"],
+      "properties":{
+        "metrics":{"type":"object","additionalProperties":{"type":["number","string","boolean"]}},
+        "raw_output_refs":{"type":"array","items":{"type":"string"}},
+        "artifact_refs":{"type":"array","items":{"type":"string"}},
+        "failures":{"type":"array","items":{"type":"object","additionalProperties":true}},
+        "invalid_cases":{"type":"array","items":{"type":"string"}}
+      }
+    },
+    "comparison": {
+      "type":"object","additionalProperties":false,
+      "properties":{
+        "baseline_fixture_id":{"type":"string"},
+        "variant":{"type":"string"},
+        "paired_deltas":{"type":"object","additionalProperties":{"type":["number","string"]}},
+        "regression_status":{"enum":["PASS","FAIL","INDETERMINATE","NOT_APPLICABLE"]}
+      }
+    },
+    "limitations":{"type":"array","items":{"type":"string"}},
+    "confidence":{"type":"string"}
+  }
+}
