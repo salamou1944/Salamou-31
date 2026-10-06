@@ -93,3 +93,5 @@ jobs:
           name: skillspector-runtime-evidence
           path: COLLECTION/WORK_READY/2026-10-06-NVIDIA-SkillSpector-runtime.json
           if-no-files-found: ignore
+
+# runtime-gate-trigger: 2026-10-06
