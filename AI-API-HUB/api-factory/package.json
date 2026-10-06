@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --check server.mjs && node --check factory.mjs && node --check provider.mjs && node --check research-routing.mjs && node --check research-evidence.mjs && node --check execution-contract.mjs && node --check evidence-runner.mjs && node execution-contract-test.mjs && node evidence-runner-test.mjs && node test-factory.mjs && node test-server.mjs && node research-routing-test.mjs && node research-evidence-test.mjs && node sherlock-username-test.mjs && node soat-evidence-test.mjs && node provider-evidence-test.mjs",
+    "test": "node --check server.mjs && node --check factory.mjs && node --check provider.mjs && node --check research-routing.mjs && node --check research-evidence.mjs && node --check execution-contract.mjs && node --check evidence-runner.mjs && node --check ai-operating-evidence.mjs && node execution-contract-test.mjs && node evidence-runner-test.mjs && node ai-operating-evidence-test.mjs && node test-factory.mjs && node test-server.mjs && node research-routing-test.mjs && node research-evidence-test.mjs && node sherlock-username-test.mjs && node soat-evidence-test.mjs && node provider-evidence-test.mjs",
     "soat:probe": "node soat-probe.mjs",
     "provider:probe": "node free-provider-probe.mjs",
     "google:probe": "node google-provider-probe.mjs",
