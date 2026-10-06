@@ -110,3 +110,14 @@ Adapter commit in control plane: `74dc83057ac03a0a06b2667b9014bd2b7c1437a9`.
 
 ### Next executable action
 Use an authenticated Supabase test account and the existing `generate-message` Edge Function to perform the real end-to-end message-generation smoke. If provider credentials/quota are absent, record the exact provider blocker and retain the validated frontend as an independently usable asset.
+
+
+## Remote backend probe — final observed result
+
+- Final proof run: `37462952975`
+- Job: `112266808648`
+- Frontend adapter/typecheck/build/runtime-contract gates: **PASS**
+- Remote `generate-message` probe could not reach the configured Supabase host from the GitHub runner: `curl: (6) Could not resolve host: qfujfquiegdznmsvazwr.supabase.co`.
+- The probe therefore records **UNREACHABLE_NETWORK / BLOCKED_NETWORK_DNS** rather than pretending that the function exists or that generation succeeded.
+- The upstream repository's `supabase/functions` tree currently contains `outreach-engine` but no `generate-message` source directory, while the README describes `generate-message` as ACTIVE. This is a deployment/provenance gap that must be resolved before backend promotion.
+- Overall promotion remains: **BLOCKED_PENDING_BACKEND_RUNTIME_PROOF**.
