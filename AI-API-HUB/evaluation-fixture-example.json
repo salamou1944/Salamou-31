@@ -1,0 +1,72 @@
+{
+  "fixture_id": "api-factory-business-outcome-smoke-2026-10-06",
+  "schema_version": "evaluation-fixture/v1",
+  "task_contract": {
+    "objective": "Verify that business-outcome evidence rejects a state regression and accepts a forward transition.",
+    "risk_tier": "low",
+    "scope": "Deterministic local contract evaluation; no external provider."
+  },
+  "dataset": {
+    "source": "author-created deterministic cases",
+    "revision": "2026-10-06",
+    "case_ids": [
+      "forward-transition",
+      "regression-transition",
+      "missing-verifier"
+    ]
+  },
+  "system": {
+    "repository": "salamou1944/Salamou-31",
+    "commit": "7f1bee5f0377bf0577d12b288df60eeb52075304",
+    "component": "AI-API-HUB/api-factory/business-outcome-evidence.mjs"
+  },
+  "model": {
+    "provider": "none",
+    "model": "deterministic-contract-test",
+    "version": "v1"
+  },
+  "tools": [
+    "node:assert/strict",
+    "business-outcome-evidence.mjs"
+  ],
+  "rubric": {
+    "name": "business-outcome-transition-contract",
+    "criteria": [
+      "forward transition is accepted",
+      "state regression is rejected",
+      "missing independent verifier is rejected"
+    ],
+    "thresholds": {
+      "passed_cases": 3,
+      "failed_cases": 0
+    }
+  },
+  "run": {
+    "run_id": "local-contract-run-2026-10-06",
+    "timestamp": "2026-10-06T00:00:00Z",
+    "case_count": 3,
+    "environment": "isolated-node-contract-test",
+    "repeat_count": 1
+  },
+  "results": {
+    "metrics": {
+      "passed_cases": 3,
+      "failed_cases": 0,
+      "invalid_cases_count": 0
+    },
+    "artifact_refs": [
+      "AI-API-HUB/api-factory/business-outcome-evidence-test.mjs"
+    ],
+    "failures": [],
+    "invalid_cases": []
+  },
+  "comparison": {
+    "variant": "contract-current",
+    "regression_status": "PASS"
+  },
+  "limitations": [
+    "This is a deterministic contract evaluation, not a provider/model quality evaluation.",
+    "The fixture records the intended evaluation result; CI execution remains the source of execution proof."
+  ],
+  "confidence": "high for the declared deterministic contract scope"
+}
