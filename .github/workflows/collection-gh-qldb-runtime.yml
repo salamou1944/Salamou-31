@@ -1,0 +1,87 @@
+name: Collection gh-qldb Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-gh-qldb-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collection-gh-qldb-runtime
+  cancel-in-progress: true
+
+env:
+  GH_QLDB_REF: 1d38b62622546a9f457b720e9cfe86e4e7546115
+
+jobs:
+  runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+      - name: Checkout pinned gh-qldb
+        uses: actions/checkout@v4
+        with:
+          repository: GitHubSecurityLab/gh-qldb
+          ref: ${{ env.GH_QLDB_REF }}
+          path: /tmp/gh-qldb
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Build and test
+        working-directory: /tmp/gh-qldb
+        run: |
+          set -euo pipefail
+          go test ./...
+          go build -o /tmp/gh-qldb-bin .
+          test -x /tmp/gh-qldb-bin
+      - name: CLI runtime smoke
+        run: |
+          set -euo pipefail
+          /tmp/gh-qldb-bin --help >/tmp/gh-qldb-help.txt
+          grep -q "create" /tmp/gh-qldb-help.txt
+          grep -q "download" /tmp/gh-qldb-help.txt
+          grep -q "install" /tmp/gh-qldb-help.txt
+          grep -q "list" /tmp/gh-qldb-help.txt
+          HOME=/tmp/gh-qldb-home /tmp/gh-qldb-bin list >/tmp/gh-qldb-list.txt
+          echo "GH_QLDB_RUNTIME_OK"
+      - name: Emit evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-gh-qldb-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/gh-qldb",
+            "source_ref": "1d38b62622546a9f457b720e9cfe86e4e7546115",
+            "license": "MIT",
+            "classification": {
+              "axis_1_capability": "HIGH",
+              "axis_2_independent_project": "HIGH",
+              "priority": "P1"
+            },
+            "gates": {
+              "source_pinned": true,
+              "go_tests": true,
+              "build": true,
+              "cli_contract": true,
+              "local_runtime_smoke": true
+            },
+            "remote_database_execution": "NOT_ATTEMPTED",
+            "mutations_applied": false,
+            "verified": true,
+            "promotion": "READY_TO_USE"
+          }
+          JSON
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gh-qldb-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-gh-qldb-runtime.json
+          if-no-files-found: ignore
