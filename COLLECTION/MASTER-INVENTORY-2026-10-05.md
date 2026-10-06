@@ -32,8 +32,8 @@ This section is the **account/source layer**. It is distinct from the repository
 - `mnfst/awesome-free-llm-apis`
 - `diegosouzapw/OmniRoute`
 - `firecrawl` — GitHub account/organization source; repository count previously verified as 111, not merely `firecrawl/firecrawl`.
-- `msitarzewski` — GitHub account/source; repository inventory to be scanned in full, including independent ready-made project potential.
-- `KorroAi` — GitHub account/source; MUE-X is one repository in this account; the account must be scanned in full under the universal two-axis rule.
+- `msitarzewski` — GitHub account/source; **FULL INVENTORY COMPLETED 2026-10-05** (40 repositories).
+- `KorroAi` — GitHub account/source; **FULL INVENTORY COMPLETED 2026-10-05** (13 repositories).
 - `continuedev` — GitHub account/organization source; full repository inventory completed 2026-10-05 across 11 repositories. Continue/Checks/next-geo/Instinct are preserved as distinct candidates; archives and mirrors are separated.
 - Agent Reach
 - mcporter
@@ -89,8 +89,8 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 - Free-provider intelligence: mnfst/awesome-free-llm-apis.
 - Provider/router intelligence: diegosouzapw/OmniRoute.
 - Firecrawl organization: full repository inventory below.
-- `msitarzewski`: newly added source account; full repository inventory scan pending.
-- `KorroAi`: newly added source account from `KorroAi/mue-x`; full account inventory required, not just MUE-X.
+- `msitarzewski`: full repository inventory completed 2026-10-05; 40 repositories evaluated under the universal two-axis rule.
+- `KorroAi`: full repository inventory completed 2026-10-05; 13 repositories evaluated under the universal two-axis rule.
 - `continuedev`: full account inventory completed 2026-10-05; 11 repositories evaluated under the universal two-axis rule.
 - `GitHubSecurityLab`: full organization inventory completed 2026-10-05; 17 repositories evaluated under the universal two-axis rule.
 - `GitHubSecurityLab` — GitHub Security Lab organization source; 17 repositories enumerated 2026-10-05 and evaluated at README/repository level under the universal two-axis rule.
