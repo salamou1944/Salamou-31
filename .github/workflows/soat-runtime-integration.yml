@@ -290,6 +290,30 @@ jobs:
           console.log(JSON.stringify(evidence));
           NODE
 
+      - name: Verify business outcome gate from verified SOAT evidence
+        if: success()
+        run: |
+          set -euo pipefail
+          FACTORY_PORT=8897
+          FACTORY_API_KEY="soat-business-gate-${GITHUB_RUN_ID}"
+          export PORT="$FACTORY_PORT" FACTORY_API_KEY
+          node AI-API-HUB/api-factory/server.mjs >/tmp/api-factory-business-gate.log 2>&1 &
+          FACTORY_PID=$!
+          trap 'kill "$FACTORY_PID" 2>/dev/null || true' EXIT
+
+          for i in $(seq 1 30); do
+            if curl --fail --silent --show-error "http://127.0.0.1:${FACTORY_PORT}/health" >/tmp/api-factory-health.json; then break; fi
+            sleep 1
+          done
+          test -s /tmp/api-factory-health.json
+
+          jq -n             --arg task_id "soat-runtime-${GITHUB_RUN_ID}"             --arg entry_point "soat://local-ollama/${SOAT_AI_PROVIDER_ID}"             --arg verifier "SOAT Runtime Integration Smoke / independent runtime verification"             --arg run_id "${GITHUB_RUN_ID}"             --arg commit "${GITHUB_SHA}"             --arg soat_sha "${SOAT_SHA}"             '{taskId:$task_id,entryPoint:$entry_point,verifiedBy:$verifier,outcome:"ENTRY_POINT_VERIFIED",previousOutcome:"DISCOVERED",observations:["SOAT health verified","SOAT authentication verified","API Factory probe verified","real chat completion verified","official SOAT smoke suite verified"],metadata:{workflow:"SOAT Runtime Integration Smoke",runId:$run_id,commit:$commit,soatSha:$soat_sha}}' > /tmp/business-outcome-request.json
+
+          curl --fail --silent --show-error             -X POST "http://127.0.0.1:${FACTORY_PORT}/v1/factory/verify/business-outcome"             -H "Content-Type: application/json"             -H "x-api-key: ${FACTORY_API_KEY}"             --data-binary @/tmp/business-outcome-request.json             > business-outcome-verification.json
+
+          jq -e '.ok == true and .evidence.schema == "business-outcome-evidence/v1" and .evidence.outcome == "ENTRY_POINT_VERIFIED" and .transition.ok == true' business-outcome-verification.json >/dev/null
+          cat business-outcome-verification.json
+
       - name: Upload SOAT verification record
         if: success()
         uses: actions/upload-artifact@v4
