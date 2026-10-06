@@ -1,3 +1,4 @@
+import {validateProviderEvidence} from "./provider-evidence.mjs";
 // SOAT evidence consumer: CI/provider evidence remains distinct from production proof.
 
 const REQUIRED_GATES=[
@@ -103,3 +104,18 @@ export function createSoatProductionExecutionEvidence(record){
 }
 
 export {PRODUCTION_GATES};
+
+export function createSoatProviderEvidence(providerEvidence){
+  const validation=validateProviderEvidence(providerEvidence);
+  if(!validation.ok) throw new Error(validation.code+(validation.missing?":"+validation.missing.join(","):""));
+  return {
+    schema:"soat-provider-evidence/v1",
+    verified:true,
+    provider:validation.provider,
+    model:validation.model,
+    evidenceLevel:validation.evidenceLevel,
+    productionStatus:"not_proven_by_provider_probe_alone",
+    reusableFor:["VERIFY","REVIEW","PLAN"],
+    soatRequiredNext:["health","authentication","official_smoke_suite"]
+  };
+}
