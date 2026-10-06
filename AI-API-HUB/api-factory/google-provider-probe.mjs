@@ -18,9 +18,15 @@ const candidates = discovered.filter((m) =>
   m.supportedGenerationMethods.includes("generateContent") &&
   /flash/i.test(m?.name ?? "")
 );
+const preferred = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash"];
 const model = process.env.GOOGLE_MODEL
   ? discovered.find((m) => m.name === `models/${process.env.GOOGLE_MODEL}` || m.name === process.env.GOOGLE_MODEL)
-  : candidates[0];
+  : candidates.sort((a, b) => {
+      const an = a.name.replace(/^models\//, "");
+      const bn = b.name.replace(/^models\//, "");
+      return (preferred.indexOf(an) < 0 ? 999 : preferred.indexOf(an)) -
+             (preferred.indexOf(bn) < 0 ? 999 : preferred.indexOf(bn));
+    })[0];
 
 if (!model?.name) {
   console.error(JSON.stringify({
@@ -63,6 +69,11 @@ const evidence = {
   completion_received: Boolean(output),
   exact_output_match: output.trim() === "FREE_PROVIDER_REAL_OK",
   rate_limit_headers: Object.fromEntries([...completionResponse.headers].filter(([k]) => /limit|remaining|reset/i.test(k))),
+  provider_error: completion?.error ? {
+    code: completion.error.code ?? completionResponse.status,
+    status: completion.error.status ?? null,
+    message: typeof completion.error.message === "string" ? completion.error.message.slice(0, 240) : null
+  } : null,
   secret_committed: false
 };
 console.log(JSON.stringify(evidence, null, 2));
