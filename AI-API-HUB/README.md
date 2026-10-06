@@ -49,6 +49,8 @@ Use environment variables, Replit Secrets, GitHub Actions Secrets, or a producti
 - `FREE-PROVIDER-POLICY.md` — zero-cost routing policy and evidence gate
 - `free-provider-policy-fixture.json` — machine-readable policy fixture
 - `test-free-provider-policy.mjs` — isolated policy contract test
+- `evaluation-fixture.schema.json` — provider-neutral reproducible evaluation evidence contract
+- `test-evaluation-fixture-contract.mjs` — isolated schema contract test
 - `SERVICE-CATALOG.md` — services we can sell and deliver
 - `SECRETS-TEMPLATE.env.example` — credential variable names only
 
