@@ -6,6 +6,7 @@ import {deploymentPlan} from "./deployment.mjs";
 import {runSherlock} from "./sherlock-username.mjs";
 import {createExecutionRecord,assertStateExit} from "./execution-contract.mjs";
 import {createSoatExecutionEvidence,createSoatProductionExecutionEvidence} from "./soat-evidence.mjs";
+import {createAiOperatingEvidence,classifyAiOperatingOutcome} from "./ai-operating-evidence.mjs";
 
 const app=Fastify({logger:true,bodyLimit:64*1024});
 const port=Number(process.env.PORT||8797);
@@ -41,7 +42,25 @@ app.post("/v1/factory/verify/soat",async(request,reply)=>{
       metadata:{source:"SOAT Runtime Integration Smoke",run_id:evidence.runId,soat_sha:evidence.soatSha}
     });
     assertStateExit(execution);
-    return {ok:true,evidence,execution};
+    let operating=null;
+    if(request.body?.operating){
+      const op=request.body.operating;
+      operating={
+        evidence:createAiOperatingEvidence({
+          taskId:op.taskId,
+          skillRevision:op.skillRevision,
+          provenance:op.provenance||["SOAT Runtime Integration Smoke"],
+          authorization:op.authorization||{},
+          resources:op.resources||[],
+          acceptanceCriteria:op.acceptanceCriteria||[],
+          result:{execution,evidence},
+          independentVerification:op.independentVerification===true,
+          businessOutcome:op.businessOutcome||"DISCOVERED"
+        }),
+        outcome:classifyAiOperatingOutcome({executionOk:true,actionObserved:true,independentVerification:op.independentVerification===true})
+      };
+    }
+    return {ok:true,evidence,execution,operating};
   }catch(e){
     return reply.code(422).send({ok:false,error:e.message});
   }
