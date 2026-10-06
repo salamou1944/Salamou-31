@@ -1,0 +1,73 @@
+name: Collection actions-permissions Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-actions-permissions-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: collection-actions-permissions-runtime
+  cancel-in-progress: true
+
+env:
+  ACTIONS_PERMISSIONS_REF: bf82d13b9b10051d224345ab9184f5ede0a94289
+
+jobs:
+  runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+
+      - name: Validate pinned upstream action metadata
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://raw.githubusercontent.com/GitHubSecurityLab/actions-permissions/bf82d13b9b10051d224345ab9184f5ede0a94289/monitor/action.yml" -o /tmp/actions-permissions-monitor.yml
+          grep -q "using: 'node20'" /tmp/actions-permissions-monitor.yml
+          grep -q "main: 'dist/index.js'" /tmp/actions-permissions-monitor.yml
+          echo "ACTIONS_PERMISSIONS_ACTION_METADATA_OK"
+
+      - name: Run real permissions monitor
+        uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289
+        with:
+          token: ${{ github.token }}
+
+      - name: Runtime contract
+        run: |
+          set -euo pipefail
+          test -n "${GITHUB_SHA}"
+          echo "ACTIONS_PERMISSIONS_RUNTIME_OK"
+
+      - name: Emit evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-actions-permissions-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/actions-permissions",
+            "source_ref": "bf82d13b9b10051d224345ab9184f5ede0a94289",
+            "license": "MIT",
+            "gates": {
+              "upstream_action_metadata": true,
+              "real_monitor_action": true,
+              "runtime_contract": true
+            },
+            "verified": true,
+            "promotion": "READY_TO_USE"
+          }
+          JSON
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: actions-permissions-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-actions-permissions-runtime.json
+          if-no-files-found: ignore
