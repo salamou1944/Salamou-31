@@ -1493,46 +1493,13 @@ The following four source accounts were previously represented only by selected 
 
 **Account-level status:** all four accounts are now enumerated. This closes the previously partial account-level gap for these Collection sources. License and implementation deep-review remains an adoption gate; enumeration is not production certification.
 
-## NEW UNIVERSAL RULE — COLLECTION ITEMS MUST BE MADE WORK-READY
+## Canonical Collection-to-Skill / Work-Ready rule
 
-Collection is not only a library of things to remember. **Every item that passes the two-axis discovery rule and is worth keeping must be advanced toward an actually usable state whenever technically and legally possible.** Discovery without operationalization is incomplete.
+The detailed Collection-to-Skill operating rule is maintained canonically in `salamou1944/agent-skills/skills/collection-skill-promotion/SKILL.md`. This inventory does not duplicate that rule.
 
-### Work-ready pipeline
-For every retained candidate, Collection must attempt the following in order:
-1. **SOURCE PRESERVATION** — keep original repository URL, commit/ref, provenance, license, and source account.
-2. **READINESS CLASSIFICATION** — distinguish COMPONENT, READY_PROJECT_CANDIDATE, READY_TO_RUN, READY_TO_DEPLOY, and PRODUCTION_VERIFIED. Never use a stronger status without evidence.
-3. **EXACT IMPLEMENTATION INSPECTION** — identify entrypoint, package/runtime, required services, environment variables, credentials, model/provider requirements, storage, ports, and deployment method.
-4. **DEPENDENCY MATERIALIZATION** — prepare the minimum dependency/configuration set needed to run the candidate. Prefer free/local providers and existing infrastructure; do not spend money.
-5. **ADAPTATION** — where the candidate is valuable, create the smallest adapter/wrapper/config needed to fit our control plane (Collection, Elite/ARMY-14, SOAT/API Factory, EASY, MONY, or an independent revenue asset). Do not modify upstream blindly.
-6. **AUTOMATED VALIDATION** — run available tests, build checks, lint/type checks, and a real smoke path. A successful file copy, mock, or static inspection is not enough.
-7. **RUNTIME PROOF** — prove the actual entrypoint starts and performs its core operation with real dependencies. If external credentials/credits/hardware are unavailable, record the exact blocker rather than faking success.
-8. **DEPLOYMENT PATH** — when deployment is appropriate, produce a reproducible deployment configuration/recipe for our available free infrastructure (GitHub Actions/Railway/Vercel/Supabase/local), subject to the tool's actual capabilities.
-9. **EVIDENCE PACK** — record commit/ref, exact files changed, commands/checks, runtime result, remaining blockers, license boundary, and next executable action.
-10. **PROMOTION** — only candidates that pass their relevant evidence gate may be promoted:
-   - **READY_TO_USE** = core path runs in an isolated environment.
-   - **READY_TO_DEPLOY** = deployment path is reproducibly prepared and validated.
-   - **PRODUCTION_VERIFIED** = real deployed runtime has passed its production smoke/evidence gate.
-   - **BLOCKED** = a specific external dependency prevents completion.
-   - **REJECTED** = license/security/quality/value gate fails.
+Canonical flow: **Discover → Preserve → Evaluate both axes → Deduplicate → Extract Skill → Validate → Prepare/Prove → Promote**.
 
-### Non-negotiable behavior
-- Do **not** stop at "interesting", "candidate", or "could be useful" when the item can actually be prepared.
-- Do **not** claim an item is ready merely because its README says it is ready.
-- Do **not** spend money to make an item work; prefer $0/local/existing infrastructure.
-- Do **not** hide blockers. Convert them into explicit machine-checkable readiness states.
-- Do **not** discard a complete project merely because it does not map to an existing project. Preserve it as an independent work-ready/revenue candidate.
-- Do **not** duplicate code unnecessarily. Preserve upstream provenance and create a thin adapter or isolated derivative when appropriate.
-- For security-sensitive agent/skill assets, the security gate must run before promotion.
-- For paid/provider-dependent assets, provider access is an explicit runtime dependency; absence of credits means **BLOCKED**, not READY.
-- Collection's final objective is therefore: **DISCOVER → PRESERVE → PREPARE → TEST → PROVE → DEPLOY → HAND OFF**, not merely DISCOVER → CATALOG.
-
-### Definition of done for a collected project
-A collected project is not considered operationally closed until either:
-- it reaches **READY_TO_USE / READY_TO_DEPLOY / PRODUCTION_VERIFIED**, or
-- it has a documented, concrete blocker with the exact missing input/action required from the user or an external system.
-
-This rule is universal for all Collection source accounts and repositories, including Top Five, newly discovered parent accounts, and independent ready-made projects.
-
+The rule explicitly preserves independent ready-made projects even when no Skill is extracted, deduplicates at the reusable Skill layer, and requires evidence before READY_TO_USE / READY_TO_DEPLOY / PRODUCTION_VERIFIED promotion. Existing work-ready execution records and the queue below remain the operational evidence layer.
 
 ## WORK-READY EXECUTION QUEUE — 2026-10-06
 
