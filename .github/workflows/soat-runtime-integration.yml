@@ -27,6 +27,13 @@ jobs:
       - name: Checkout Salamou-31
         uses: actions/checkout@v4
 
+      - name: Run API Factory deterministic test suite
+        working-directory: AI-API-HUB/api-factory
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          npm test
+
       - name: Verify SOAT system-message request mapping
         run: |
           set -euo pipefail
