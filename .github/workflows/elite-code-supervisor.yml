@@ -16,6 +16,8 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       EASY_OPERATOR_SECONDARY_LLM_API_KEY: ${{ secrets.EASY_OPERATOR_SECONDARY_LLM_API_KEY }}
       EASY_SECONDARY_LLM_API_KEY: ${{ secrets.EASY_SECONDARY_LLM_API_KEY }}
+      SOAT_API_KEY: ${{ secrets.SOAT_API_KEY }}
+      SOAT_TOKEN: ${{ secrets.SOAT_TOKEN }}
     with:
       goal: >-
         Continue the highest-value unfinished engineering work in this repository toward a practical,
