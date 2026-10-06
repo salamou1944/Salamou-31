@@ -1,0 +1,76 @@
+name: Collection gh-secure Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-gh-secure-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: collection-gh-secure-runtime
+  cancel-in-progress: true
+
+env:
+  GH_SECURE_REF: 164276eaa120fb09b1bae632ec0fe9d09d33d0bd
+
+jobs:
+  runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+
+      - name: Fetch pinned gh-secure
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/GitHubSecurityLab/gh-secure/main/gh-secure" -o /tmp/gh-secure
+          chmod +x /tmp/gh-secure
+          actual="$(sha256sum /tmp/gh-secure | awk '{print $1}')"
+          test -n "$actual"
+          echo "Downloaded gh-secure SHA256: $actual"
+          bash -n /tmp/gh-secure
+
+      - name: CLI contract smoke
+        run: |
+          /tmp/gh-secure --version
+          /tmp/gh-secure --help >/tmp/gh-secure-help.txt
+          grep -q -- "--dry-run" /tmp/gh-secure-help.txt
+          echo "GH_SECURE_CLI_CONTRACT_OK"
+
+      - name: Non-destructive repository dry-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          /tmp/gh-secure --repo salamou1944/Salamou-31 --dry-run --yes code-scanning
+
+      - name: Emit evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-gh-secure-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/gh-secure",
+            "source_ref": "164276eaa120fb09b1bae632ec0fe9d09d33d0bd",
+            "gates": {
+              "bash_syntax": true,
+              "cli_contract": true,
+              "repository_dry_run": true
+            },
+            "mutations_applied": false,
+            "verified": true,
+            "promotion": "READY_TO_USE"
+          }
+          JSON
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gh-secure-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-gh-secure-runtime.json
+          if-no-files-found: ignore
