@@ -73,10 +73,12 @@
       "id": "huggingface_inference",
       "status": "DISCOVERED",
       "env": "HF_TOKEN",
-      "base_url": "https://router.huggingface.co",
+      "base_url": "https://router.huggingface.co/v1",
       "routing_enabled": false,
       "free_access": "Free users receive $0.10/month inference-provider credits; pay-as-you-go requires purchased credits after exhaustion",
-      "source": "https://huggingface.co/docs/inference-providers/main/pricing"
+      "source": "https://huggingface.co/docs/inference-providers/main/pricing",
+      "evidence": "NOT_YET_PROBED",
+      "probe_model": "openai/gpt-oss-120b:fastest"
     },
     {
       "id": "chutes",

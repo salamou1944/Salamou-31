@@ -4,7 +4,8 @@ const PROVIDERS = {
   groq: { env: "GROQ_API_KEY", base: "https://api.groq.com/openai/v1" },
   openrouter: { env: "OPENROUTER_API_KEY", base: "https://openrouter.ai/api/v1" },
   mistral: { env: "MISTRAL_API_KEY", base: "https://api.mistral.ai/v1" },
-  chutes: { env: "CHUTES_API_KEY", base: "https://llm.chutes.ai/v1" }
+  chutes: { env: "CHUTES_API_KEY", base: "https://llm.chutes.ai/v1" },
+  huggingface_inference: { env: "HF_TOKEN", base: "https://router.huggingface.co/v1" }
 };
 
 const provider = process.env.PROVIDER ?? "groq";
@@ -28,7 +29,7 @@ try { models = JSON.parse(modelsText); } catch { models = { raw: modelsText.slic
 const discovered = Array.isArray(models?.data) ? models.data.map((m) => m?.id).filter(Boolean) : [];
 const freeModels = discovered.filter((id) => /:free$/i.test(id) || /^openrouter\/free$/i.test(id));
 const model = process.env.PROVIDER_MODEL ??
-  (provider === "openrouter" ? "openrouter/free" : discovered[0]);
+  (provider === "openrouter" ? "openrouter/free" : provider === "huggingface_inference" ? "openai/gpt-oss-120b:fastest" : discovered[0]);
 
 if (!model) {
   console.error(JSON.stringify({
