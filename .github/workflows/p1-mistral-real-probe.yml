@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   mistral:
@@ -29,3 +30,11 @@ jobs:
           node-version: 22
       - name: Probe Mistral real completion
         run: node free-provider-probe.mjs
+
+      - name: Upload provider evidence
+        if: steps.config.outputs.configured == 'true' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-mistral-provider-evidence-${{ github.run_id }}
+          path: AI-API-HUB/api-factory/provider-evidence.json
+          if-no-files-found: error
