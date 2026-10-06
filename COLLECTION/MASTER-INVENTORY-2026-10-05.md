@@ -1402,3 +1402,37 @@ GitHub repository search returned **815 public repositories** for `NVIDIA` acros
 - `ChatRTX` is explicitly deprecated as of 2026-01-21, so preserve as historical reference rather than active dependency.
 - `OpenShell` remains a priority Elite/ARMY-14 sandbox/runtime candidate; exact implementation and policy boundaries require the deep-review gate.
 - The NVIDIA account is now **fully enumerated and screened**, but not falsely marked as code-level verified. This distinction is intentional and preserves the evidence-first Collection rule.
+
+
+## NVIDIA P0 deep review — completed 2026-10-05
+
+The first NVIDIA account screen found **815 repositories**. The P0 queue was then deep-reviewed at README/license/architecture level. This does **not** imply production certification; it identifies the highest-leverage assets for isolated adoption.
+
+| Repository | Axis 1 — reusable capability | Axis 2 — independent project potential | Decision |
+|---|---|---|---|
+| `OpenShell` | **VERY HIGH** — kernel/runtime isolation, policy enforcement, credential-bound network access, formal policy verification, gateway/sandbox lifecycle | **VERY HIGH** — standalone agent-safety runtime | **P0 ELITE/ARMY-14 INFRA + READY PROJECT**; Apache-2.0; priority adoption candidate |
+| `NemoClaw` | **VERY HIGH** — OpenShell sandbox orchestration, managed inference, network policy, state persistence, agent lifecycle | **VERY HIGH** — complete reference stack for sandboxed agents | **P0 ELITE/ARMY-14 READY PROJECT**; Apache-2.0; use as reference/stack, not blind dependency |
+| `NeMo-Agent-Toolkit` | **VERY HIGH** — agent workflow instrumentation, observability, evaluation, performance primitives, MCP publishing, plugins | **VERY HIGH** — standalone agent toolkit/platform | **P0 AGENT/API ASSET**; Apache-2.0 stated in repository README; strong candidate for Salamou-31 |
+| `Personal-AI-Router` | **VERY HIGH** — local Ollama/LM Studio routing across Windows/Linux/macOS, OpenAI/Anthropic-compatible endpoints | **VERY HIGH** — standalone local inference router | **P0 $0/LOCAL-AI INFRA + REVENUE ASSET**; Apache-2.0; especially relevant to free-provider/local inference strategy |
+| `AI-Factory-Operations-Agent` | **VERY HIGH** — governed cluster investigation, Kubernetes/Prometheus/Grafana/Slurm evidence workflows, sandboxed command execution | **HIGH** — deployable operations-agent blueprint | **P0 ENTERPRISE/DEVOPS ASSET**; experimental; Apache-2.0 |
+| `game-agent-sdk` | **HIGH** — agent/game interaction SDK and examples | **HIGH** — standalone agent product foundation | **P1 RESEARCH/READY-PROJECT CANDIDATE**; exact license/implementation gate before adoption |
+| `SkillSpector` | **VERY HIGH** — static/semantic security scanning for skills, 71 vulnerability patterns, MCP/tool-poisoning checks, SARIF/JSON/Markdown output, resource bounds | **VERY HIGH** — standalone skill-security product | **P0 SECURITY GATE for Collection + Elite**; Apache-2.0 |
+| `SkillEvaluator` | **VERY HIGH** — validation, deduplication, synthetic datasets, live skill evaluation, paired with/without skill trials | **VERY HIGH** — standalone evaluation platform | **P0 ELITE/AI-API QUALITY GATE**; Apache-2.0; provider-dependent tiers explicitly preserved |
+| `garak` | **VERY HIGH** — LLM red-team scanner with static/dynamic/adaptive probes and broad model interfaces | **VERY HIGH** — standalone AI security product | **P0 SECURITY/REVENUE ASSET**; Apache-2.0 |
+| `AIStore` | **VERY HIGH** — distributed AI storage, S3-compatible API, HA, observability, ETL, unified namespace | **VERY HIGH** — standalone infrastructure product | **P1 INFRA/READY PROJECT**; MIT; likely overkill for immediate revenue |
+| `nvidia-app-skills` | **MEDIUM-HIGH** — concrete NVIDIA App MCP skill implementation | **MEDIUM** — environment-specific skill | **P2 SKILL/REFERENCE**; Windows + NVIDIA App dependency |
+### NVIDIA deep-review conclusion
+
+**Highest leverage for our existing system:**
+1. **OpenShell** → Elite/ARMY-14 execution sandbox and policy boundary.
+2. **SkillSpector** → pre-install security gate for Collection/AgentSkills.
+3. **SkillEvaluator** → evidence-based skill quality gate.
+4. **NemoClaw** → reference stack for secure autonomous-agent operation.
+5. **Personal-AI-Router** → local multi-machine inference and a concrete path to reduce paid API dependence.
+6. **NeMo-Agent-Toolkit** → agent workflow/evaluation/observability capability.
+7. **garak** → adversarial verification before claiming agent/API readiness.
+8. **AI-Factory-Operations-Agent** → blueprint for governed operations workflows.
+
+**External evidence:** NVIDIA currently describes OpenShell as an open agent-safety platform/runtime, and the current repository documentation says it enforces runtime policies and formally verifies policy changes. NemoClaw is an Apache-2.0 reference stack built around OpenShell, with managed inference and network-policy controls. citeturn0news0turn0news1turn0search11
+
+**Adoption rule:** none of these becomes a production dependency merely from this review. Next step is isolated proof-of-concept against the existing Elite/ARMY-14 and AI-API-Hub paths, with no spending and no changes to EASY while its provider credit is exhausted.
