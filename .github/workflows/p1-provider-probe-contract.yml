@@ -1,5 +1,7 @@
 name: P1 Provider Probe Contract
 
+# Contract-only CI trigger; provider routing remains disabled until real evidence.
+
 on:
   push:
     branches: [main]
