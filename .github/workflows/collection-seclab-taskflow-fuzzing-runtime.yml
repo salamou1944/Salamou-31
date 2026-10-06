@@ -1,0 +1,73 @@
+name: Collection SecLab Taskflow Fuzzing Runtime Gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-seclab-taskflow-fuzzing-runtime.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: collection-seclab-taskflow-fuzzing-runtime
+  cancel-in-progress: true
+jobs:
+  deterministic-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+      - name: Checkout fuzzing project
+        uses: actions/checkout@v4
+        with:
+          repository: GitHubSecurityLab/seclab-taskflows-fuzzing
+          ref: main
+          path: /tmp/seclab-taskflows-fuzzing
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install project
+        working-directory: /tmp/seclab-taskflows-fuzzing
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Deterministic tests
+        working-directory: /tmp/seclab-taskflows-fuzzing
+        run: |
+          pytest -q tests
+      - name: Source and interface smoke
+        working-directory: /tmp/seclab-taskflows-fuzzing
+        run: |
+          python -m compileall -q src
+          test -x scripts/fuzzing/run_fuzzing.sh
+          bash -n scripts/fuzzing/run_fuzzing.sh
+          echo "SECLAB_TASKFLOW_FUZZING_INTERFACE_OK"
+      - name: Emit evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-seclab-taskflows-fuzzing-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/seclab-taskflows-fuzzing",
+            "source_ref": "main",
+            "license": "MIT",
+            "gates": {
+              "installation": true,
+              "deterministic_tests": true,
+              "compile_smoke": true,
+              "fuzzing_entrypoint": true
+            },
+            "provider_execution": "NOT_ATTEMPTED",
+            "target_execution": "NOT_ATTEMPTED",
+            "verified": true,
+            "promotion": "READY_TO_USE"
+          }
+          JSON
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seclab-taskflow-fuzzing-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-seclab-taskflows-fuzzing-runtime.json
+          if-no-files-found: ignore
