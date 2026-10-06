@@ -9,7 +9,6 @@ on:
         type: choice
         options:
           - groq
-          - cerebras
           - openrouter
       model:
         description: Optional model override
@@ -26,7 +25,6 @@ jobs:
       PROVIDER: ${{ inputs.provider }}
       PROVIDER_MODEL: ${{ inputs.model }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-      CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
     steps:
       - uses: actions/checkout@v4
