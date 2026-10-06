@@ -1,0 +1,30 @@
+name: P1 Mistral Real Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'AI-API-HUB/api-factory/free-provider-probe.mjs'
+      - 'AI-API-HUB/api-factory/package.json'
+      - '.github/workflows/p1-mistral-real-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mistral:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    env:
+      PROVIDER: mistral
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe Mistral real completion
+        run: node free-provider-probe.mjs
