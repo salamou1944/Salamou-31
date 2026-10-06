@@ -68,7 +68,7 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 
 ### Current Top Five queue already recorded for 2026-10-04
 - `debpalash/VoiceStudio`
-- `eternity4719/HowToLiveBetter`
+- `eternity4719/HowToLiveBetter` — COMPLETED 2026-10-05 (10 repositories)
 - `Niko1221/Strata`
 - `NVIDIA/OpenShell`
 - `KKKKhazix/AIHOT`
@@ -94,7 +94,7 @@ The Collection process has used multiple Top Five snapshots over time. They rema
 - `continuedev`: full account inventory completed 2026-10-05; 11 repositories evaluated under the universal two-axis rule.
 - `GitHubSecurityLab`: full organization inventory completed 2026-10-05; 17 repositories evaluated under the universal two-axis rule.
 - `GitHubSecurityLab` — GitHub Security Lab organization source; 17 repositories enumerated 2026-10-05 and evaluated at README/repository level under the universal two-axis rule.
-- Current Top Five queue (2026-10-04): debpalash/VoiceStudio; eternity4719/HowToLiveBetter; Niko1221/Strata; NVIDIA/OpenShell; KKKKhazix/AIHOT.
+- Current Top Five queue (2026-10-04): debpalash/VoiceStudio; eternity4719/HowToLiveBetter [COMPLETED]; Niko1221/Strata; NVIDIA/OpenShell; KKKKhazix/AIHOT.
 
 ## Current Top Five — independent project scan
 - `debpalash/VoiceStudio` — READY_PROJECT candidate; open-source desktop/local voice cloning, design, dubbing, dictation, transcription and audiobook workflow. License: AGPL-3.0. Commercial reuse requires license boundary review.
@@ -501,3 +501,33 @@ Repository search returned **35 public repositories** for `debpalash`. The accou
 **Important independent-project preservation:** `VoiceStudio`, `OpenGTM`, `Friday`, `Hoglet`, `Collagent`, `Bootable`, `Opal`, `OS1`, `open-agi`, `Remotions Video`, and `superplexr` remain independent candidates even when not immediately mapped into Salamou-31.
 
 **Evidence boundary:** README/account inspection is collection evidence only. No candidate is marked production-ready for our systems until its exact implementation, license, dependency chain, tests and isolated runtime are independently verified.
+
+
+## Newly completed source account — eternity4719
+
+GitHub repository search returned **10 public repositories** for `eternity4719`. The public profile independently confirms the same 10-repository set. Every repository was evaluated on both required axes; where a README was unavailable, the repository metadata/profile description was used and the evidence boundary is explicitly retained. citeturn0search0turn0search2
+
+| Repository | Axis 1 — reusable capability | Axis 2 — independent project potential | Classification / decision |
+|---|---|---|---|
+| `HowToLiveBetter` | **VERY HIGH** — searchable static knowledge base, evidence-graded entries, AI skill for Claude Code/Codex, automated PDF/EPUB/offline HTML generation | **VERY HIGH** — complete knowledge product with web search UI, downloadable editions and AI skill | **P0 READY_PROJECT + KNOWLEDGE/REVENUE ASSET**; content CC BY 4.0, code MIT; China-specific legal/medical content requires localization and source revalidation |
+| `TrueSight` | **HIGH** — Fabric client networking/state-machine/rendering implementation for Anti-Xray research | **HIGH** — complete Minecraft client mod | **P1 READY_PROJECT / SECURITY-RESEARCH ASSET**; dual-use/abuse gate; preserve independently, do not integrate into revenue systems |
+| `toh-proxy` | **HIGH** — TCP↔WebSocket proxy, Proxy Protocol real-IP restoration, CDN-facing architecture and token gate | **HIGH** — deployable Minecraft network/DDoS-mitigation utility | **P1 READY_PROJECT / INFRA ASSET**; network/security review required |
+| `TohConnect` | **MEDIUM-HIGH** — Fabric client bridge for toh-proxy WebSocket endpoint | **MEDIUM-HIGH** — deployable companion mod | **P1 INTEGRATION / READY PROJECT**; preserve with toh-proxy provenance |
+| `AmazingBot5` | **HIGH** — Kotlin/OneBot 11 server/QQ bridge architecture | **HIGH** — standalone game/community bot framework | **P1 READY_PROJECT / BOT ASSET**; inspect exact implementation and license before adoption |
+| `CoreLib` | **HIGH** — Kotlin Bukkit/Folia plugin foundation, coroutine scheduling, persistence, messaging/cooldowns | **MEDIUM-HIGH** — reusable standalone plugin library | **P1 COMPONENT/INFRA**; strong independent library potential, not a product by itself |
+| `NoCheatPlus` | **HIGH** — anti-cheat checks and plugin architecture | **HIGH** — complete server protection plugin | **FORK/MIRROR + SECURITY COMPONENT**; GPLv3 provenance; prefer canonical upstream before reuse |
+| `Signed-Paintings-fixes` | **MEDIUM-HIGH** — image fetching, pixelization, caching and in-game rendering patterns | **HIGH** — complete Fabric mod for shared custom paintings | **P1 READY_PROJECT / MEDIA COMPONENT**; external-image/security review |
+| `Inventory-Rollback-Plus-Folia-main` | **HIGH** — inventory/event snapshot and restore workflow for Folia | **HIGH** — complete server plugin | **FORK/MIRROR + READY_PROJECT**; original upstream provenance must be retained |
+| `.github` | LOW — organization defaults/metadata | LOW | **ORG_METADATA**; preserve provenance only |
+
+### eternity4719 conclusions
+
+- **KEEP the source account.** It contains one unusually strong knowledge-product candidate plus several complete Minecraft infrastructure/bot projects.
+- **Highest independent product:** `HowToLiveBetter`. The repository currently documents 665 evidence-graded recommendations, a searchable static UI, a Codex/Claude Code skill, and automated PDF/EPUB/offline HTML releases. Its content is CC BY 4.0 while `tools/`, `skills/`, `index.html`, and `.github/` are MIT. citeturn0search2turn0search4
+- `HowToLiveBetter` is particularly relevant to Collection because its skill uses a retrieval-first pattern: query the source corpus, cite the specific section/item, and avoid inventing numbers. That is a reusable **evidence-grounded knowledge-agent pattern**, but the substantive content is China-specific and must not be silently repurposed as Algerian legal/medical guidance. citeturn0search2
+- `toh-proxy` + `TohConnect` form a coherent independent network product pair; preserve them together rather than deduplicating the companion repository.
+- `AmazingBot5` is a potentially useful community/bot asset; exact code and license inspection remains a later adoption gate because its README was not available through the connector.
+- `TrueSight` is technically substantial but dual-use; preserve as an independent research candidate, not as a revenue or production-security component.
+- `NoCheatPlus` and `Inventory-Rollback-Plus-Folia-main` are fork-lineage candidates; do not replace canonical upstreams until divergence and licensing are checked.
+- Current repository activity is high on `HowToLiveBetter`: GitHub shows commits through Oct. 5, 2026 and automated ebook releases generated from the latest content commit. citeturn0search1turn0search4
+- **Evidence boundary:** account/repository/README inspection is Collection evidence only. No repository is marked production-ready for Salamou-31 until exact implementation, dependency/license, security, isolated tests and runtime proof are completed.
