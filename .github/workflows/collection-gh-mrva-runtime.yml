@@ -1,0 +1,108 @@
+name: Collection gh-mrva Runtime Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/collection-gh-mrva-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collection-gh-mrva-runtime
+  cancel-in-progress: true
+
+env:
+  GH_MRVA_REF: 133d5969eb8eed992501f97134442ed9d33a24f7
+
+jobs:
+  runtime-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout control plane
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned gh-mrva
+        uses: actions/checkout@v4
+        with:
+          repository: GitHubSecurityLab/gh-mrva
+          ref: ${{ env.GH_MRVA_REF }}
+          path: /tmp/gh-mrva
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Download dependencies
+        working-directory: /tmp/gh-mrva
+        run: go mod download
+
+      - name: Deterministic build and tests
+        working-directory: /tmp/gh-mrva
+        run: |
+          set -euo pipefail
+          go test ./...
+          go build -o /tmp/gh-mrva-bin .
+          test -x /tmp/gh-mrva-bin
+
+      - name: CLI contract
+        run: |
+          set -euo pipefail
+          /tmp/gh-mrva-bin --help >/tmp/gh-mrva-help.txt
+          grep -q "submit" /tmp/gh-mrva-help.txt
+          grep -q "download" /tmp/gh-mrva-help.txt
+          grep -q "status" /tmp/gh-mrva-help.txt
+          grep -q "list" /tmp/gh-mrva-help.txt
+          echo "GH_MRVA_CLI_CONTRACT_OK"
+
+      - name: GitHub CLI extension smoke
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/gh-ext
+          cp /tmp/gh-mrva-bin /tmp/gh-ext/gh-mrva
+          chmod +x /tmp/gh-ext/gh-mrva
+          PATH="/tmp/gh-ext:$PATH" gh mrva --help >/tmp/gh-mrva-extension-help.txt
+          grep -q "submit" /tmp/gh-mrva-extension-help.txt
+          echo "GH_MRVA_EXTENSION_SMOKE_OK"
+
+      - name: Emit evidence
+        if: success()
+        run: |
+          mkdir -p COLLECTION/WORK_READY
+          cat > COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-gh-mrva-runtime.json <<'JSON'
+          {
+            "schema": "collection-runtime-evidence/v1",
+            "candidate": "GitHubSecurityLab/gh-mrva",
+            "source_ref": "133d5969eb8eed992501f97134442ed9d33a24f7",
+            "license": "MIT",
+            "classification": {
+              "axis_1_capability": "VERY_HIGH",
+              "axis_2_independent_project": "HIGH",
+              "priority": "P1"
+            },
+            "gates": {
+              "source_pinned": true,
+              "go_dependencies": true,
+              "build": true,
+              "tests": true,
+              "cli_contract": true,
+              "github_cli_extension_smoke": true
+            },
+            "mrva_controller_execution": "NOT_ATTEMPTED",
+            "codeql_execution": "NOT_ATTEMPTED",
+            "verified": true,
+            "promotion": "READY_TO_RUN",
+            "blocker": "Real MRVA submission requires a CodeQL distribution, configured MRVA controller, target repository list, and GitHub authentication."
+          }
+          JSON
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gh-mrva-runtime-evidence
+          path: COLLECTION/WORK_READY/2026-10-06-GitHubSecurityLab-gh-mrva-runtime.json
+          if-no-files-found: ignore
