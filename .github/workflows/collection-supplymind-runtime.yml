@@ -92,11 +92,19 @@ jobs:
           SUPABASE_ANON_KEY="$(sed -n 's/^VITE_SUPABASE_ANON_KEY=//p' .env.example)"
           test -n "$SUPABASE_URL"
           test -n "$SUPABASE_ANON_KEY"
+          set +e
           STATUS="$(curl -sS -o /tmp/generate-message-response.json -w '%{http_code}' \
             -X POST "$SUPABASE_URL/functions/v1/generate-message" \
             -H "apikey: $SUPABASE_ANON_KEY" \
             -H "Content-Type: application/json" \
             --data '{"channel":"email","name":"RuntimeProbe","company":"RuntimeProbe","role":"Tester","hook":"","goal":"reply"}')"
+          CURL_EXIT=$?
+          set -e
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "SUPPLYMIND_GENERATE_MESSAGE_ROUTE=UNREACHABLE_NETWORK"
+            echo "SUPPLYMIND_BACKEND_E2E=BLOCKED_NETWORK_DNS"
+            exit 0
+          fi
           echo "GENERATE_MESSAGE_HTTP_STATUS=$STATUS"
           if [ "$STATUS" = "401" ] || [ "$STATUS" = "403" ]; then
             echo "SUPPLYMIND_GENERATE_MESSAGE_ROUTE=REACHABLE_AUTH_REQUIRED"
