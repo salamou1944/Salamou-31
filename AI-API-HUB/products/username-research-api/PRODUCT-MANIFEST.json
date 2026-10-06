@@ -1,0 +1,38 @@
+{
+  "product_id": "username-research-api",
+  "version": "v1",
+  "status": "READY_FOR_EXTERNAL_ENTRY_VERIFICATION",
+  "purpose": "Username-to-public-profile discovery for lead research and intelligence workflows.",
+  "entry_point": {
+    "method": "POST",
+    "path": "/v1/factory/research/username",
+    "auth": "x-api-key",
+    "request": {
+      "username": "string",
+      "timeoutMs": "optional integer"
+    }
+  },
+  "implementation": {
+    "handler": "Sherlock",
+    "factory": "AI-API-HUB/api-factory",
+    "endpoint": "POST /v1/factory/research/username"
+  },
+  "commercial_use_cases": [
+    "lead research",
+    "identity/profile discovery from a supplied username",
+    "prospect enrichment",
+    "research automation"
+  ],
+  "evidence": {
+    "technical": "RUNTIME_VERIFIED when the endpoint is independently exercised with Sherlock installed",
+    "business": "DISCOVERED until an external customer uses the endpoint",
+    "revenue": "not observed"
+  },
+  "constraints": [
+    "public-source research only",
+    "no credential collection",
+    "no private-data inference",
+    "no fabricated matches",
+    "provider/tool failures remain explicit"
+  ]
+}
