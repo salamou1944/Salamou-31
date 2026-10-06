@@ -38,10 +38,16 @@ jobs:
           path: /tmp/codeql-community-packs
           submodules: true
 
-      - name: Install CodeQL CLI
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
+      - name: Install pinned CodeQL CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/codeql_home
+          gh release download "v${CODEQL_CLI_VERSION}" --repo github/codeql-cli-binaries --pattern codeql-linux64.zip --dir /tmp/codeql_home
+          unzip -q /tmp/codeql_home/codeql-linux64.zip -d /tmp/codeql_home
+          echo "/tmp/codeql_home/codeql" >> "$GITHUB_PATH"
+          test "$(/tmp/codeql_home/codeql/codeql --version 2>/dev/null || /tmp/codeql_home/codeql --version)" = "CodeQL command-line toolchain version ${CODEQL_CLI_VERSION}" || /tmp/codeql_home/codeql/codeql --version || /tmp/codeql_home/codeql --version
 
       - name: Verify pinned source and workspace
         working-directory: /tmp/codeql-community-packs
@@ -99,10 +105,15 @@ jobs:
           ref: ${{ env.COMMUNITY_PACKS_REF }}
           path: /tmp/codeql-community-packs
           submodules: true
-      - name: Install CodeQL CLI
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
+      - name: Install pinned CodeQL CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/codeql_home
+          gh release download "v${CODEQL_CLI_VERSION}" --repo github/codeql-cli-binaries --pattern codeql-linux64.zip --dir /tmp/codeql_home
+          unzip -q /tmp/codeql_home/codeql-linux64.zip -d /tmp/codeql_home
+          echo "/tmp/codeql_home/codeql" >> "$GITHUB_PATH"
       - name: Create extension pack
         working-directory: /tmp/codeql-community-packs
         run: |
