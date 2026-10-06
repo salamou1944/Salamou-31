@@ -2,7 +2,7 @@
   "schema": "sal31-product-evidence/v1",
   "product_id": "username-research-api",
   "technical": {
-    "state": "IMPLEMENTED",
+    "state": "IMPLEMENTED_AWAITING_EXTERNAL_RUNTIME_VERIFICATION",
     "verified": false
   },
   "business": {
@@ -17,5 +17,13 @@
     "state": "NOT_OBSERVED",
     "verified": false
   },
-  "observations": []
+  "observations": [
+    {
+      "type": "deployment_attempt",
+      "result": "BLOCKED",
+      "evidence": "Railway rejected new project provisioning because the free-plan resource provision limit was exceeded.",
+      "paid_upgrade": false,
+      "timestamp": "2026-10-07"
+    }
+  ]
 }
