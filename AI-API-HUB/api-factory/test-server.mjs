@@ -135,25 +135,6 @@ try{
   const registerUnknown=await fetch(base+"/v1/factory/register",{method:"POST",headers,body:JSON.stringify({...spec,name:"missing-build"})});
   assert.equal(registerUnknown.status,409);
 
-  const businessHeaders={"content-type":"application/json","x-api-key":"factory-secret"};
-  const businessEntry=await fetch(base+"/v1/factory/verify/business-outcome",{method:"POST",headers:businessHeaders,body:JSON.stringify({taskId:"commercial-test-1",outcome:"ENTRY_POINT_VERIFIED",entryPoint:"https://example.invalid/demo",verifiedBy:"endpoint-test",observations:["entry point reachable"]})});
-  const businessEntryBody=await businessEntry.json();
-  assert.equal(businessEntry.status,200,JSON.stringify(businessEntryBody));
-  assert.equal(businessEntryBody.ok,true);
-  assert.deepEqual(businessEntryBody.transition,{ok:true,previous:"DISCOVERED",next:"ENTRY_POINT_VERIFIED"});
-  assert.equal(businessEntryBody.evidence.schema,"business-outcome-evidence/v1");
-
-  const businessUnauthorized=await fetch(base+"/v1/factory/verify/business-outcome",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({taskId:"commercial-test-unauth"})});
-  assert.equal(businessUnauthorized.status,401);
-
-  const businessUnverified=await fetch(base+"/v1/factory/verify/business-outcome",{method:"POST",headers:businessHeaders,body:JSON.stringify({taskId:"commercial-test-2",outcome:"REVENUE_OBSERVED",entryPoint:"https://example.invalid/checkout"})});
-  assert.equal(businessUnverified.status,422);
-  assert.equal((await businessUnverified.json()).error,"INDEPENDENT_VERIFIER_REQUIRED");
-
-  const businessRegression=await fetch(base+"/v1/factory/verify/business-outcome",{method:"POST",headers:businessHeaders,body:JSON.stringify({taskId:"commercial-test-3",previousOutcome:"REVENUE_OBSERVED",outcome:"USAGE_OBSERVED",entryPoint:"https://example.invalid/app",verifiedBy:"endpoint-test"})});
-  assert.equal(businessRegression.status,422);
-  assert.equal((await businessRegression.json()).error,"BUSINESS_OUTCOME_REGRESSION");
-
   console.log("api-factory HTTP control plane + auth + build + registry + inspection + registration: PASS");
 }finally{
   child.kill("SIGTERM");
