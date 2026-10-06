@@ -47,28 +47,36 @@
       "status": "DISCOVERED",
       "env": "CLOUDFLARE_API_TOKEN",
       "base_url": null,
-      "routing_enabled": false
+      "routing_enabled": false,
+      "free_access": "10,000 Neurons/day on Workers Free; some models require paid billing",
+      "source": "https://developers.cloudflare.com/workers-ai/platform/pricing/"
     },
     {
       "id": "mistral",
       "status": "DISCOVERED",
       "env": "MISTRAL_API_KEY",
       "base_url": "https://api.mistral.ai/v1",
-      "routing_enabled": false
+      "routing_enabled": false,
+      "free_access": "Free mode provides API keys and included monthly usage within current limits",
+      "source": "https://docs.mistral.ai/admin/billing-usage/usage-limits"
     },
     {
       "id": "nvidia_nim",
       "status": "DISCOVERED",
       "env": "NVIDIA_NIM_API_KEY",
       "base_url": null,
-      "routing_enabled": false
+      "routing_enabled": false,
+      "free_access": "NVIDIA Developer Program provides free NIM API endpoints for prototyping",
+      "source": "https://docs.api.nvidia.com/nim/docs/product"
     },
     {
       "id": "huggingface_inference",
       "status": "DISCOVERED",
       "env": "HF_TOKEN",
       "base_url": "https://router.huggingface.co",
-      "routing_enabled": false
+      "routing_enabled": false,
+      "free_access": "Free users receive $0.10/month inference-provider credits; pay-as-you-go requires purchased credits after exhaustion",
+      "source": "https://huggingface.co/docs/inference-providers/main/pricing"
     },
     {
       "id": "chutes",
