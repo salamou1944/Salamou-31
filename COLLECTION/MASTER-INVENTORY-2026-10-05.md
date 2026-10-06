@@ -442,3 +442,62 @@ GitHub repository search returned **13 public repositories** for `KorroAi`. The 
 - `onklaud-5` is especially relevant to the existing provider-neutral verification direction, but its BSL 1.1 license means code adoption must pass a commercial-license gate.
 - `mue-x` remains valuable as a ready-made independent project; its README explicitly documents AST validation, backups, import-test rollback, integrity sealing and dangerous-command blocking, but these are repository claims and are not yet our production proof. citeturn1search1turn1search2
 - **Evidence boundary:** all account-level findings are collection evidence. P0 candidates require exact-path inspection, dependency/license review, isolated execution, security testing and real runtime evidence before adoption.
+
+
+## Newly completed source account — debpalash
+
+Repository search returned **35 public repositories** for `debpalash`. The account is now preserved as a full Collection source and every discovered repository receives both required evaluations. Current external AI-agent landscape data also confirms that maintenance/activity matters more than star count, so Collection does not use popularity alone as an adoption signal. citeturn0search1
+
+| Repository | Axis 1 reusable capability | Axis 2 independent project potential | Classification |
+|---|---|---|---|
+| `VoiceStudio` | VERY HIGH — voice cloning/design, dubbing, transcription, audiobook workflow | VERY HIGH — released desktop product | **P0 READY_PROJECT + REVENUE ASSET**, AGPL-3.0 |
+| `OpenGTM` | VERY HIGH — self-hosted GTM research/enrichment/provider waterfall/agent workflows | VERY HIGH — complete GTM product | **P0 READY_PROJECT + REVENUE ASSET**, AGPL-3.0 |
+| `Friday` | VERY HIGH — local voice/text assistant, memory, bounded tools, approval + evidence receipts | VERY HIGH — standalone local assistant | **P0 READY_PROJECT + ELITE CONTROL-PLANE CANDIDATE** |
+| `Hoglet` | VERY HIGH — PostHog-compatible analytics/feature flags in one binary | VERY HIGH — self-hosted SaaS/product | **P0 READY_PROJECT + REVENUE ASSET** |
+| `Collagent/agentwork` | VERY HIGH — funded-problem coordination, artifact provenance, independent verification, escrow/quorum | VERY HIGH — standalone coordination protocol | **P0 REVENUE/VERIFICATION ASSET**, MIT; blockchain/security gate |
+| `VoiceStudio gallery` | HIGH — runtime voice/preset manifest + content distribution | MEDIUM-HIGH — independent content marketplace layer | **P1 CONTENT/DISTRIBUTION ASSET** |
+| `Bootable` | HIGH — verified image discovery/write/readback and destructive-action safeguards | VERY HIGH — complete cross-platform utility | **P1 READY_PROJECT**, preserve independently |
+| `sshbox` | HIGH — safe remote inspect/run/upload/wait deployment primitive | HIGH — standalone deployment CLI | **P0 INFRA/DEVOPS COMPONENT + READY_PROJECT** |
+| `OS1` | VERY HIGH — AI-native/local-first OS architecture | VERY HIGH — independent OS product | **P1 READY_PROJECT / INFRA**; GPL-3.0 and maturity gate |
+| `open-agi` | HIGH — autonomous ML research loop with shared configs/evals | HIGH — independent research system | **P1 RESEARCH/AGENT ASSET** |
+| `OpenGTM` | — | — | **Already classified above** |
+| `Opal` | HIGH — local-first media browser/player with optional local AI | VERY HIGH — complete desktop media product | **P1 READY_PROJECT**, license/dependency review |
+| `OmniVoice Gallery` | — | — | **Already classified as gallery/content layer** |
+| `awesome-mcp-servers` | VERY HIGH — curated MCP ecosystem/index | MEDIUM-HIGH — independent discovery resource | **P0 COLLECTION/RESEARCH SOURCE** |
+| `Remotions Video` | HIGH — code-driven marketing-video production/render pipeline | HIGH — productized video-production asset | **P1 REVENUE ASSET / CONTENT ENGINE** |
+| `omarchy-bootable` | MEDIUM-HIGH — Bootable integration/plugin | MEDIUM — niche extension | **INTEGRATION** |
+| `vinix` | HIGH — OS/bare-metal/V-language engineering | HIGH — independent OS project | **P2 RESEARCH/OS ASSET**; explicitly pre-alpha |
+| `omarchy-site-submission` | MEDIUM — modern static/WebGL site architecture | HIGH — complete design/site project | **P2 READY_PROJECT / WEB TEMPLATE** |
+| `android-foss` | HIGH — large Android FOSS discovery catalog | MEDIUM-HIGH — reference/discovery product | **P1 COLLECTION/DATA SOURCE** |
+| `omarchy-site` | MEDIUM — static site/theme showcase | MEDIUM | **P2 TEMPLATE/REFERENCE** |
+| `palash.dev` | HIGH — tested Astro/Solid/SEO/static publishing architecture | HIGH — complete portfolio/CMS-style site | **P1 READY_PROJECT / WEB TEMPLATE** |
+| `coattention-model` | MEDIUM — ML research/model implementation | MEDIUM | **P2 RESEARCH** |
+| `efficient-vision` | MEDIUM — computer-vision/efficiency research | MEDIUM | **P2 RESEARCH** |
+| `omarchy-gta6-theme` | LOW-MEDIUM — Linux desktop theme assets | HIGH as independent theme | **P2 READY_ASSET / DESIGN** |
+| `superplexr` | MEDIUM-HIGH — Plex/media tooling | HIGH — independent media utility candidate | **P1 READY_PROJECT**, inspect runtime/license before adoption |
+| `moshi` | MEDIUM-HIGH — speech/voice experimentation | MEDIUM-HIGH — standalone experiment | **P2 RESEARCH/VOICE** |
+| `opal-plugins` | MEDIUM — plugin extension boundary for Opal | MEDIUM | **COMPONENT/INTEGRATION** |
+| `tru` | LOW-MEDIUM — project-specific/utility repository | MEDIUM | **REFERENCE; exact-purpose audit pending** |
+| `PalStack` | MEDIUM-HIGH — personal/full-stack engineering patterns | MEDIUM-HIGH | **TEMPLATE/REFERENCE** |
+| `homebrew-tap` | LOW — packaging/distribution | LOW | **INTEGRATION/DISTRIBUTION** |
+| `lists` | MEDIUM — curated lists/data | MEDIUM | **COLLECTION/DATA** |
+| `Cly` | MEDIUM — standalone utility candidate | MEDIUM | **REFERENCE; exact-purpose audit pending** |
+| `zig-bypassdpi` | HIGH — network/DPI-bypass engineering | HIGH — standalone utility | **P1 SECURITY/NETWORK ASSET**; legal/abuse gate |
+| `box-vision` | MEDIUM-HIGH — computer-vision component | MEDIUM-HIGH — standalone CV candidate | **P1 RESEARCH/COMPONENT** |
+| `apps.obtainium.imranr.dev` | LOW-MEDIUM — app-directory/static web resource | MEDIUM | **REFERENCE/WEB ASSET** |
+
+### debpalash decision
+
+**KEEP the source account.** It contains unusually strong independent-project candidates, especially `VoiceStudio`, `OpenGTM`, `Friday`, `Hoglet`, `Collagent`, `Bootable`, and `sshbox`.
+
+**Highest immediate leverage for our operating system:**
+1. `Friday` — strongest evidence-first local-agent architecture match.
+2. `Collagent` — strong fit for evidence/provenance/verification and revenue settlement concepts.
+3. `OpenGTM` — directly relevant to prospecting/customer acquisition and revenue operations.
+4. `Hoglet` — useful self-hosted analytics without heavyweight infrastructure.
+5. `sshbox` — useful deployment/remote-runtime primitive.
+6. `VoiceStudio` — independent revenue/content product candidate, but AGPL boundary must be respected.
+
+**Important independent-project preservation:** `VoiceStudio`, `OpenGTM`, `Friday`, `Hoglet`, `Collagent`, `Bootable`, `Opal`, `OS1`, `open-agi`, `Remotions Video`, and `superplexr` remain independent candidates even when not immediately mapped into Salamou-31.
+
+**Evidence boundary:** README/account inspection is collection evidence only. No candidate is marked production-ready for our systems until its exact implementation, license, dependency chain, tests and isolated runtime are independently verified.
