@@ -14,7 +14,7 @@ jobs:
       run:
         working-directory: AI-API-HUB/api-factory
     env:
-      GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
+      GOOGLE_AI_API_KEY: ${{ secrets.Gemini_API_Key }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
