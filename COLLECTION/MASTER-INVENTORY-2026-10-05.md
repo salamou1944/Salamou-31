@@ -347,3 +347,90 @@ Code-level inspection also downgrades its production readiness:
 3. **llama.cpp / vLLM / opencode / Cline / CPython forks:** preserve as fork sources; canonical upstream comparison remains mandatory before adoption.
 
 Evidence boundary remains strict: collection/code inspection is not production proof. The next adoption gate is isolated execution plus exact dependency/license/provider-policy/security testing.
+
+
+## Newly completed source account — msitarzewski
+
+Repository discovery via GitHub repository search returned **40 public repositories** for `msitarzewski`. This corrects the earlier “scan pending” state; the full 40-repository account set is preserved below. Public profile evidence also shows the account as an active builder with multiple current product repositories, while current release evidence confirms `agency-agents-app` has a recent v0.3.2 release with automated parity/build gates. citeturn0search1turn0search0
+
+### Complete 40-repository two-axis evaluation
+
+| Repository | Axis 1 — reusable capability | Axis 2 — independent project potential | Classification / decision |
+|---|---|---|---|
+| `agency-agents` | **VERY HIGH** — large specialist-agent catalog and deterministic installers/renderers for multiple coding tools | **VERY HIGH** — complete independent agent catalog/product | **P0 READY_PROJECT + AGENT/KNOWLEDGE ASSET**, MIT; preserve independently. citeturn0search4 |
+| `agency-agents-app` | **VERY HIGH** — native cross-tool agent installation, ledger, drift detection, deterministic rendering | **VERY HIGH** — released desktop product | **P0 READY_PROJECT + AGENT CONTROL PLANE**, MIT; latest release evidence includes parity/build tests. citeturn0search0turn0search3 |
+| `duh` | **VERY HIGH** — multi-model proposal/challenge/revise/commit, confidence, dissent, REST/WebSocket/MCP | **VERY HIGH** — standalone AI trust/consensus service | **P0 REVENUE_ASSET + AI GATEWAY/VERIFICATION**; exact provider/license/security audit next |
+| `agent-room` | **VERY HIGH** — human approval/control plane, evidence-linked completion, audit, OIDC, REST/WebSocket/MCP | **VERY HIGH** — implemented product foundation with explicit production boundaries | **P0 READY_PROJECT + CONTROL PLANE**; strong Elite/ARMY-14 candidate, but worker isolation is explicitly unfinished |
+| `phase` | **VERY HIGH** — libp2p/DHT, verifiable compute, Ollama-compatible inference, signed receipts | **VERY HIGH** — functional distributed-compute protocol/product | **P0 READY_PROJECT + INFRA/REVENUE ASSET**; README reports real hardware validation and security gates, but independent runtime audit required |
+| `fintick` | **VERY HIGH** — signal/news corroboration pipeline, durable event outcomes, deduplication and evidence | **VERY HIGH** — focused financial intelligence product | **P0 REVENUE/DATA ASSET**; MIT; legal/data-source/financial-risk review required |
+| `vectorforge` | **VERY HIGH** — validated raster-to-vector pipeline, SVG safety, previews, diffs and measurements | **HIGH** — productizable image/vector conversion service | **P0 REVENUE_ASSET + EASY CREATIVE COMPONENT**; MIT; strong fit for product-asset integrity workflow |
+| `openstudio` | **HIGH** — self-hosted browser broadcast/WebRTC/Icecast/recording architecture | **VERY HIGH** — complete independent broadcast product | **P0 READY_PROJECT + REVENUE_ASSET**, MIT; live demo/real runtime evidence present in README, still requires independent deployment test |
+| `anomalous-mac` | **HIGH** — on-device macOS process telemetry/anomaly detection and diagnosis UX | **HIGH** — standalone Mac monitoring product | **P1 READY_PROJECT + LOCAL OPS TOOL**, Apache-2.0; backend/network is intentionally separate |
+| `flash-moe` | **VERY HIGH** — SSD-streamed MoE inference and Metal optimization for very large local models | **HIGH** — specialized local inference runtime | **P0 INFRA/LOCAL-AI ASSET**; strong $0/local inference leverage; hardware-specific validation required |
+| `autoresearch-local-llm` | **VERY HIGH** — autonomous local-LLM experiment loop, git rollback/keep logic, Ollama integration | **HIGH** — standalone zero-API-cost research automation | **P0 RESEARCH/AGENT ASSET**; especially relevant to free/local AI experimentation |
+| `brew-browser` | **HIGH** — native GUI over Homebrew with install/upgrade/snapshot/bundles | **VERY HIGH** — complete desktop product | **P1 READY_PROJECT**, MIT; unrelated to current revenue core but independently viable |
+| `glassdb.app` | **HIGH** — native database workspace, SSH/keychain, SQL editor, on-device AI | **VERY HIGH** — planned commercial native database product | **P1 READY_PROJECT**, MIT; planned $10 pricing; preserve as independent candidate |
+| `attr-click` | **HIGH** — self-hosted short links, QR generation, attribution analytics | **VERY HIGH** — complete SaaS/self-hosted revenue product | **P0 REVENUE_ASSET**, license/dependency audit required because Flux UI has a separate licensed dependency |
+| `MirrorMesh` | **HIGH** — consent-first realtime face reenactment, signing/disclosure, telemetry | **HIGH** — standalone research/product foundation | **P1 RESEARCH/READY_PROJECT**, AGPL-3.0-only + research-only notice; legal/safety gate |
+| `AudioPaper` | MEDIUM-HIGH — native media/artwork/wallpaper automation | **HIGH** — signed/notarized standalone Mac product | **P1 READY_PROJECT**, MIT; Apple/macOS-specific |
+| `TapBeats` | HIGH — browser audio onset detection, clustering, quantization and local beat generation | HIGH — complete consumer music product | **P1 READY_PROJECT**, AGPL-3.0; commercial reuse gate |
+| `Prediction Space` | MEDIUM-HIGH — live-market ingestion and WebXR visualization | HIGH — standalone visualization product | **P1 READY_PROJECT / DATA-VIZ**; data-provider/legal review required |
+| `git-city` | HIGH — GitHub profile data + 3D visualization + achievements/social mechanics | HIGH — standalone gamified developer product | **P1 READY_PROJECT / GROWTH ASSET** |
+| `oneye` | HIGH — decentralized/self-hosted live streaming, mesh relay, browser-only client | HIGH — standalone streaming product | **P1 READY_PROJECT / INFRA**; abuse/moderation/safety model requires review |
+| `Ludovision` | MEDIUM — client-side Bluesky firehose/media processing | MEDIUM-HIGH — deployable niche media viewer | **P2 READY_PROJECT / DATA-VIZ**; privacy/data-source review |
+| `glas.sh` | HIGH — visionOS SSH/PTTY/SFTP/Tailscale/spatial terminal architecture | HIGH — standalone native product | **P1 READY_PROJECT**, MIT; pre-alpha, so no production claim |
+| `MarkEdit` | MEDIUM-HIGH — native Markdown editor, Shortcuts/AppleScript extensions | HIGH — complete independent Mac utility | **P2 READY_PROJECT**, open-source; low direct relevance |
+| `thezonexr` | MEDIUM — WebXR game/input architecture | MEDIUM-HIGH — complete game candidate | **P2 READY_PROJECT / GAME** |
+| `starc` | MEDIUM — WebGPU/WebGL/audio/game-loop implementation | HIGH — immediately playable browser game | **P2 READY_PROJECT / GAME**; preserve independently |
+| `crystal-quest-web` | MEDIUM — WebGL2/WebAudio game architecture | HIGH — complete browser game | **P2 READY_PROJECT / GAME**; preserve independently |
+| `opwv` | MEDIUM — WebXR particle/physics visualization | MEDIUM-HIGH — complete immersive demo/product candidate | **P2 READY_PROJECT / XR** |
+| `nozzleverse` | MEDIUM-HIGH — WebXR + Moonraker/WebSocket + G-code visualization | HIGH — niche 3D-printer monitoring product | **P1 READY_PROJECT / INDUSTRIAL XR** |
+| `multi-vision` | HIGH — cross-device gaze-fusion research core | MEDIUM-HIGH — product/research candidate | **P1 RESEARCH ASSET**; README explicitly says central hardware experiment is not yet validated |
+| `vectorforge` | — | — | **Already classified above; duplicate row suppressed in source-level reasoning** |
+| `prediction-space` | — | — | **Already classified above; duplicate naming normalized** |
+| `homebrew-agency-agents` | LOW — packaging/distribution for Agency Agents | LOW independent potential | **INTEGRATION/DISTRIBUTION**; preserve provenance only |
+| `homebrew-brew-browser` | LOW — packaging/distribution for Brew Browser | LOW independent potential | **INTEGRATION/DISTRIBUTION**; preserve provenance only |
+| `homebrew-tap` | LOW — Homebrew cask for Anomalous | LOW | **INTEGRATION/DISTRIBUTION** |
+| `GlasSecretStore` | HIGH — Keychain/Secure Enclave secret lifecycle | MEDIUM as standalone library | **SECURITY COMPONENT**; important dependency for glas.sh/glassdb |
+| `GlassConnectionKit` | HIGH — shared connection contract/serialization/validation | MEDIUM as standalone package | **COMPONENT/INFRA**; preserve shared-boundary design |
+| `GlassEditorKit` | HIGH — shared editor core/UI with syntax analysis and tests | MEDIUM-HIGH — reusable editor package | **COMPONENT/INFRA**; MIT; README reports 379 passing tests but consumer adoption pending |
+| `aframe-blink-controls` | MEDIUM — A-Frame teleport/rotation controls | LOW-MEDIUM — old experimental component | **LEGACY COMPONENT**; preserve only for XR provenance |
+| `openai-php-client` | HIGH — PHP OpenAI API client | HIGH as standalone library, but upstream-origin/fork provenance must be preserved | **FORK/MIRROR COMPONENT**; prefer canonical upstream before adoption |
+| `mysql-nio` | HIGH — nonblocking Swift MySQL client | HIGH as standalone library, but upstream-origin/fork provenance | **FORK/MIRROR COMPONENT**; prefer canonical upstream |
+| `starc` | — | — | **Already classified above; duplicate suppression applies** |
+| `bedrock` | LOW-MEDIUM — structured belief/self-reflection writing methodology | MEDIUM as knowledge product | **KNOWLEDGE ASSET**; not current engineering priority |
+| `opwv` | — | — | **Already classified above; duplicate suppression applies** |
+| `nozzleverse` | — | — | **Already classified above; duplicate suppression applies** |
+| `fintick` | — | — | **Already classified above; duplicate suppression applies** |
+| `GlasSecretStore` | — | — | **Already classified above; duplicate suppression applies** |
+| `vectorforge` | — | — | **Already classified above; duplicate suppression applies** |
+| `multi-vision` | — | — | **Already classified above; duplicate suppression applies** |
+| `mirror-mesh` | — | — | **Already classified above; duplicate naming normalized** |
+| `AudioPaper` | — | — | **Already classified above; duplicate suppression applies** |
+| `GlassEditorKit` | — | — | **Already classified above; duplicate suppression applies** |
+| `GlassConnectionKit` | — | — | **Already classified above; duplicate suppression applies** |
+| `crystal-quest-web` | — | — | **Already classified above; duplicate suppression applies** |
+| `attr-click` | — | — | **Already classified above; duplicate suppression applies** |
+| `phase` | — | — | **Already classified above; duplicate suppression applies** |
+| `flash-moe` | — | — | **Already classified above; duplicate suppression applies** |
+| `agent-room` | — | — | **Already classified above; duplicate suppression applies** |
+| `duh` | — | — | **Already classified above; duplicate suppression applies** |
+| `anomalous-mac` | — | — | **Already classified above; duplicate suppression applies** |
+| `AGENT-ZERO` | HIGH — reusable AI-development governance, approval/evidence workflow | MEDIUM-HIGH — standalone methodology/tooling asset | **SKILL/GOVERNANCE ASSET**; directly useful to Elite/ARMY-14 |
+| `brew-browser` | — | — | **Already classified above; duplicate suppression applies** |
+
+### Source-account normalization and priority
+
+The account contains **40 distinct repositories**; the table above preserves all discovered names, with repeated names explicitly marked as already classified rather than counted as additional repositories.
+
+**P0 independent/revenue candidates:** `agency-agents`, `agency-agents-app`, `duh`, `agent-room`, `phase`, `fintick`, `vectorforge`, `openstudio`, `flash-moe`, `autoresearch-local-llm`, `attr-click`.
+
+**P0 direct leverage for current systems:** `agent-room` and `AGENT-ZERO` for Elite/ARMY-14 governance; `duh` for provider-neutral verification/consensus; `phase` and `flash-moe` for zero-cost/local inference; `vectorforge` for EASY creative/product-integrity tooling.
+
+**P1 independent candidates:** `anomalous-mac`, `glas.sh`, `glassdb.app`, `TapBeats`, `nozzleverse`, `AudioPaper`, `git-city`, `oneye`, `Prediction Space`, `multi-vision`.
+
+**P2/reference/legacy:** games, `MarkEdit`, `Ludovision`, `BEDROCK`, `aframe-blink-controls`, and Homebrew packaging repos.
+
+**Important provenance rule:** `openai-php-client` and `mysql-nio` appear to originate from canonical upstream projects and are not counted as unique product discoveries until fork/source divergence is inspected. The same rule applies to any future mirror/fork found in this account.
+
+**Evidence boundary:** README/repository inspection is collection evidence, not production proof. The strongest candidates now enter the exact-path/license/dependency/security/isolated-runtime gate before adoption.
