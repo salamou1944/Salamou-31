@@ -83,6 +83,39 @@ try{
   assert.equal(detailBody.api.status,"REGISTERED");
   assert.equal(detailBody.api.evidence,"COMPILED");
 
+  const businessOutcome=await fetch(base+"/v1/factory/verify/business-outcome",{method:"POST",headers,body:JSON.stringify({
+    taskId:"commercial-1",
+    entryPoint:"api-entry",
+    verifiedBy:"independent-verifier",
+    outcome:"CUSTOMER_ACTION_OBSERVED",
+    previousOutcome:"ENTRY_POINT_VERIFIED",
+    observations:["customer_action_observed"]
+  })});
+  assert.equal(businessOutcome.status,200);
+  const businessBody=await businessOutcome.json();
+  assert.equal(businessBody.ok,true);
+  assert.equal(businessBody.evidence.schema,"business-outcome-evidence/v1");
+  assert.equal(businessBody.evidence.outcome,"CUSTOMER_ACTION_OBSERVED");
+  assert.equal(businessBody.transition.ok,true);
+
+  const businessRegression=await fetch(base+"/v1/factory/verify/business-outcome",{method:"POST",headers,body:JSON.stringify({
+    taskId:"commercial-1",
+    entryPoint:"api-entry",
+    verifiedBy:"independent-verifier",
+    outcome:"USAGE_OBSERVED",
+    previousOutcome:"REVENUE_OBSERVED"
+  })});
+  assert.equal(businessRegression.status,422);
+  assert.equal((await businessRegression.json()).error,"BUSINESS_OUTCOME_REGRESSION");
+
+  const businessUnverified=await fetch(base+"/v1/factory/verify/business-outcome",{method:"POST",headers,body:JSON.stringify({
+    taskId:"commercial-2",
+    entryPoint:"api-entry",
+    outcome:"REVENUE_OBSERVED"
+  })});
+  assert.equal(businessUnverified.status,422);
+  assert.equal((await businessUnverified.json()).error,"INDEPENDENT_VERIFIER_REQUIRED");
+
   const missing=await fetch(base+"/v1/factory/inspect/missing-api",{headers:{"x-api-key":"factory-secret"}});
   assert.equal(missing.status,404);
 
