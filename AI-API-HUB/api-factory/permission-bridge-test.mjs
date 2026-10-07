@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { createPermissionBridge, createUserGrant, PermissionDeniedError } from "./permission-bridge.mjs";
+const g = createUserGrant({ resourceId: "github-public", capabilities: ["repositories-actions-packages"], maxRequests: 1 });
+const bridge = createPermissionBridge({ grants: [g], zeroCostOnly: true });
+assert.equal(bridge.authorize({ grantId: g.grantId, capability: "repositories-actions-packages", method: "GET" }).resource.id, "github-public");
+assert.throws(() => bridge.authorize({ grantId: g.grantId, capability: "repositories-actions-packages", method: "POST" }), PermissionDeniedError);
+const planDependent = createUserGrant({ resourceId: "google-workspace", capabilities: ["workspace-drive-docs-sheets-gmail"] });
+assert.throws(() => createPermissionBridge({ grants: [planDependent], zeroCostOnly: true }).authorize({ grantId: planDependent.grantId, capability: "workspace-drive-docs-sheets-gmail" }), PermissionDeniedError);
+const missingCredential = createUserGrant({ resourceId: "google-ai-studio", capabilities: ["gemini-generation"], credentialEnv: "TEST_USER_CONTROLLED_KEY_MISSING" });
+assert.throws(() => createPermissionBridge({ grants: [missingCredential], zeroCostOnly: false }).authorize({ grantId: missingCredential.grantId, capability: "gemini-generation" }), PermissionDeniedError);
+console.log("permission-bridge-test: ok");
