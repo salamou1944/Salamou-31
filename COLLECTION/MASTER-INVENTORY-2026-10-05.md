@@ -1549,3 +1549,13 @@ First P0 work-ready execution has been started against the highest-priority **re
 - Non-negotiable: do not promote from inspection evidence to READY_TO_USE/PRODUCTION_VERIFIED until the real runtime path passes.
 
 This is the first execution of the work-ready queue. Next P0 candidates should be processed using the same gate, with revenue acquisition and $0/local leverage prioritized over further passive catalog expansion.
+
+## MiroFish — evaluated 2026-10-08
+
+- `666ghj/MiroFish` — **P0 READY_PROJECT + HIGH-VALUE MULTI-AGENT-SIMULATION COMPONENT**. AGPL-3.0. Axis 1 VERY HIGH; Axis 2 VERY HIGH.
+- Distinct capabilities: ontology-to-world construction, GraphRAG/graph-backed memory, persona population generation, OASIS multi-agent social simulation, dynamic memory updates, multi-platform interaction, ReportAgent analysis, agent/report deep interaction, and what-if scenario rehearsal.
+- Exact implementation inspected: `backend/app/services/ontology_generator.py`, `graph_builder.py`, `oasis_profile_generator.py`, `simulation_config_generator.py`, `simulation_runner.py`, `zep_graph_memory_updater.py`, `zep_tools.py`, `report_agent.py`, plus OASIS simulation scripts and backend tests.
+- Dedupe decision: preserve MiroFish as an independent candidate; extract only missing capabilities into canonical Skills after comparison with existing COLLECTION/AI Operating records. Do not wholesale-copy the application.
+- Production status: **BLOCKED_RUNTIME_EXECUTION**. Source inspection is not runtime proof. Required gate is isolated build + tests + small end-to-end simulation + memory/report verification + failure/cleanup evidence.
+- Work-ready evidence: `COLLECTION/WORK_READY/2026-10-08-MiroFish.md` (commit `36f31e99df9d266ad700e7f409d110b1f8b3851a`).
+
