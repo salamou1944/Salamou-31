@@ -1,0 +1,8 @@
+{
+  "schema": "user-controlled-permission-manifest/v1",
+  "principle": "The assistant requests capabilities; the user-owned runtime grants and executes them.",
+  "storage": "outside-repository",
+  "credentials": "environment-or-user-owned-secret-store",
+  "defaultPolicy": {"zeroCostOnly": true, "denyUnapproved": true, "denyOutOfBoundaryUrls": true, "denyWriteMethods": true, "requireEvidence": true},
+  "grants": [{"grantId": "replace-with-user-generated-id", "resourceId": "github-public", "capabilities": ["repositories-actions-packages"], "methods": ["GET"], "userApproved": true, "maxRequests": 1}]
+}
