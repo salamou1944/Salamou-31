@@ -141,3 +141,32 @@ try{
   await wait(300);
   fs.rmSync(root,{recursive:true,force:true});
 }
+ 
+const unconfiguredRoot=fs.mkdtempSync(path.join(os.tmpdir(),"api-factory-auth-config-"));
+const unconfiguredRegistry=path.join(unconfiguredRoot,"registry.json");
+const unconfiguredPort=String(9000+Math.floor(Math.random()*500));
+const unconfiguredEnv={...process.env,PORT:unconfiguredPort,FACTORY_OUTPUT_DIR:unconfiguredRoot,FACTORY_REGISTRY_FILE:unconfiguredRegistry};
+delete unconfiguredEnv.FACTORY_API_KEY;
+const unconfiguredChild=spawn(process.execPath,["server.mjs"],{
+  cwd:path.dirname(new URL(import.meta.url).pathname),
+  env:unconfiguredEnv,
+  stdio:["ignore","pipe","pipe"]
+});
+let unconfiguredOutput="";
+unconfiguredChild.stdout.on("data",d=>{unconfiguredOutput+=d.toString();});
+unconfiguredChild.stderr.on("data",d=>{unconfiguredOutput+=d.toString();});
+const unconfiguredBase="http://127.0.0.1:"+unconfiguredPort;
+try{
+  await wait(1200);
+  assert.equal(unconfiguredChild.exitCode,null,"unconfigured factory runtime exited early: "+unconfiguredOutput);
+  const publicHealth=await fetch(unconfiguredBase+"/health");
+  assert.equal(publicHealth.status,200,"health should remain public");
+  const protectedResponse=await fetch(unconfiguredBase+"/v1/factory/apis");
+  assert.equal(protectedResponse.status,503,"protected endpoints must fail closed without FACTORY_API_KEY");
+  assert.equal((await protectedResponse.json()).code,"AUTH_CONFIGURATION_REQUIRED");
+  console.log("api-factory missing-key fail-closed auth: PASS");
+}finally{
+  unconfiguredChild.kill("SIGTERM");
+  await wait(300);
+  fs.rmSync(unconfiguredRoot,{recursive:true,force:true});
+}
