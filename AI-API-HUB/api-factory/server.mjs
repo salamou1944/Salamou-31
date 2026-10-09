@@ -16,7 +16,7 @@ const registryFile=process.env.FACTORY_REGISTRY_FILE||path.join(process.cwd(),"r
 fs.mkdirSync(root,{recursive:true});
 function readRegistry(){try{const x=JSON.parse(fs.readFileSync(registryFile,"utf8"));return Array.isArray(x.apis)?x:{apis:[]};}catch{return {apis:[]};}}
 function writeRegistry(x){const tmp=registryFile+"."+process.pid+".tmp";fs.writeFileSync(tmp,JSON.stringify(x,null,2)+"\n",{mode:0o600});fs.renameSync(tmp,registryFile);}
-function auth(request,reply){if(process.env.FACTORY_API_KEY&&request.headers["x-api-key"]!==process.env.FACTORY_API_KEY)return reply.code(401).send({error:"Unauthorized"});}
+function auth(request,reply){const configuredKey=process.env.FACTORY_API_KEY;if(typeof configuredKey!=="string"||configuredKey.length===0)return reply.code(503).send({ok:false,error:"API factory authentication is not configured",code:"AUTH_CONFIGURATION_REQUIRED"});if(request.headers["x-api-key"]!==configuredKey)return reply.code(401).send({ok:false,error:"Unauthorized",code:"UNAUTHORIZED"});}
 function registryEntry(spec,artifact){return {identity:spec.name,name:spec.name,version:spec.version,status:"COMPILED",evidence:"COMPILED",capabilities:spec.capabilities,auth:spec.auth,operations:spec.operations.length,provider:spec.provider?.kind||null,runtime:"node-fastify",deployment:{status:"NOT_DEPLOYED"},artifact,updatedAt:new Date().toISOString()};}
 function register(spec,artifact){const registry=readRegistry();registry.apis=registry.apis.filter(x=>x.name!==spec.name);registry.apis.push(registryEntry(spec,artifact));writeRegistry(registry);return registry.apis.find(x=>x.name===spec.name);}
 app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:"manifest-to-runnable-api"}));
