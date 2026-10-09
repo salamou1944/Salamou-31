@@ -17,7 +17,7 @@ It is not an API catalog and it is not a single AI endpoint. A manifest is the m
 - `POST /v1/factory/validate`
 - `POST /v1/factory/build`
 
-Set `FACTORY_API_KEY` in production to protect the control plane.
+Set `FACTORY_API_KEY` in production to protect the control plane. Protected endpoints fail closed with HTTP 503 (`AUTH_CONFIGURATION_REQUIRED`) when the key is missing and HTTP 401 (`UNAUTHORIZED`) when the supplied key does not match. `/health` and the non-mutating capabilities description remain public.
 
 The generated API is independent of the factory after compilation. Provider credentials are never invented or embedded.
 
