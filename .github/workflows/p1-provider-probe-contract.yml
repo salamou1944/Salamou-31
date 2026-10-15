@@ -25,6 +25,7 @@ jobs:
           node-version: 22
       - name: Syntax-check provider probes
         run: |
+          node --check provider-model-selection.mjs
           node --check free-provider-probe.mjs
           node --check cloudflare-workers-ai-probe.mjs
           node --check nvidia-nim-probe.mjs
@@ -32,6 +33,7 @@ jobs:
           node --check soat-evidence.mjs
       - name: Run evidence and SOAT contract tests
         run: |
+          node provider-model-selection-test.mjs
           node provider-evidence-test.mjs
           node soat-evidence-test.mjs
       - name: Verify P1 providers remain non-routable

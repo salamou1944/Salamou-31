@@ -24,6 +24,8 @@ jobs:
     env:
       PROVIDER: mistral
       MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      PROVIDER_SKIP_MODEL_DISCOVERY: "true"
+      PROVIDER_MODEL: mistral-small-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
