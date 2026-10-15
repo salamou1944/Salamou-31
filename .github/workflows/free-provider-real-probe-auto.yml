@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - 'AI-API-HUB/api-factory/free-provider-probe.mjs'
+      - 'AI-API-HUB/api-factory/provider-model-selection.mjs'
+      - 'AI-API-HUB/api-factory/provider-model-selection-test.mjs'
+      - 'AI-API-HUB/api-factory/provider-evidence.mjs'
+      - 'AI-API-HUB/api-factory/package.json'
       - '.github/workflows/free-provider-real-probe-auto.yml'
   pull_request:
     paths:
