@@ -37,7 +37,7 @@ if (!skipModelDiscovery) {
 }
 
 const discovered = Array.isArray(models?.data) ? models.data.map((m) => m?.id).filter(Boolean) : [];
-const freeModels = discovered.filter((id) => /:free$/i.test(id) || /^openrouter\\/free$/i.test(id));
+const freeModels = discovered.filter((id) => /:free$/i.test(id) || id.toLowerCase() === "openrouter/free");
 const model = configuredModel ??
   (provider === "openrouter" ? "openrouter/free" : provider === "huggingface_inference" ? "openai/gpt-oss-120b:fastest" : discovered[0]);
 
