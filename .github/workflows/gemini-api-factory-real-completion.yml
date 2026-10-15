@@ -1,0 +1,40 @@
+name: Gemini API Factory Real Completion
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AI-API-HUB/api-factory/google-factory-real-probe.mjs'
+      - 'AI-API-HUB/api-factory/package.json'
+      - 'AI-API-HUB/api-factory/factory.mjs'
+      - 'AI-API-HUB/api-factory/provider.mjs'
+      - '.github/workflows/gemini-api-factory-real-completion.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  factory-gemini:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AI-API-HUB/api-factory
+    env:
+      GOOGLE_AI_API_KEY: ${{ secrets.Gemini_API_Key }}
+      GOOGLE_MODEL: gemini-3.5-flash-lite
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check integration probe syntax
+        run: node --check google-factory-real-probe.mjs
+      - name: Run real Gemini completion through API Factory generated runtime
+        run: node google-factory-real-probe.mjs
+      - name: Upload factory-level completion evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-api-factory-evidence
+          path: AI-API-HUB/api-factory/gemini-factory-evidence.json
+          if-no-files-found: warn
