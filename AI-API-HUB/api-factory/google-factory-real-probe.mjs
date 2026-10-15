@@ -6,9 +6,9 @@ import {spawn,execFileSync} from "node:child_process";
 import {createServer} from "node:http";
 import {compileApi} from "./factory.mjs";
 
-const credential=process.env.GOOGLE_AI_API_KEY;
+const credential=process.env.GEMINI_TOKEN;
 if(!credential){
-  console.error(JSON.stringify({evidence_level:"NOT_VERIFIED",provider:"google_ai_studio",reason:"missing_google_ai_api_key",required_env:"GOOGLE_AI_API_KEY"}));
+  console.error(JSON.stringify({evidence_level:"NOT_VERIFIED",provider:"google_ai_studio",reason:"missing_google_ai_api_key",required_env:"GEMINI_TOKEN"}));
   process.exit(3);
 }
 
@@ -34,7 +34,7 @@ try{
       kind:"openai-compatible",
       baseUrl:"https://generativelanguage.googleapis.com/v1beta/openai",
       model:process.env.GOOGLE_MODEL||"gemini-3.5-flash-lite",
-      credentialEnv:"GOOGLE_AI_API_KEY",
+      credentialEnv:"GEMINI_TOKEN",
       freePolicy:{
         zeroCostOnly:true,
         providerId:"google-ai-studio-gemini",
@@ -42,7 +42,7 @@ try{
         freeStatus:"free-tier",
         quotaBasis:"Google AI Studio account free-tier quota; subject to account eligibility and current limits",
         hardStop:true,
-        eligibilityGate:"GOOGLE_AI_API_KEY must be configured; no paid fallback",
+        eligibilityGate:"GEMINI_TOKEN must be configured; no paid fallback",
         tosRisk:"reviewed",
         sourceLastResearched:"2026-10-15",
         sourceUrl:"https://ai.google.dev/gemini-api/docs/openai"

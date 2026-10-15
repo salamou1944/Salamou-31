@@ -20,7 +20,7 @@ jobs:
       run:
         working-directory: AI-API-HUB/api-factory
     env:
-      GOOGLE_AI_API_KEY: ${{ secrets.Gemini_API_Key }}
+      GEMINI_TOKEN: ${{ secrets.Gemini_API_Key }}
       GOOGLE_MODEL: gemini-3.5-flash-lite
     steps:
       - uses: actions/checkout@v4
