@@ -35,6 +35,16 @@ jobs:
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: Report unconfigured provider as NOT VERIFIED
+        if: steps.config.outputs.configured != 'true'
+        shell: bash
+        run: |
+          echo "## Provider verification: NOT VERIFIED" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Cloudflare Workers AI is NOT VERIFIED because CLOUDFLARE_ACCOUNT_ID and/or CLOUDFLARE_API_TOKEN is missing." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "No live request was made and no production readiness is implied. Add the required secret(s) in GitHub repository Settings > Secrets and variables > Actions, then rerun this workflow." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Probe Cloudflare Workers AI
         if: steps.config.outputs.configured == 'true'
         shell: bash
