@@ -64,15 +64,15 @@ const circuitServer=await startServer((req,res)=>{
   res.writeHead(503,{"content-type":"application/json","retry-after":"0"});
   res.end(JSON.stringify({error:"down"}));
 });
+process.env.PROVIDER_MAX_RETRIES="0";
+process.env.PROVIDER_CIRCUIT_FAILURE_THRESHOLD="2";
+process.env.PROVIDER_CIRCUIT_COOLDOWN_MS="1000";
 const circuitAdapter=createProviderAdapter({
   kind:"openai-compatible",
   baseUrl:"http://127.0.0.1:"+circuitServer.address().port,
   model:"test-model",
   credentialEnv:"TEST_PROVIDER_KEY"
 });
-process.env.PROVIDER_MAX_RETRIES="0";
-process.env.PROVIDER_CIRCUIT_FAILURE_THRESHOLD="2";
-process.env.PROVIDER_CIRCUIT_COOLDOWN_MS="1000";
 await assert.rejects(circuitAdapter.execute({messages:[],__idempotencyKey:"c1"}));
 await assert.rejects(circuitAdapter.execute({messages:[],__idempotencyKey:"c2"}));
 const before=circuitCalls;
