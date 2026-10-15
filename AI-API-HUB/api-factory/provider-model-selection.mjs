@@ -1,4 +1,4 @@
-const NON_CHAT_MODEL = /prompt[-_/]?guard|embedding|embed-|rerank|whisper|transcrib|speech|text-to-speech|tts|moderation|safeguard/i;
+const NON_CHAT_MODEL = /prompt[-_/]?guard|embedding|embed-|rerank|whisper|transcrib|speech|audio|voice|music|orpheus|text-to-speech|tts|moderation|safeguard/i;
 
 export function chooseProviderModel({ provider, configuredModel, discoveredModels = [], freeModels = [] } = {}) {
   if (configuredModel) return configuredModel;
