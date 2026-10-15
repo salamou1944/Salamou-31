@@ -56,7 +56,7 @@ let completionResponse;
 let completion;
 for (let attempt = 0; attempt < candidateModels.length; attempt++) {
   model = candidateModels[attempt];
-  modelName = model.name.replace(/^models\\//, "");
+  modelName = cleanModelName(model.name);
   completionResponse = await fetch(
     `${base}/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(key)}`,
     completionRequest
