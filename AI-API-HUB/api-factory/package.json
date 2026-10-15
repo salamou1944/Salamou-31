@@ -10,7 +10,8 @@
     "provider:probe": "node free-provider-probe.mjs",
     "google:probe": "node google-provider-probe.mjs",
     "openai:probe": "node openai-provider-probe.mjs",
-    "resource:list": "node resource-operator.mjs list"
+    "resource:list": "node resource-operator.mjs list",
+    "google:factory-probe": "node google-factory-real-probe.mjs"
   },
   "dependencies": {
     "fastify": "5.6.1"
