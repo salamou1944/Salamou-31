@@ -32,6 +32,14 @@ try{
   assert.equal(unauthorized.status,401);
 
   const headers={"content-type":"application/json","x-api-key":"factory-secret"};
+
+  const invalidUsername=await fetch(base+"/v1/factory/research/username",{method:"POST",headers,body:JSON.stringify({username:"bad username"})});
+  assert.equal(invalidUsername.status,400,"invalid username must be classified as a client error");
+  assert.equal((await invalidUsername.json()).code,"INVALID_USERNAME");
+
+  const invalidTimeout=await fetch(base+"/v1/factory/research/username",{method:"POST",headers,body:JSON.stringify({username:"valid_name",timeoutMs:1})});
+  assert.equal(invalidTimeout.status,400,"invalid timeout must be rejected before Sherlock is invoked");
+  assert.equal((await invalidTimeout.json()).code,"INVALID_TIMEOUT");
   const spec={
     name:"server-contract-demo",
     version:"v1",
