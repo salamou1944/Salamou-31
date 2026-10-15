@@ -100,7 +100,7 @@ try{
     base_url:"https://generativelanguage.googleapis.com/v1beta/openai",
     selected_model:spec.provider.model,
     factory_http_status:response.status,
-    provider_response_success:response.ok,
+    factory_http_success:response.ok,
     completion_received:Boolean(resultText),
     exact_output_match:resultText.trim()==="GEMINI_API_FACTORY_REAL_OK",
     zero_cost_policy_enforced:true,
