@@ -40,17 +40,22 @@ if (!model?.name) {
 }
 
 const modelName = model.name.replace(/^models\//, "");
-const completionResponse = await fetch(
-  `${base}/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(key)}`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: "Reply with exactly FREE_PROVIDER_REAL_OK" }] }],
-      generationConfig: { temperature: 0 }
-    })
-  }
-);
+const completionUrl = `${base}/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(key)}`;
+const completionRequest = {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    contents: [{ parts: [{ text: "Reply with exactly FREE_PROVIDER_REAL_OK" }] }],
+    generationConfig: { temperature: 0 }
+  })
+};
+let completionResponse;
+for (let attempt = 0; attempt < 2; attempt++) {
+  completionResponse = await fetch(completionUrl, completionRequest);
+  // Retry once only for transient server overloads; never retry quota/rate-limit responses.
+  if (![500, 502, 503, 504].includes(completionResponse.status) || attempt === 1) break;
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}
 const completionText = await completionResponse.text();
 let completion;
 try { completion = JSON.parse(completionText); } catch { completion = { raw: completionText.slice(0, 1000) }; }
