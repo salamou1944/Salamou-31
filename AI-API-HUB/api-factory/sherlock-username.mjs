@@ -9,6 +9,7 @@ export function validateUsername(username){
   if(!value)throw new Error("username must not be empty");
   if(value.length>MAX_USERNAME_LENGTH)throw new Error("username exceeds maximum length");
   if(/[\s/]/.test(value))throw new Error("username contains unsupported characters");
+  if(value.startsWith("-"))throw new Error("username must not start with a hyphen");
   return value;
 }
 

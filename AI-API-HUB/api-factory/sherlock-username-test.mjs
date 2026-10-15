@@ -6,6 +6,8 @@ assert.deepEqual(buildSherlockArgs("alice_01"),["alice_01","--print-found","--no
 assert.throws(()=>validateUsername(""),/must not be empty/);
 assert.throws(()=>validateUsername("a b"),/unsupported characters/);
 assert.throws(()=>validateUsername("a/b"),/unsupported characters/);
+assert.throws(()=>validateUsername("--help"),/must not start with a hyphen/);
+assert.throws(()=>validateUsername("-alice"),/must not start with a hyphen/);
 
 const parsed=parseSherlockOutput(
   [
