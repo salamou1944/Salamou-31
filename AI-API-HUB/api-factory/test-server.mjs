@@ -24,6 +24,9 @@ try{
   const health=await fetch(base+"/health");
   assert.equal(health.status,200);
   assert.equal((await health.json()).service,"api-factory");
+  const ready=await fetch(base+"/ready");
+  assert.equal(ready.status,200);
+  assert.deepEqual(await ready.json(),{ok:true,ready:true,checks:{authentication:true}});
 
   const unauthorized=await fetch(base+"/v1/factory/apis");
   assert.equal(unauthorized.status,401);
@@ -161,6 +164,9 @@ try{
   assert.equal(unconfiguredChild.exitCode,null,"unconfigured factory runtime exited early: "+unconfiguredOutput);
   const publicHealth=await fetch(unconfiguredBase+"/health");
   assert.equal(publicHealth.status,200,"health should remain public");
+  const readiness=await fetch(unconfiguredBase+"/ready");
+  assert.equal(readiness.status,503,"readiness must fail when API authentication is not configured");
+  assert.deepEqual(await readiness.json(),{ok:false,ready:false,code:"AUTH_CONFIGURATION_REQUIRED",checks:{authentication:false}});
   const protectedResponse=await fetch(unconfiguredBase+"/v1/factory/apis");
   assert.equal(protectedResponse.status,503,"protected endpoints must fail closed without FACTORY_API_KEY");
   assert.equal((await protectedResponse.json()).code,"AUTH_CONFIGURATION_REQUIRED");
