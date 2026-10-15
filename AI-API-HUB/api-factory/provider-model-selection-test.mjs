@@ -3,7 +3,7 @@ import { chooseProviderModel } from "./provider-model-selection.mjs";
 
 assert.equal(chooseProviderModel({
   provider: "groq",
-  discoveredModels: ["meta-llama/llama-prompt-guard-2-22m", "openai/gpt-oss-120b"]
+  discoveredModels: ["meta-llama/llama-prompt-guard-2-22m", "canopylabs/orpheus-v1-english", "openai/gpt-oss-120b"]
 }), "openai/gpt-oss-120b");
 
 assert.equal(chooseProviderModel({
