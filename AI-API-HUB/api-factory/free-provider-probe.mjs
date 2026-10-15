@@ -1,4 +1,5 @@
 import process from "node:process";
+import { chooseProviderModel } from "./provider-model-selection.mjs";
 
 const PROVIDERS = {
   groq: { env: "GROQ_API_KEY", base: "https://api.groq.com/openai/v1" },
@@ -21,20 +22,29 @@ if (!key) {
 }
 
 const headers = { Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
-const modelsResponse = await fetch(`${cfg.base}/models`, { headers });
-const modelsText = await modelsResponse.text();
-let models;
-try { models = JSON.parse(modelsText); } catch { models = { raw: modelsText.slice(0, 500) }; }
+const skipModelDiscovery = process.env.PROVIDER_SKIP_MODEL_DISCOVERY === "true";
+const configuredModel = process.env.PROVIDER_MODEL;
+if (skipModelDiscovery && !configuredModel) {
+  console.error(JSON.stringify({ error: "EXPLICIT_MODEL_REQUIRED_FOR_SKIP", provider, required_env: "PROVIDER_MODEL" }));
+  process.exit(4);
+}
+
+let modelsResponse = null;
+let models = {};
+if (!skipModelDiscovery) {
+  modelsResponse = await fetch(`${cfg.base}/models`, { headers });
+  const modelsText = await modelsResponse.text();
+  try { models = JSON.parse(modelsText); } catch { models = { raw: modelsText.slice(0, 500) }; }
+}
 
 const discovered = Array.isArray(models?.data) ? models.data.map((m) => m?.id).filter(Boolean) : [];
-const freeModels = discovered.filter((id) => /:free$/i.test(id) || /^openrouter\/free$/i.test(id));
-const model = process.env.PROVIDER_MODEL ??
-  (provider === "openrouter" ? "openrouter/free" : provider === "huggingface_inference" ? "openai/gpt-oss-120b:fastest" : discovered[0]);
+const freeModels = discovered.filter((id) => /:free$/i.test(id) || id.toLowerCase() === "openrouter/free");
+const model = chooseProviderModel({ provider, configuredModel, discoveredModels: discovered, freeModels });
 
 if (!model) {
   console.error(JSON.stringify({
     provider,
-    models_status: modelsResponse.status,
+    models_status: modelsResponse?.status ?? null,
     discovered_models: discovered.length,
     free_models: freeModels.length,
     error: provider === "openrouter" ? "NO_FREE_MODEL_DISCOVERED" : "NO_MODEL_DISCOVERED"
@@ -72,7 +82,7 @@ const evidence = {
   evidence_level: completionResponse.ok && output.trim() === "FREE_PROVIDER_REAL_OK" ? "REAL_COMPLETION" : "FAILED",
   provider,
   base_url: cfg.base,
-  models_status: modelsResponse.status,
+  ...(modelsResponse ? { models_status: modelsResponse.status } : {}),
   model_discovered: Boolean(model),
   discovered_models: discovered.length,
   free_models_discovered: freeModels.length,
