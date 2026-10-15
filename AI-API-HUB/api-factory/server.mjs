@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {validateSpec,compileApi} from "./factory.mjs";
 import {deploymentPlan} from "./deployment.mjs";
-import {runSherlock} from "./sherlock-username.mjs";
+import {runSherlock,validateUsername} from "./sherlock-username.mjs";
 import {createExecutionRecord,assertStateExit} from "./execution-contract.mjs";
 import {createSoatExecutionEvidence,createSoatProductionExecutionEvidence} from "./soat-evidence.mjs";
 import {createAiOperatingEvidence,classifyAiOperatingOutcome} from "./ai-operating-evidence.mjs";
@@ -28,8 +28,18 @@ app.get("/ready",async(request,reply)=>{
 app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","build","register","inspect","deploy-plan","consume-soat-evidence"],evidence:["VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","BUSINESS_VERIFIED"],deployment:["railway","vercel"]}));
 app.post("/v1/factory/research/username",async(request,reply)=>{
   const denied=auth(request,reply);if(denied)return denied;
+  let username;
   try{
-    const result=await runSherlock(request.body?.username,{executable:process.env.SHERLOCK_BIN||"sherlock",timeoutMs:request.body?.timeoutMs??30_000});
+    username=validateUsername(request.body?.username);
+  }catch(e){
+    return reply.code(400).send({ok:false,error:e.message,code:"INVALID_USERNAME"});
+  }
+  const timeoutMs=request.body?.timeoutMs;
+  if(timeoutMs!==undefined&&(!Number.isInteger(timeoutMs)||timeoutMs<1000||timeoutMs>300000)){
+    return reply.code(400).send({ok:false,error:"timeoutMs must be between 1000 and 300000",code:"INVALID_TIMEOUT"});
+  }
+  try{
+    const result=await runSherlock(username,{executable:process.env.SHERLOCK_BIN||"sherlock",timeoutMs:timeoutMs??30_000});
     return {ok:true,source:"sherlock",...result};
   }catch(e){
     const status=e.code==="SHERLOCK_UNAVAILABLE"?503:e.code==="SHERLOCK_TIMEOUT"?504:502;
