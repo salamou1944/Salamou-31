@@ -8,4 +8,10 @@ assert.equal(validateProviderEvidence({...good,exact_output_match:false}).code,"
 assert.equal(validateProviderEvidence({...good,secret_committed:true}).code,"SECRET_COMMIT_VIOLATION");
 assert.equal(validateProviderEvidence({...good,completion_status:429}).code,"HTTP_SUCCESS_GATE_FAILED");
 assert.equal(validateProviderEvidence({...good,selected_model:undefined}).code,"MISSING_PROVIDER_EVIDENCE_FIELDS");
+// Mistral's completion probe can provide real-completion evidence without a separate model-list request.
+const completionOnly={...good};
+delete completionOnly.models_status;
+assert.equal(validateProviderEvidence(completionOnly).ok,true);
+assert.equal(validateProviderEvidence({...completionOnly,models_status:403}).code,"MODEL_DISCOVERY_GATE_FAILED");
+assert.equal(validateProviderEvidence({...completionOnly,models_status:"invalid"}).code,"MODEL_DISCOVERY_GATE_FAILED");
 console.log("provider-evidence-test: OK");
