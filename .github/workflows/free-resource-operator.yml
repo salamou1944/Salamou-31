@@ -1,0 +1,39 @@
+name: Free Resource Operator
+
+on:
+  push:
+    branches: [main, feat/free-resource-operator]
+    paths:
+      - "AI-API-HUB/api-factory/resource-*.mjs"
+      - "AI-API-HUB/api-factory/package.json"
+      - ".github/workflows/free-resource-operator.yml"
+  pull_request:
+    paths:
+      - "AI-API-HUB/api-factory/resource-*.mjs"
+      - "AI-API-HUB/api-factory/package.json"
+      - ".github/workflows/free-resource-operator.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        working-directory: AI-API-HUB/api-factory
+        run: npm install --no-audit --no-fund
+      - name: Run resource operator tests
+        working-directory: AI-API-HUB/api-factory
+        run: npm test
+      - name: Print registered resources
+        working-directory: AI-API-HUB/api-factory
+        run: npm run resource:list
