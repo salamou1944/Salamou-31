@@ -19,14 +19,17 @@ const candidates = discovered.filter((m) =>
   /flash/i.test(m?.name ?? "")
 );
 const preferred = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash"];
-const model = process.env.GOOGLE_MODEL
+const sortedCandidates = candidates.sort((a, b) => {
+  const an = a.name.replace(/^models\\//, "");
+  const bn = b.name.replace(/^models\\//, "");
+  return (preferred.indexOf(an) < 0 ? 999 : preferred.indexOf(an)) -
+         (preferred.indexOf(bn) < 0 ? 999 : preferred.indexOf(bn));
+});
+const configuredModel = process.env.GOOGLE_MODEL
   ? discovered.find((m) => m.name === `models/${process.env.GOOGLE_MODEL}` || m.name === process.env.GOOGLE_MODEL)
-  : candidates.sort((a, b) => {
-      const an = a.name.replace(/^models\//, "");
-      const bn = b.name.replace(/^models\//, "");
-      return (preferred.indexOf(an) < 0 ? 999 : preferred.indexOf(an)) -
-             (preferred.indexOf(bn) < 0 ? 999 : preferred.indexOf(bn));
-    })[0];
+  : null;
+const candidateModels = configuredModel ? [configuredModel] : sortedCandidates.slice(0, 3);
+let model = candidateModels[0];
 
 if (!model?.name) {
   console.error(JSON.stringify({
@@ -39,8 +42,7 @@ if (!model?.name) {
   process.exit(4);
 }
 
-const modelName = model.name.replace(/^models\//, "");
-const completionUrl = `${base}/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(key)}`;
+let modelName = model.name.replace(/^models\\//, "");
 const completionRequest = {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -50,16 +52,19 @@ const completionRequest = {
   })
 };
 let completionResponse;
-for (let attempt = 0; attempt < 2; attempt++) {
-  completionResponse = await fetch(completionUrl, completionRequest);
-  // Retry once only for transient server overloads; never retry quota/rate-limit responses.
-  if (![500, 502, 503, 504].includes(completionResponse.status) || attempt === 1) break;
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-}
-const completionText = await completionResponse.text();
 let completion;
-try { completion = JSON.parse(completionText); } catch { completion = { raw: completionText.slice(0, 1000) }; }
-
+for (let attempt = 0; attempt < candidateModels.length; attempt++) {
+  model = candidateModels[attempt];
+  modelName = model.name.replace(/^models\\//, "");
+  completionResponse = await fetch(
+    `${base}/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(key)}`,
+    completionRequest
+  );
+  const completionText = await completionResponse.text();
+  try { completion = JSON.parse(completionText); } catch { completion = { raw: completionText.slice(0, 1000) }; }
+  // Only fall back to another discovered model for transient provider overload, never for quota or auth failures.
+  if (completionResponse.status !== 503 || configuredModel || attempt === candidateModels.length - 1) break;
+}
 const output = completion?.candidates?.[0]?.content?.parts?.map((p) => p?.text ?? "").join("") ?? "";
 const evidence = {
   evidence_level: completionResponse.ok && output.trim() === "FREE_PROVIDER_REAL_OK" ? "REAL_COMPLETION" : "FAILED",
