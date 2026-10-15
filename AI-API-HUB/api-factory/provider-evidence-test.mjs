@@ -14,4 +14,10 @@ delete completionOnly.models_status;
 assert.equal(validateProviderEvidence(completionOnly).ok,true);
 assert.equal(validateProviderEvidence({...completionOnly,models_status:403}).code,"MODEL_DISCOVERY_GATE_FAILED");
 assert.equal(validateProviderEvidence({...completionOnly,models_status:"invalid"}).code,"MODEL_DISCOVERY_GATE_FAILED");
+// A completion-only probe may omit model-discovery evidence entirely.
+assert.equal(validateProviderEvidence({
+  evidence_level:"REAL_COMPLETION",provider:"mistral",base_url:"https://api.mistral.ai/v1",
+  selected_model:"mistral-small-latest",completion_status:200,completion_received:true,
+  exact_output_match:true,secret_committed:false
+}).ok,true);
 console.log("provider-evidence-test: OK");
