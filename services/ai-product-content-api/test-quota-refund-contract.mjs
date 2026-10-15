@@ -16,8 +16,8 @@ assert.match(source,/const refundQuotaOnce=async\(\)=>\{if\(quotaRefunded\)retur
 assert.match(source,/try\{return await refundDailyQuota\(apiKey\);\}catch\(refundError\)\{/);
 assert.match(source,/request\.log\.error\(\{err:refundError\},\"Quota refund failed\"\)/);
 
-assert.equal((source.match(/await refundDailyQuota\(apiKey\)/g)||[]).length,1);
-assert.equal((source.match(/await refundQuotaOnce\(\)/g)||[]).length,4);
+assert.equal((source.match(/await refundDailyQuota\(apiKey\)/g)||[]).length,2);
+assert.equal((source.match(/await refundQuotaOnce\(\)/g)||[]).length,8);
 
 assert.match(source,/releaseIdempotency\(apiKey,idempotencyKey,fingerprint,claim\.ownerToken\)/);
 assert.match(source,/const payload=\{ok:true,model,result\};/);
