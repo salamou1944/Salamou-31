@@ -10,6 +10,7 @@ on:
 
 jobs:
   openai:
+    if: github.event_name == 'workflow_dispatch' || vars.ENABLE_PAID_PROVIDER_PROBES == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
