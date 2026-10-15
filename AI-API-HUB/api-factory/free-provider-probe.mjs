@@ -34,7 +34,7 @@ const model = process.env.PROVIDER_MODEL ??
 if (!model) {
   console.error(JSON.stringify({
     provider,
-    models_status: modelsResponse.status,
+    models_status: modelsResponse?.status ?? null,
     discovered_models: discovered.length,
     free_models: freeModels.length,
     error: provider === "openrouter" ? "NO_FREE_MODEL_DISCOVERED" : "NO_MODEL_DISCOVERED"
@@ -72,7 +72,7 @@ const evidence = {
   evidence_level: completionResponse.ok && output.trim() === "FREE_PROVIDER_REAL_OK" ? "REAL_COMPLETION" : "FAILED",
   provider,
   base_url: cfg.base,
-  models_status: modelsResponse.status,
+  ...(modelsResponse ? { models_status: modelsResponse.status } : {}),
   model_discovered: Boolean(model),
   discovered_models: discovered.length,
   free_models_discovered: freeModels.length,
