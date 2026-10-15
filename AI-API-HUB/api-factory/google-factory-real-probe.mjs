@@ -6,8 +6,8 @@ import {spawn,execFileSync} from "node:child_process";
 import {createServer} from "node:http";
 import {compileApi} from "./factory.mjs";
 
-const apiKey=process.env.GOOGLE_AI_API_KEY;
-if(!apiKey){
+const credential=process.env.GOOGLE_AI_API_KEY;
+if(!credential){
   console.error(JSON.stringify({evidence_level:"NOT_VERIFIED",provider:"google_ai_studio",reason:"missing_google_ai_api_key",required_env:"GOOGLE_AI_API_KEY"}));
   process.exit(3);
 }
