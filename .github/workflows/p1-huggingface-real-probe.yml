@@ -41,7 +41,7 @@ jobs:
           node free-provider-probe.mjs | tee provider-evidence.json
       - name: Validate and publish evidence
         if: steps.config.outputs.configured == 'true'
-        run: node -e 'import fs from "node:fs"; import {assertProviderEvidence} from "./provider-evidence.mjs"; const e=JSON.parse(fs.readFileSync("provider-evidence.json","utf8")); assertProviderEvidence(e); console.log("provider evidence gate: PASS");'
+        run: node --input-type=module -e 'import fs from "node:fs"; import {assertProviderEvidence} from "./provider-evidence.mjs"; const e=JSON.parse(fs.readFileSync("provider-evidence.json","utf8")); assertProviderEvidence(e); console.log("provider evidence gate: PASS");'
 
       - name: Upload provider evidence
         if: steps.config.outputs.configured == 'true' && success()
