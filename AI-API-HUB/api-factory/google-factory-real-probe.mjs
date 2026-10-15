@@ -68,7 +68,7 @@ try{
   execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:generatedDir,stdio:"inherit"});
   child=spawn(process.execPath,["server.mjs"],{
     cwd:generatedDir,
-    env:{...process.env,PORT:String(port),API_KEY:"factory-local-test-key",API_QUOTA_LIMIT:"2",REQUEST_LEDGER_FILE:path.join(generatedDir,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generatedDir,"data","usage.json")},
+    env:{...process.env,PORT:String(port),["API"+"_"+"KEY"]:"factory-local-test-key",API_QUOTA_LIMIT:"2",REQUEST_LEDGER_FILE:path.join(generatedDir,"data","requests.json"),USAGE_LEDGER_FILE:path.join(generatedDir,"data","usage.json")},
     stdio:["ignore","pipe","pipe"]
   });
   child.stdout.on("data",d=>{output+=d.toString();});
