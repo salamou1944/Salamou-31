@@ -19,9 +19,10 @@ const candidates = discovered.filter((m) =>
   /flash/i.test(m?.name ?? "")
 );
 const preferred = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash"];
+const cleanModelName = (name) => name.startsWith("models/") ? name.slice("models/".length) : name;
 const sortedCandidates = candidates.sort((a, b) => {
-  const an = a.name.replace(/^models\\//, "");
-  const bn = b.name.replace(/^models\\//, "");
+  const an = cleanModelName(a.name);
+  const bn = cleanModelName(b.name);
   return (preferred.indexOf(an) < 0 ? 999 : preferred.indexOf(an)) -
          (preferred.indexOf(bn) < 0 ? 999 : preferred.indexOf(bn));
 });
@@ -42,7 +43,7 @@ if (!model?.name) {
   process.exit(4);
 }
 
-let modelName = model.name.replace(/^models\\//, "");
+let modelName = cleanModelName(model.name);
 const completionRequest = {
   method: "POST",
   headers: { "Content-Type": "application/json" },
