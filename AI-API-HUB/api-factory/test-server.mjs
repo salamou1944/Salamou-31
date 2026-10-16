@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {spawn} from "node:child_process";
+import {deploymentPlan} from "./deployment.mjs";
 
 const root=fs.mkdtempSync(path.join(os.tmpdir(),"api-factory-server-"));
 const registryFile=path.join(root,"registry.json");
