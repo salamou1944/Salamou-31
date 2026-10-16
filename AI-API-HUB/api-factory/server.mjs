@@ -11,8 +11,8 @@ import {createBusinessOutcomeEvidence,assertBusinessOutcomeTransition} from "./b
 
 const app=Fastify({logger:true,bodyLimit:64*1024});
 const port=Number(process.env.PORT||8797);
-const root=process.env.FACTORY_OUTPUT_DIR||path.join(process.cwd(),"generated");
-const registryFile=process.env.FACTORY_REGISTRY_FILE||path.join(process.cwd(),"registry.json");
+const root=process.env.FACTORY_OUTPUT_DIR||path.join(process.env.VERCEL?"/tmp":process.cwd(),"generated");
+const registryFile=process.env.FACTORY_REGISTRY_FILE||path.join(process.env.VERCEL?"/tmp":process.cwd(),"api-factory-registry.json");
 fs.mkdirSync(root,{recursive:true});
 function readRegistry(){try{const x=JSON.parse(fs.readFileSync(registryFile,"utf8"));return Array.isArray(x.apis)?x:{apis:[]};}catch{return {apis:[]};}}
 function writeRegistry(x){const tmp=registryFile+"."+process.pid+".tmp";fs.writeFileSync(tmp,JSON.stringify(x,null,2)+"\n",{mode:0o600});fs.renameSync(tmp,registryFile);}
