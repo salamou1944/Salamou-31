@@ -1,0 +1,42 @@
+name: API Factory Vercel Smoke
+
+on:
+  push:
+    branches:
+      - feat/api-factory-railway-deployable-2026-10-16
+    paths:
+      - AI-API-HUB/api-factory/server.mjs
+      - AI-API-HUB/api-factory/api/index.mjs
+      - AI-API-HUB/api-factory/vercel.json
+      - .github/workflows/api-factory-vercel-smoke.yml
+
+permissions:
+  contents: read
+
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify public health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error https://salamou31-api-factory.vercel.app/health -o /tmp/health.json; then
+              break
+            fi
+            sleep 10
+          done
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(x.ok!==true||x.service!=="api-factory") process.exit(1); console.log(JSON.stringify(x))'
+      - name: Verify readiness endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error https://salamou31-api-factory.vercel.app/ready -o /tmp/ready.json; then
+              break
+            fi
+            sleep 10
+          done
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/ready.json","utf8")); if(x.ok!==true||x.ready!==true||x.checks?.authentication!==true) process.exit(1); console.log(JSON.stringify(x))'
