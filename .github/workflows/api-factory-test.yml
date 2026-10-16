@@ -30,6 +30,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate Railway deployment configuration
+        run: node --input-type=module -e "import fs from 'node:fs'; const c=JSON.parse(fs.readFileSync('railway.json','utf8')); if(c.build?.builder!=='DOCKERFILE'||c.build?.dockerfilePath!=='Dockerfile'||c.deploy?.healthcheckPath!=='/health') process.exit(1); console.log('railway.json: OK')"
+      - name: Build production container
+        run: docker build --tag api-factory:ci .
       - run: npm install --ignore-scripts
       - name: Install Sherlock
         run: python -m pip install --user sherlock-project
