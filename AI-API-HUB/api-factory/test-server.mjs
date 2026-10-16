@@ -141,6 +141,14 @@ try{
   assert.equal(deploymentBody.plan.adapterImplemented,false);
   assert.equal(deploymentBody.plan.executionAvailable,false);
   assert.deepEqual(deploymentBody.plan.blockers,["RAILWAY_TOKEN","DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
+  const priorRailwayToken=process.env.RAILWAY_TOKEN;
+  process.env.RAILWAY_TOKEN="test-token";
+  const credentialedPlan=deploymentPlan({target:"railway",serviceName:"credentialed-contract-demo"});
+  if(priorRailwayToken===undefined) delete process.env.RAILWAY_TOKEN; else process.env.RAILWAY_TOKEN=priorRailwayToken;
+  assert.equal(credentialedPlan.credentialsReady,true);
+  assert.equal(credentialedPlan.adapterImplemented,false);
+  assert.equal(credentialedPlan.deployable,false,"credentials alone must not claim a deployment can execute");
+  assert.deepEqual(credentialedPlan.blockers,["DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
   assert.deepEqual(deploymentBody.plan.missing,["RAILWAY_TOKEN"]);
 
   const unsupportedDeployment=await fetch(base+"/v1/factory/deploy/plan",{method:"POST",headers,body:JSON.stringify({target:"unknown",serviceName:"server-contract-demo"})});
