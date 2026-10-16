@@ -55,7 +55,7 @@ jobs:
             "rootDir: AI-API-HUB/api-factory",
             "dockerfilePath: ./Dockerfile",
             "healthCheckPath: /health",
-            "key: FACTORY_API_KEY",
+            "- key: FACTORY_API_KEY",
             "sync: false"
           ];
           const missing = required.filter(line => !config.split("\n").some(entry => entry.trim() === line));
