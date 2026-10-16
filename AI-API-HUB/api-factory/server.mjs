@@ -123,4 +123,5 @@ app.get("/v1/factory/inspect/:name",async(request,reply)=>{
   const present=artifactDir?files.filter(file=>fs.existsSync(path.join(artifactDir,file))):[];
   return {ok:true,api:{...item,inspection:{artifactPresent:present.length===files.length,files:present,missing:files.filter(file=>!present.includes(file))}}};
 });
-await app.listen({port,host:"0.0.0.0"});
+export { app };
+if (!process.env.VERCEL) await app.listen({port,host:"0.0.0.0"});
