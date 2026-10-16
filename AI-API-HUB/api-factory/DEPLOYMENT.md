@@ -7,11 +7,12 @@ This directory is a self-contained Node.js service and can be deployed as a Dock
 - Container: `Dockerfile`
 - Railway config: `railway.json`
 - Listener: `PORT` (defaults to 8797)
+- Sherlock: installed in the production image at `/opt/sherlock/bin/sherlock`; the runtime image includes Python and the `sherlock-project` package
 - Health check: `GET /health`
 - Protected readiness: `GET /ready`
 - Authentication: configure `FACTORY_API_KEY` as a platform secret before using protected endpoints.
 
-The public health endpoint is only a process-health check. It does **not** prove authentication is configured, an AI provider is reachable, or a real completion works. `/ready` returns 503 until `FACTORY_API_KEY` is configured.
+The public health endpoint is only a process-health check. It does **not** prove authentication is configured, an AI provider is reachable, or a real completion works. The image build also verifies that Sherlock's Python module is installed; this does not guarantee external sites are reachable from every deployment region. `/ready` returns 503 until `FACTORY_API_KEY` is configured.
 
 ## Deploy without paid AI inference
 
