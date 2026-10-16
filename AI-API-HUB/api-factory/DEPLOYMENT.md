@@ -34,6 +34,14 @@ The control plane can run without an external model provider. Provider-backed ge
 
 Railway can use this directory as the service root and its `railway.json` configuration. A Railway project, service, billing eligibility, and secrets are account-level setup; this repository does not create them. Do not deploy to the existing EASY project/service.
 
+## Deployment execution status
+
+The `POST /v1/factory/deploy/plan` endpoint is a preflight planner, not a deployer. It checks whether the expected credential names are present; it does not create a provider project/service, launch a deployment, poll for completion, or smoke-test a public URL. The plan now reports `adapterImplemented: false`, `executionAvailable: false`, and `DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED` until a real provider adapter exists. Having `RAILWAY_TOKEN` or Vercel variables alone must never be reported as deployable.
+
+The repository's GitHub collection includes two relevant implementation references:
+- [TinyHosts unified hosting API capture](https://github.com/salamou1944/Project-/blob/4011bf3ce4767088c405b804283764f7d280a560/COLLECTION/AUTO/EXTRACTED/senamakel_tinyhosts.json): model site, database, environment, domain, deployment, and post-deploy traffic separately; unsupported provider capabilities must fail explicitly rather than return success.
+- [Agentmemory Render deployment capture](https://github.com/salamou1944/Project-/blob/4011bf3ce4767088c405b804283764f7d280a560/COLLECTION/AUTO/EXTRACTED/rohitg00_agentmemory.json): demonstrates the Render persistent-disk configuration, while documenting that persistent disks require a paid service. This confirms the Free blueprint here is only a disposable preview, not a durable hosting solution.
+
 ## Evidence and limitations
 
 A successful image build or deploy is not equivalent to a verified provider completion, a persistent API registry, or a customer-facing commercial product. No public URL is claimed until a service is deployed and externally smoke-tested.
