@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: salamou-31-api-factory
+    runtime: docker
+    plan: free
+    rootDir: AI-API-HUB/api-factory
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: FACTORY_API_KEY
+        sync: false
