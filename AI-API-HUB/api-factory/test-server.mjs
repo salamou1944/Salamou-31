@@ -137,6 +137,10 @@ try{
   assert.equal(deploymentBody.plan.target,"railway");
   assert.equal(deploymentBody.plan.serviceName,"server-contract-demo");
   assert.equal(deploymentBody.plan.deployable,false);
+  assert.equal(deploymentBody.plan.credentialsReady,false);
+  assert.equal(deploymentBody.plan.adapterImplemented,false);
+  assert.equal(deploymentBody.plan.executionAvailable,false);
+  assert.deepEqual(deploymentBody.plan.blockers,["RAILWAY_TOKEN","DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
   assert.deepEqual(deploymentBody.plan.missing,["RAILWAY_TOKEN"]);
 
   const unsupportedDeployment=await fetch(base+"/v1/factory/deploy/plan",{method:"POST",headers,body:JSON.stringify({target:"unknown",serviceName:"server-contract-demo"})});
