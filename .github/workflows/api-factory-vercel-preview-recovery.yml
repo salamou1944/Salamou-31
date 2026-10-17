@@ -1,0 +1,96 @@
+name: API Factory Vercel Preview Recovery
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/api-factory-railway-deployable-2026-10-16
+    paths:
+      - AI-API-HUB/api-factory/**
+      - .github/workflows/api-factory-vercel-preview-recovery.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-factory-vercel-preview-recovery
+  cancel-in-progress: false
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_SCOPE: bleu5
+      VERCEL_PROJECT: salamou31-api-factory
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v4
+
+      - name: Skip safely when no deployment token is configured
+        if: env.VERCEL_TOKEN == ''
+        shell: bash
+        run: |
+          echo "::warning::Preview deployment skipped: repository secret VERCEL_TOKEN is not configured. No secret value was read or printed."
+
+      - name: Set up Node.js
+        if: env.VERCEL_TOKEN != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Link the existing Vercel project
+        if: env.VERCEL_TOKEN != ''
+        working-directory: AI-API-HUB/api-factory
+        shell: bash
+        run: npx --yes vercel@latest link --yes --project "$VERCEL_PROJECT" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
+
+      - name: Pull preview environment without printing secrets
+        if: env.VERCEL_TOKEN != ''
+        working-directory: AI-API-HUB/api-factory
+        shell: bash
+        run: npx --yes vercel@latest pull --yes --environment=preview --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
+
+      - name: Build reviewed source
+        if: env.VERCEL_TOKEN != ''
+        working-directory: AI-API-HUB/api-factory
+        shell: bash
+        run: npx --yes vercel@latest build --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
+
+      - name: Deploy preview only (never production)
+        if: env.VERCEL_TOKEN != ''
+        working-directory: AI-API-HUB/api-factory
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@latest deploy --prebuilt --yes --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" | tee /tmp/vercel-preview-deploy.log
+          url="$(grep -Eo 'https://[[:alnum:].-]+\.vercel\.app' /tmp/vercel-preview-deploy.log | tail -n 1 || true)"
+          if [ -z "$url" ]; then
+            echo "::error::Vercel CLI did not return a preview URL; inspect this job's deployment output."
+            exit 1
+          fi
+          echo "Preview deployment URL: $url"
+          echo "PREVIEW_URL=$url" >> "$GITHUB_ENV"
+
+      - name: Verify readiness contract on preview
+        if: env.VERCEL_TOKEN != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(curl --connect-timeout 5 --max-time 15 --silent --show-error -o /tmp/ready.json -w '%{http_code}' "$PREVIEW_URL/ready" || true)"
+          if [ "$status" = "401" ] || [ "$status" = "403" ]; then
+            echo "::warning::Preview deployment protection blocks unauthenticated smoke requests (HTTP $status); deployment URL and build logs remain the evidence."
+            exit 0
+          fi
+          STATUS="$status" node -e '
+            const fs=require("node:fs");
+            const status=process.env.STATUS;
+            let x;
+            try { x=JSON.parse(fs.readFileSync("/tmp/ready.json","utf8")); }
+            catch { console.error("Readiness returned non-JSON, HTTP "+status); process.exit(1); }
+            const durable=status==="200"&&x.ok===true&&x.ready===true&&x.storage?.durable===true&&x.checks?.registryPersistence===true&&x.checks?.artifactPersistence===true;
+            const blocked=status==="503"&&x.ok===false&&x.ready===false&&x.code==="DURABLE_STORAGE_REQUIRED"&&x.checks?.authentication===true&&x.checks?.registryPersistence===false&&x.checks?.artifactPersistence===false&&x.storage?.durable===false;
+            if(!durable&&!blocked){console.error("Readiness contract mismatch", {status:Number(status),body:x});process.exit(1);}
+            console.log(JSON.stringify({httpStatus:Number(status),productionReady:durable,expectedBlocker:blocked?x.code:null}));
+          '

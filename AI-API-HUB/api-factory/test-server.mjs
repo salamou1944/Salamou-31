@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {spawn} from "node:child_process";
+import {deploymentPlan} from "./deployment.mjs";
 
 const root=fs.mkdtempSync(path.join(os.tmpdir(),"api-factory-server-"));
 const registryFile=path.join(root,"registry.json");
@@ -25,8 +26,17 @@ try{
   assert.equal(health.status,200);
   assert.equal((await health.json()).service,"api-factory");
   const ready=await fetch(base+"/ready");
-  assert.equal(ready.status,200);
-  assert.deepEqual(await ready.json(),{ok:true,ready:true,checks:{authentication:true}});
+  assert.equal(ready.status,503,"readiness must fail without durable registry and artifact storage");
+  const readyBody=await ready.json();
+  assert.equal(readyBody.ok,false);
+  assert.equal(readyBody.ready,false);
+  assert.equal(readyBody.code,"DURABLE_STORAGE_REQUIRED");
+  assert.equal(readyBody.checks.authentication,true);
+  assert.equal(readyBody.checks.registryPersistence,false);
+  assert.equal(readyBody.checks.artifactPersistence,false);
+  assert.equal(readyBody.storage.durable,false);
+  assert.equal(readyBody.storage.registryMode,"local-file");
+  assert.equal(readyBody.storage.artifactMode,"local-file");
 
   const unauthorized=await fetch(base+"/v1/factory/apis");
   assert.equal(unauthorized.status,401);
@@ -53,6 +63,8 @@ try{
   assert.equal(capabilities.status,200);
   const capabilityBody=await capabilities.json();
   assert(capabilityBody.operations.includes("register"));
+  assert(capabilityBody.operations.includes("export"));
+  assert.equal(capabilityBody.deploymentExecutionImplemented,false);
   assert(capabilityBody.evidence.includes("BUSINESS_VERIFIED"));
 
   const validate=await fetch(base+"/v1/factory/validate",{method:"POST",headers,body:JSON.stringify(spec)});
@@ -70,6 +82,8 @@ try{
   assert.equal(built.api.evidence,"COMPILED");
   assert.equal(built.api.deployment.status,"NOT_DEPLOYED");
   assert.equal(built.api.artifact.directory,path.join(root,spec.name));
+  assert.equal(built.api.artifact.storage.durable,false);
+  assert.equal(built.api.artifact.storage.mode,"local-file");
   assert(fs.existsSync(path.join(root,spec.name,"server.mjs")));
 
   const listed=await fetch(base+"/v1/factory/apis",{headers:{"x-api-key":"factory-secret"}});
@@ -80,7 +94,15 @@ try{
   assert.equal(inspected.status,200);
   const inspection=(await inspected.json()).api.inspection;
   assert.equal(inspection.artifactPresent,true);
+  assert.equal(inspection.durable,false);
   assert.deepEqual(inspection.missing,[]);
+
+  const exported=await fetch(base+"/v1/factory/export/"+spec.name,{headers:{"x-api-key":"factory-secret"}});
+  assert.equal(exported.status,200);
+  const exportBody=await exported.json();
+  assert.equal(exportBody.ok,true);
+  assert(exportBody.files.some(file=>file.name==="server.mjs"&&file.content.includes("/v1/ping")));
+  assert(exportBody.files.some(file=>file.name==="openapi.json"));
 
   const registered=await fetch(base+"/v1/factory/register",{method:"POST",headers,body:JSON.stringify(spec)});
   assert.equal(registered.status,200);
@@ -137,6 +159,18 @@ try{
   assert.equal(deploymentBody.plan.target,"railway");
   assert.equal(deploymentBody.plan.serviceName,"server-contract-demo");
   assert.equal(deploymentBody.plan.deployable,false);
+  assert.equal(deploymentBody.plan.credentialsReady,false);
+  assert.equal(deploymentBody.plan.adapterImplemented,false);
+  assert.equal(deploymentBody.plan.executionAvailable,false);
+  assert.deepEqual(deploymentBody.plan.blockers,["RAILWAY_TOKEN","DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
+  const priorRailwayToken=process.env.RAILWAY_TOKEN;
+  process.env.RAILWAY_TOKEN="test-token";
+  const credentialedPlan=deploymentPlan({target:"railway",serviceName:"credentialed-contract-demo"});
+  if(priorRailwayToken===undefined) delete process.env.RAILWAY_TOKEN; else process.env.RAILWAY_TOKEN=priorRailwayToken;
+  assert.equal(credentialedPlan.credentialsReady,true);
+  assert.equal(credentialedPlan.adapterImplemented,false);
+  assert.equal(credentialedPlan.deployable,false,"credentials alone must not claim a deployment can execute");
+  assert.deepEqual(credentialedPlan.blockers,["DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
   assert.deepEqual(deploymentBody.plan.missing,["RAILWAY_TOKEN"]);
 
   const unsupportedDeployment=await fetch(base+"/v1/factory/deploy/plan",{method:"POST",headers,body:JSON.stringify({target:"unknown",serviceName:"server-contract-demo"})});

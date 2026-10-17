@@ -3,6 +3,7 @@ name: API Factory Test
 on:
   push:
     paths:
+      - 'render.yaml'
       - 'AI-API-HUB/api-factory/**'
       - 'AI-API-HUB/FREE-PROVIDER-POLICY.md'
       - 'AI-API-HUB/free-provider-policy-fixture.json'
@@ -13,10 +14,10 @@ on:
       - '.github/workflows/api-factory-test.yml'
   pull_request:
     paths:
+      - 'render.yaml'
       - 'AI-API-HUB/api-factory/**'
       - 'AI-API-HUB/FREE-PROVIDER-POLICY.md'
       - 'AI-API-HUB/free-provider-policy-fixture.json'
-      - 'AI-API-HUB/test-free-provider-policy.mjs'
       - '.github/workflows/api-factory-test.yml'
 
 jobs:
@@ -30,6 +31,41 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate Railway deployment configuration
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const config = JSON.parse(fs.readFileSync("railway.json", "utf8"));
+          if (config.build?.builder !== "DOCKERFILE" ||
+              config.build?.dockerfilePath !== "Dockerfile" ||
+              config.deploy?.healthcheckPath !== "/health") {
+            throw new Error("Railway Docker build or health-check configuration is invalid");
+          }
+          console.log("railway.json: OK");
+          NODE
+      - name: Validate zero-cost Render preview blueprint
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const config = fs.readFileSync("../../render.yaml", "utf8");
+          const required = [
+            "name: salamou-31-api-factory",
+            "runtime: docker",
+            "plan: free",
+            "rootDir: AI-API-HUB/api-factory",
+            "dockerfilePath: ./Dockerfile",
+            "healthCheckPath: /health",
+            "- key: FACTORY_API_KEY",
+            "sync: false"
+          ];
+          const missing = required.filter(line => !config.split("\n").some(entry => entry.trim() === line));
+          if (missing.length) throw new Error("Render blueprint missing required safe settings: " + missing.join(", "));
+          console.log("render.yaml: Free Docker preview and secret-safe configuration OK");
+          NODE
+      - name: Build production container
+        run: docker build --tag api-factory:ci .
+      - name: Verify Sherlock is present in production image
+        run: docker run --rm --entrypoint /opt/sherlock/bin/python api-factory:ci -m sherlock_project --version
       - run: npm install --ignore-scripts
       - name: Install Sherlock
         run: python -m pip install --user sherlock-project

@@ -9,7 +9,8 @@
     "eligibility_gate": "account_and_api_key",
     "tos_risk": "review",
     "source_last_researched": "2026-10-05",
-    "source_url": "https://github.com/diegosouzapw/OmniRoute"
+    "source_url": "https://github.com/diegosouzapw/OmniRoute",
+    "official_source_verified": false
   },
   {
     "provider_id": "pollinations",
@@ -21,7 +22,8 @@
     "eligibility_gate": "none",
     "tos_risk": "review",
     "source_last_researched": "2026-10-05",
-    "source_url": "https://github.com/diegosouzapw/OmniRoute"
+    "source_url": "https://github.com/diegosouzapw/OmniRoute",
+    "official_source_verified": false
   },
   {
     "provider_id": "ollama-local",
@@ -33,6 +35,7 @@
     "eligibility_gate": "local_runtime",
     "tos_risk": "ok",
     "source_last_researched": "2026-10-05",
-    "source_url": "https://github.com/diegosouzapw/OmniRoute"
+    "source_url": "https://github.com/diegosouzapw/OmniRoute",
+    "official_source_verified": false
   }
 ]

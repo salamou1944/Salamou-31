@@ -14,27 +14,29 @@ This policy is the internal decision boundary for zero-cost provider routing.
 | Field | Required | Meaning |
 |---|---|---|
 | `provider_id` | yes | Stable internal provider identifier |
-| `access_class` | yes | `keyless`, `api_key`, `oauth`, `local`, or other explicitly defined access path |
-| `free_status` | yes | `recurring`, `one_time_initial`, `promotion`, `none`, or `unknown` |
+| `access_class` | yes | `keyless`, `api_key`, `oauth`, or `local` |
+| `free_status` | yes | `recurring`, `recurring_uncapped`, `one_time_initial`, `promotion`, `none`, or `unknown` |
 | `quota_basis` | yes | Unit/basis of the allowance, e.g. tokens/day, requests/minute, neurons/day |
 | `estimated_monthly_tokens` | no | Comparable recurring-token estimate when defensible |
 | `hard_stop` | yes | Whether exceeding the free allowance is established to refuse further usage rather than bill/charge |
 | `eligibility_gate` | yes | Signup, payment method, region, KYC, approval, or `none` |
 | `tos_risk` | yes | `ok`, `review`, or `avoid` |
 | `source_last_researched` | yes | Date of the source audit |
-| `source_url` | yes | Provider/source documentation reference |
+| `source_url` | yes | Provider/source documentation reference (not a community aggregator) |
+| `official_source_verified` | yes | Explicit operator attestation that the linked provider-owned pricing/terms page was checked |
 
 ## Zero-cost routing rules
 
 1. `free_status=one_time_initial` is never treated as recurring capacity.
 2. `recurring` does not mean unlimited.
 3. `recurring-uncapped` may only be represented as a documented free state; rate/concurrency limits still apply.
-4. `hard_stop=true` is required before the router can assume that exceeding the allowance cannot create a paid charge.
-5. A payment-method, KYC, regional, approval, or other eligibility gate MUST remain explicit.
-6. `tos_risk=avoid` excludes the provider from automatic zero-cost routing.
-7. Shared or pooled quotas MUST be deduplicated before capacity is summed.
-8. Stale provider intelligence MUST NOT be used as production billing/cost truth.
-9. The router must fail closed when a required field is missing or contradictory.
+4. `hard_stop=true` is required before the router can assume that exceeding the allowance cannot create a paid charge. It must be based on the actual account/project billing mode, not a directory claim.
+5. `official_source_verified=true` and an HTTPS provider-owned source are required. Known community catalog domains (GitHub, freellm.net) cannot serve as the official source. Source dates older than 30 days fail closed.
+6. A payment-method, KYC, regional, approval, or other eligibility gate MUST remain explicit.
+7. `tos_risk=avoid` excludes the provider from automatic zero-cost routing.
+8. Shared or pooled quotas MUST be deduplicated before capacity is summed.
+9. Stale provider intelligence MUST NOT be used as production billing/cost truth.
+10. The router must fail closed when a required field is missing or contradictory.
 
 ## Adoption boundary
 
@@ -49,3 +51,13 @@ A provider may move from catalog/reference status to automatic zero-cost routing
 - the provider passes an isolated routing-policy test;
 - runtime evidence confirms the selected access path;
 - no paid fallback can occur silently.
+
+## Discovery sources and normalization
+
+These community sources are **discovery feeds only**, never the final authority for price, quota or eligibility:
+
+- OmniRoute provider-intelligence snapshot: `COLLECTION/VERIFIED_EXTERNAL/OMNIROUTE_PROVIDER_INTELLIGENCE_2026-10-05.md` (source revision `release/v3.8.52`; aggregate provider/free-tier figures are maintainer estimates).
+- `mnfst/awesome-free-llm-apis`: `COLLECTION/ACCOUNTS/MNFST_AWESOME_FREE_LLM_APIS_2026-09-26.md` (captured upstream revision `cf97c32fec1b2e96e9936746e2731a81bd5ea33f`; upstream `data.json` says `lastUpdated: 2026-10-05`). Repository metadata updated on 2026-10-16 did not change the tracked extraction contents.
+- `open-free-llm-api/awesome-freellm-apis`: `COLLECTION/ACCOUNTS/OPEN_FREE_LLM_API_ACCOUNT_WIDE_2026-10-17.md` (README revision `2a44aa956de7c683eaebbe6dbfe97561fafe9197`; README reports 508+ directory entries across 30 providers and a visible 2026-10-16 refresh marker).
+
+Normalize entries by canonical provider ID + exact model ID + base URL + access class. Do not sum quota across aliases or shared provider pools. Keep permanent free tiers separate from one-time credits and renewable promotions. A directory's refresh marker does not prove that every provider's terms were checked on that date. Every production-eligible record must link to the provider's own current terms/quota page and record the date checked.

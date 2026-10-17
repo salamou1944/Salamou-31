@@ -6,6 +6,10 @@ import {spawn,execFileSync} from "node:child_process";
 import {createServer} from "node:http";
 import {compileApi} from "./factory.mjs";
 
+if(process.env.GOOGLE_AI_STUDIO_BILLING_TIER!=="free"){
+  console.error(JSON.stringify({evidence_level:"NOT_VERIFIED",provider:"google_ai_studio",reason:"billing_tier_not_explicitly_free",required_env:"GOOGLE_AI_STUDIO_BILLING_TIER=free"}));
+  process.exit(3);
+}
 const credential=process.env.GEMINI_TOKEN;
 if(!credential){
   console.error(JSON.stringify({evidence_level:"NOT_VERIFIED",provider:"google_ai_studio",reason:"missing_google_ai_api_key",required_env:"GEMINI_TOKEN"}));
@@ -38,14 +42,15 @@ try{
       freePolicy:{
         zeroCostOnly:true,
         providerId:"google-ai-studio-gemini",
-        accessClass:"api-key",
-        freeStatus:"free-tier",
+        accessClass:"api_key",
+        freeStatus:"recurring",
         quotaBasis:"Google AI Studio account free-tier quota; subject to account eligibility and current limits",
         hardStop:true,
+        officialSourceVerified:true,
         eligibilityGate:"GEMINI_TOKEN must be configured; no paid fallback",
-        tosRisk:"reviewed",
-        sourceLastResearched:"2026-10-15",
-        sourceUrl:"https://ai.google.dev/gemini-api/docs/openai"
+        tosRisk:"review",
+        sourceLastResearched:"2026-10-17",
+        sourceUrl:"https://ai.google.dev/gemini-api/docs/pricing"
       }
     },
     operations:[{
