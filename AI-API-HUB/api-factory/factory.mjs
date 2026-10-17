@@ -33,6 +33,7 @@ export function validateSpec(spec){
         if(fp[field]!==undefined && typeof fp[field]!=="string") throw new Error("provider.freePolicy."+field+" must be a string");
       }
       if(fp.hardStop!==undefined && typeof fp.hardStop!=="boolean") throw new Error("provider.freePolicy.hardStop must be boolean");
+      if(fp.officialSourceVerified!==undefined && typeof fp.officialSourceVerified!=="boolean") throw new Error("provider.freePolicy.officialSourceVerified must be boolean");
     }
   }
   const seen=new Set();
@@ -70,7 +71,8 @@ export function validateSpec(spec){
         eligibilityGate:provider.freePolicy.eligibilityGate||null,
         tosRisk:provider.freePolicy.tosRisk||null,
         sourceLastResearched:provider.freePolicy.sourceLastResearched||null,
-        sourceUrl:provider.freePolicy.sourceUrl||null
+        sourceUrl:provider.freePolicy.sourceUrl||null,
+        officialSourceVerified:provider.freePolicy.officialSourceVerified===true
       } : null
     } : null,
     capabilities:Array.isArray(spec.capabilities)?spec.capabilities.filter(x=>typeof x==="string").slice(0,50):[],
