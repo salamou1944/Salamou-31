@@ -31,7 +31,8 @@ try{
   assert.equal(readyBody.ok,true);
   assert.equal(readyBody.ready,true);
   assert.equal(readyBody.checks.authentication,true);
-  assert.equal(readyBody.checks.registryPersistence,false);\n  assert.equal(readyBody.checks.artifactPersistence,false);
+  assert.equal(readyBody.checks.registryPersistence,false);
+  assert.equal(readyBody.checks.artifactPersistence,false);
   assert.equal(readyBody.degraded,true);
   assert.equal(readyBody.storage.mode,"local-file");
 
