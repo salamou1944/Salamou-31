@@ -100,7 +100,8 @@ app.post("/v1/factory/build",async(request,reply)=>{
   const denied=auth(request,reply);if(denied)return denied;
   try{
     const spec=validateSpec(request.body);
-    const artifact=compileApi(spec,root);
+    const compiledArtifact=compileApi(spec,root);
+    const artifact=await artifactStore.persist(compiledArtifact,spec.name);
     const execution=createExecutionRecord({state:"BUILD",artifacts:{artifact},metadata:{api:spec.name,version:spec.version}});
     assertStateExit(execution);
     const api=await register(spec,artifact);
@@ -111,7 +112,8 @@ app.post("/v1/factory/register",async(request,reply)=>{
   const denied=auth(request,reply);if(denied)return denied;
   try{
     const spec=validateSpec(request.body);
-    const registryBefore=await readRegistry();\n    const existing=registryBefore.apis.find(x=>x.name===spec.name);
+    const registryBefore=await readRegistry();
+    const existing=registryBefore.apis.find(x=>x.name===spec.name);
     if(!existing)return reply.code(409).send({ok:false,error:"API must be built before registration"});
     const api={...existing,version:spec.version,status:"REGISTERED",evidence:existing.evidence==="COMPILED"?"COMPILED":existing.evidence,registeredAt:new Date().toISOString()};
     const registry=await readRegistry();registry.apis=registry.apis.map(x=>x.name===spec.name?api:x);await writeRegistry(registry);
@@ -121,12 +123,10 @@ app.post("/v1/factory/register",async(request,reply)=>{
 app.get("/v1/factory/apis/:name",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;const item=(await readRegistry()).apis.find(x=>x.name===request.params.name);if(!item)return reply.code(404).send({error:"API not found"});return {ok:true,api:item};});
 app.get("/v1/factory/inspect/:name",async(request,reply)=>{
   const denied=auth(request,reply);if(denied)return denied;
-  const item=readRegistry().apis.find(x=>x.name===request.params.name);
+  const item=(await readRegistry()).apis.find(x=>x.name===request.params.name);
   if(!item)return reply.code(404).send({ok:false,error:"API not found"});
-  const artifactDir=item.artifact?.directory;
-  const files=Array.isArray(item.artifact?.files)?item.artifact.files:[];
-  const present=artifactDir?files.filter(file=>fs.existsSync(path.join(artifactDir,file))):[];
-  return {ok:true,api:{...item,inspection:{artifactPresent:present.length===files.length,files:present,missing:files.filter(file=>!present.includes(file))}}};
+  const inspection=await artifactStore.inspect(item.artifact);
+  return {ok:true,api:{...item,inspection}};
 });
 export { app };
 if (!process.env.VERCEL) await app.listen({port,host:"0.0.0.0"});
