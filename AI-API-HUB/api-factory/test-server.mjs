@@ -61,7 +61,9 @@ try{
   const capabilities=await fetch(base+"/v1/factory/capabilities");
   assert.equal(capabilities.status,200);
   const capabilityBody=await capabilities.json();
-  assert(capabilityBody.operations.includes("register"));\n  assert(capabilityBody.operations.includes("export"));\n  assert.equal(capabilityBody.deploymentExecutionImplemented,false);
+  assert(capabilityBody.operations.includes("register"));
+  assert(capabilityBody.operations.includes("export"));
+  assert.equal(capabilityBody.deploymentExecutionImplemented,false);
   assert(capabilityBody.evidence.includes("BUSINESS_VERIFIED"));
 
   const validate=await fetch(base+"/v1/factory/validate",{method:"POST",headers,body:JSON.stringify(spec)});
