@@ -26,13 +26,26 @@ function token(value){return crypto.createHash("sha256").update(value).digest("h
 function zeroCostDecision(config){
   const policy=config?.freePolicy;
   if(!policy?.zeroCostOnly) return {allowed:true,mode:"normal"};
-  const required=["providerId","accessClass","freeStatus","quotaBasis","hardStop","eligibilityGate","tosRisk","sourceLastResearched","sourceUrl"];
+  const required=["providerId","accessClass","freeStatus","quotaBasis","hardStop","eligibilityGate","tosRisk","sourceLastResearched","sourceUrl","officialSourceVerified"];
   for(const field of required){
     if(policy[field]===undefined || policy[field]===null || policy[field]==="") return {allowed:false,reason:"free_policy_incomplete",field};
   }
   if(policy.hardStop!==true) return {allowed:false,reason:"free_policy_not_hard_stop"};
-  if(["avoid"].includes(policy.tosRisk)) return {allowed:false,reason:"free_policy_tos_risk"};
-  if(["none","unknown"].includes(policy.freeStatus)) return {allowed:false,reason:"free_policy_not_free"};
+  if(policy.officialSourceVerified!==true) return {allowed:false,reason:"free_policy_source_unverified"};
+  let source;
+  try { source=new URL(policy.sourceUrl); } catch { return {allowed:false,reason:"free_policy_source_invalid"}; }
+  if(source.protocol!=="https:") return {allowed:false,reason:"free_policy_source_invalid"};
+  const discoveryHosts=["github.com","raw.githubusercontent.com","freellm.net"];
+  if(discoveryHosts.some(host=>source.hostname===host||source.hostname.endsWith("."+host))) return {allowed:false,reason:"free_policy_source_not_official"};
+  if(!["keyless","api_key","oauth","local"].includes(policy.accessClass)) return {allowed:false,reason:"free_policy_access_class_invalid"};
+  if(!["recurring","recurring_uncapped","one_time_initial","promotion","none","unknown"].includes(policy.freeStatus)) return {allowed:false,reason:"free_policy_status_invalid"};
+  if(!["recurring","recurring_uncapped"].includes(policy.freeStatus)) return {allowed:false,reason:"free_policy_not_recurring"};
+  if(!["ok","review","avoid"].includes(policy.tosRisk)) return {allowed:false,reason:"free_policy_tos_risk_invalid"};
+  if(policy.tosRisk==="avoid") return {allowed:false,reason:"free_policy_tos_risk"};
+  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(policy.sourceLastResearched)) return {allowed:false,reason:"free_policy_source_date_invalid"};
+  const researched=Date.parse(policy.sourceLastResearched+"T00:00:00Z");
+  const now=Date.now();
+  if(!Number.isFinite(researched)||researched>now+86400000||now-researched>30*86400000) return {allowed:false,reason:"free_policy_source_stale"};
   return {allowed:true,mode:"zero-cost"};
 }
 
