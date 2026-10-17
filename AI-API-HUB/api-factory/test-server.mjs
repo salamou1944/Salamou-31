@@ -26,14 +26,15 @@ try{
   assert.equal(health.status,200);
   assert.equal((await health.json()).service,"api-factory");
   const ready=await fetch(base+"/ready");
-  assert.equal(ready.status,200);
+  assert.equal(ready.status,503,"readiness must fail without durable registry and artifact storage");
   const readyBody=await ready.json();
-  assert.equal(readyBody.ok,true);
-  assert.equal(readyBody.ready,true);
+  assert.equal(readyBody.ok,false);
+  assert.equal(readyBody.ready,false);
+  assert.equal(readyBody.code,"DURABLE_STORAGE_REQUIRED");
   assert.equal(readyBody.checks.authentication,true);
   assert.equal(readyBody.checks.registryPersistence,false);
   assert.equal(readyBody.checks.artifactPersistence,false);
-  assert.equal(readyBody.degraded,true);
+  assert.equal(readyBody.storage.durable,false);
   assert.equal(readyBody.storage.registryMode,"local-file");
   assert.equal(readyBody.storage.artifactMode,"local-file");
 
