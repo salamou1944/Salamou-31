@@ -27,7 +27,13 @@ try{
   assert.equal((await health.json()).service,"api-factory");
   const ready=await fetch(base+"/ready");
   assert.equal(ready.status,200);
-  assert.deepEqual(await ready.json(),{ok:true,ready:true,checks:{authentication:true}});
+  const readyBody=await ready.json();
+  assert.equal(readyBody.ok,true);
+  assert.equal(readyBody.ready,true);
+  assert.equal(readyBody.checks.authentication,true);
+  assert.equal(readyBody.checks.registryPersistence,false);
+  assert.equal(readyBody.degraded,true);
+  assert.equal(readyBody.storage.mode,"local-file");
 
   const unauthorized=await fetch(base+"/v1/factory/apis");
   assert.equal(unauthorized.status,401);
