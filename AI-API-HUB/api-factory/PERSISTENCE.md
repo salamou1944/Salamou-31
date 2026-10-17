@@ -12,7 +12,7 @@ Use a **dedicated Supabase project for Salamou-31**. Never point these variables
 
 Apply `migrations/20261017_api_factory_storage.sql` in that dedicated project's SQL editor. It creates the private artifact bucket and a singleton JSONB registry table with RLS enabled and no anon/authenticated access. The service-role key is required for server-to-server operations.
 
-The adapter uses Supabase REST and Storage APIs directly; no new npm dependency is required. When remote configuration is partially present or remote requests fail, it fails closed rather than silently switching to ephemeral storage.
+The registry adapter uses Supabase REST and the artifact adapter uses the private Supabase Storage API directly; no new npm dependency is required. Build and inspection use remote object storage when configured, while the registry row stores the artifact manifest. When remote configuration is partially present or remote requests fail, it fails closed rather than silently switching to ephemeral storage.
 
 ## Current limitation
 
