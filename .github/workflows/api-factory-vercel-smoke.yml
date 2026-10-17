@@ -50,3 +50,10 @@ jobs:
             sleep 10
           done
           node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/ready.json","utf8")); const durable=x.checks?.registryPersistence===true&&x.checks?.artifactPersistence===true&&x.storage?.durable===true&&!x.degraded; const degraded=x.degraded===true&&x.checks?.registryPersistence===false&&x.checks?.artifactPersistence===false&&x.storage?.durable===false; if(x.ok!==true||x.ready!==true||x.checks?.authentication!==true||(!durable&&!degraded)) process.exit(1); console.log(JSON.stringify(x))'
+      - name: Verify export route rejects unauthenticated requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          status=$(curl --connect-timeout 5 --max-time 10 --silent --show-error -o /tmp/export-unauth.json -w '%{http_code}' https://salamou31-api-factory.vercel.app/v1/factory/export/__smoke_test__)
+          test "$status" = "401"
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/export-unauth.json","utf8")); if(x.ok!==false) process.exit(1); console.log("export authentication gate: PASS")'
