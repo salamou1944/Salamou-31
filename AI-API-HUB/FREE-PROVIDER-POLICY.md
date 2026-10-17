@@ -14,8 +14,8 @@ This policy is the internal decision boundary for zero-cost provider routing.
 | Field | Required | Meaning |
 |---|---|---|
 | `provider_id` | yes | Stable internal provider identifier |
-| `access_class` | yes | `keyless`, `api_key`, `oauth`, `local`, or other explicitly defined access path |
-| `free_status` | yes | `recurring`, `one_time_initial`, `promotion`, `none`, or `unknown` |
+| `access_class` | yes | `keyless`, `api_key`, `oauth`, or `local` |
+| `free_status` | yes | `recurring`, `recurring_uncapped`, `one_time_initial`, `promotion`, `none`, or `unknown` |
 | `quota_basis` | yes | Unit/basis of the allowance, e.g. tokens/day, requests/minute, neurons/day |
 | `estimated_monthly_tokens` | no | Comparable recurring-token estimate when defensible |
 | `hard_stop` | yes | Whether exceeding the free allowance is established to refuse further usage rather than bill/charge |
