@@ -43,7 +43,7 @@ try {
   assert.equal(remoteInspection.durable,true);
   assert.deepEqual(remoteInspection.missing,[]);
   assert.equal(calls.length,4);
-  assert(calls.slice(2).every(x=>x.options.method==="HEAD"));
+  assert(calls.slice(2).every(x=>x.options.method==="GET"));
   const remoteFiles=await remote.readFiles(stored);
   assert.deepEqual(remoteFiles.map(file=>file.name),["server.mjs","openapi.json"]);
   assert(remoteFiles.every(file=>file.content==="durable artifact content"));
