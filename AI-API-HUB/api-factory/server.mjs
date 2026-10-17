@@ -28,7 +28,12 @@ app.get("/ready",async(request,reply)=>{
   const authConfigured=typeof process.env.FACTORY_API_KEY==="string"&&process.env.FACTORY_API_KEY.length>0;
   if(!authConfigured)return reply.code(503).send({ok:false,ready:false,code:"AUTH_CONFIGURATION_REQUIRED",checks:{authentication:false}});
   const persistenceReady=registryStore.durable&&artifactStore.durable;
-  return {ok:true,ready:true,degraded:!persistenceReady,checks:{authentication:true,registryPersistence:registryStore.durable,artifactPersistence:artifactStore.durable},storage:{registryMode:registryStore.mode,artifactMode:artifactStore.mode,durable:persistenceReady}};
+  const readiness={
+    checks:{authentication:true,registryPersistence:registryStore.durable,artifactPersistence:artifactStore.durable},
+    storage:{registryMode:registryStore.mode,artifactMode:artifactStore.mode,durable:persistenceReady}
+  };
+  if(!persistenceReady)return reply.code(503).send({ok:false,ready:false,code:"DURABLE_STORAGE_REQUIRED",...readiness});
+  return {ok:true,ready:true,degraded:false,...readiness};
 });
 app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","build","register","inspect","export","deploy-plan","consume-soat-evidence"],deploymentExecutionImplemented:false,evidence:["VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","BUSINESS_VERIFIED"],deployment:["railway","vercel"]}));
 app.post("/v1/factory/research/username",async(request,reply)=>{
