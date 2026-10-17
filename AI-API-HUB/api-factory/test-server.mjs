@@ -34,7 +34,8 @@ try{
   assert.equal(readyBody.checks.registryPersistence,false);
   assert.equal(readyBody.checks.artifactPersistence,false);
   assert.equal(readyBody.degraded,true);
-  assert.equal(readyBody.storage.mode,"local-file");
+  assert.equal(readyBody.storage.registryMode,"local-file");
+  assert.equal(readyBody.storage.artifactMode,"local-file");
 
   const unauthorized=await fetch(base+"/v1/factory/apis");
   assert.equal(unauthorized.status,401);
