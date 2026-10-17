@@ -42,7 +42,7 @@ function zeroCostDecision(config){
   if(!["recurring","recurring_uncapped"].includes(policy.freeStatus)) return {allowed:false,reason:"free_policy_not_recurring"};
   if(!["ok","review","avoid"].includes(policy.tosRisk)) return {allowed:false,reason:"free_policy_tos_risk_invalid"};
   if(policy.tosRisk==="avoid") return {allowed:false,reason:"free_policy_tos_risk"};
-  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(policy.sourceLastResearched)) return {allowed:false,reason:"free_policy_source_date_invalid"};
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(policy.sourceLastResearched)) return {allowed:false,reason:"free_policy_source_date_invalid"};
   const researched=Date.parse(policy.sourceLastResearched+"T00:00:00Z");
   const now=Date.now();
   if(!Number.isFinite(researched)||researched>now+86400000||now-researched>30*86400000) return {allowed:false,reason:"free_policy_source_stale"};
