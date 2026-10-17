@@ -7,6 +7,8 @@ on:
     paths:
       - AI-API-HUB/api-factory/server.mjs
       - AI-API-HUB/api-factory/api/index.mjs
+      - AI-API-HUB/api-factory/registry-store.mjs
+      - AI-API-HUB/api-factory/artifact-store.mjs
       - AI-API-HUB/api-factory/vercel.json
       - .github/workflows/api-factory-vercel-smoke.yml
 
@@ -39,4 +41,4 @@ jobs:
             fi
             sleep 10
           done
-          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/ready.json","utf8")); if(x.ok!==true||x.ready!==true||x.checks?.authentication!==true) process.exit(1); console.log(JSON.stringify(x))'
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/ready.json","utf8")); const durable=x.checks?.registryPersistence===true&&x.checks?.artifactPersistence===true&&x.storage?.durable===true&&!x.degraded; const degraded=x.degraded===true&&x.checks?.registryPersistence===false&&x.checks?.artifactPersistence===false&&x.storage?.durable===false; if(x.ok!==true||x.ready!==true||x.checks?.authentication!==true||(!durable&&!degraded)) process.exit(1); console.log(JSON.stringify(x))'
