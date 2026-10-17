@@ -38,7 +38,8 @@ export function createRegistryStore({
       error.code = "REGISTRY_STORAGE_NOT_CONFIGURED";
       throw error;
     }
-    const response = await fetchImpl(url + "/rest/v1/" + TABLE + "?on_conflict=id", {
+    const query = method === "POST" ? "?on_conflict=id" : "?id=eq." + SINGLETON_ID + "&select=id,payload";
+    const response = await fetchImpl(url + "/rest/v1/" + TABLE + query, {
       method,
       headers: {
         apikey: key,
