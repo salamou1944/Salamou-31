@@ -62,6 +62,12 @@ jobs:
             sleep 10
           done
           node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/ready.json","utf8")); const durable=x.checks?.registryPersistence===true&&x.checks?.artifactPersistence===true&&x.storage?.durable===true&&!x.degraded; const degraded=x.degraded===true&&x.checks?.registryPersistence===false&&x.checks?.artifactPersistence===false&&x.storage?.durable===false; if(x.ok!==true||x.ready!==true||x.checks?.authentication!==true||(!durable&&!degraded)) process.exit(1); console.log(JSON.stringify(x))'
+      - name: Verify live capabilities and export route contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --connect-timeout 5 --max-time 10 --fail --silent --show-error https://salamou31-api-factory.vercel.app/v1/factory/capabilities -o /tmp/capabilities.json
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/capabilities.json","utf8")); if(!x.operations?.includes("export")||x.deploymentExecutionImplemented!==false) process.exit(1); console.log("capabilities/export contract: PASS")'
       - name: Verify export route rejects unauthenticated requests
         shell: bash
         run: |
