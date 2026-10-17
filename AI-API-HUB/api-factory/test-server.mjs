@@ -78,7 +78,9 @@ try{
   assert.equal(built.api.name,spec.name);
   assert.equal(built.api.evidence,"COMPILED");
   assert.equal(built.api.deployment.status,"NOT_DEPLOYED");
-  assert.equal(built.api.artifact.directory,path.join(root,spec.name));\n  assert.equal(built.api.artifact.storage.durable,false);\n  assert.equal(built.api.artifact.storage.mode,"local-file");
+  assert.equal(built.api.artifact.directory,path.join(root,spec.name));
+  assert.equal(built.api.artifact.storage.durable,false);
+  assert.equal(built.api.artifact.storage.mode,"local-file");
   assert(fs.existsSync(path.join(root,spec.name,"server.mjs")));
 
   const listed=await fetch(base+"/v1/factory/apis",{headers:{"x-api-key":"factory-secret"}});
@@ -88,7 +90,8 @@ try{
   const inspected=await fetch(base+"/v1/factory/inspect/"+spec.name,{headers:{"x-api-key":"factory-secret"}});
   assert.equal(inspected.status,200);
   const inspection=(await inspected.json()).api.inspection;
-  assert.equal(inspection.artifactPresent,true);\n  assert.equal(inspection.durable,false);
+  assert.equal(inspection.artifactPresent,true);
+  assert.equal(inspection.durable,false);
   assert.deepEqual(inspection.missing,[]);
 
   const exported=await fetch(base+"/v1/factory/export/"+spec.name,{headers:{"x-api-key":"factory-secret"}});
