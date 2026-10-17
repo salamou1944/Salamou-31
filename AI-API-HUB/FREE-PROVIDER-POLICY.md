@@ -22,19 +22,21 @@ This policy is the internal decision boundary for zero-cost provider routing.
 | `eligibility_gate` | yes | Signup, payment method, region, KYC, approval, or `none` |
 | `tos_risk` | yes | `ok`, `review`, or `avoid` |
 | `source_last_researched` | yes | Date of the source audit |
-| `source_url` | yes | Provider/source documentation reference |
+| `source_url` | yes | Provider/source documentation reference (not a community aggregator) |
+| `official_source_verified` | yes | Explicit operator attestation that the linked provider-owned pricing/terms page was checked |
 
 ## Zero-cost routing rules
 
 1. `free_status=one_time_initial` is never treated as recurring capacity.
 2. `recurring` does not mean unlimited.
 3. `recurring-uncapped` may only be represented as a documented free state; rate/concurrency limits still apply.
-4. `hard_stop=true` is required before the router can assume that exceeding the allowance cannot create a paid charge.
-5. A payment-method, KYC, regional, approval, or other eligibility gate MUST remain explicit.
-6. `tos_risk=avoid` excludes the provider from automatic zero-cost routing.
-7. Shared or pooled quotas MUST be deduplicated before capacity is summed.
-8. Stale provider intelligence MUST NOT be used as production billing/cost truth.
-9. The router must fail closed when a required field is missing or contradictory.
+4. `hard_stop=true` is required before the router can assume that exceeding the allowance cannot create a paid charge. It must be based on the actual account/project billing mode, not a directory claim.
+5. `official_source_verified=true` and an HTTPS provider-owned source are required. Known community catalog domains (GitHub, freellm.net) cannot serve as the official source. Source dates older than 30 days fail closed.
+6. A payment-method, KYC, regional, approval, or other eligibility gate MUST remain explicit.
+7. `tos_risk=avoid` excludes the provider from automatic zero-cost routing.
+8. Shared or pooled quotas MUST be deduplicated before capacity is summed.
+9. Stale provider intelligence MUST NOT be used as production billing/cost truth.
+10. The router must fail closed when a required field is missing or contradictory.
 
 ## Adoption boundary
 
