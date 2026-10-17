@@ -30,7 +30,7 @@ app.get("/ready",async(request,reply)=>{
   const persistenceReady=registryStore.durable&&artifactStore.durable;
   return {ok:true,ready:true,degraded:!persistenceReady,checks:{authentication:true,registryPersistence:registryStore.durable,artifactPersistence:artifactStore.durable},storage:{registryMode:registryStore.mode,artifactMode:artifactStore.mode,durable:persistenceReady}};
 });
-app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","build","register","inspect","deploy-plan","consume-soat-evidence"],evidence:["VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","BUSINESS_VERIFIED"],deployment:["railway","vercel"]}));
+app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","build","register","inspect","export","deploy-plan","consume-soat-evidence"],deploymentExecutionImplemented:false,evidence:["VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","BUSINESS_VERIFIED"],deployment:["railway","vercel"]}));
 app.post("/v1/factory/research/username",async(request,reply)=>{
   const denied=auth(request,reply);if(denied)return denied;
   let username;
