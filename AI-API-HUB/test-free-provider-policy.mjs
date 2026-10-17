@@ -13,7 +13,8 @@ const required = [
   "eligibility_gate",
   "tos_risk",
   "source_last_researched",
-  "source_url"
+  "source_url",
+  "official_source_verified"
 ];
 
 assert.match(policy, /hard_stop=true/);
