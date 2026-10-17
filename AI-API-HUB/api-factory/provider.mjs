@@ -23,7 +23,7 @@ export function providerConfig(manifest={}){
 
 function token(value){return crypto.createHash("sha256").update(value).digest("hex").slice(0,16);}
 
-function zeroCostDecision(config){
+export function zeroCostDecision(config){
   const policy=config?.freePolicy;
   if(!policy?.zeroCostOnly) return {allowed:true,mode:"normal"};
   const required=["providerId","accessClass","freeStatus","quotaBasis","hardStop","eligibilityGate","tosRisk","sourceLastResearched","sourceUrl","officialSourceVerified"];
