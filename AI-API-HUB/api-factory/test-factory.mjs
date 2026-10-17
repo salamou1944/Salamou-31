@@ -103,7 +103,7 @@ assert.equal((await rejectedReady.json()).provider.reason,"free_policy_not_hard_
 rejectedChild.kill("SIGTERM");
 await wait(300);
 
-const zeroCostAllowedSpec={...zeroCostRejectedSpec,name:"zero-cost-allowed",provider:{...zeroCostRejectedSpec.provider,providerId:"ollama-local",model:"llama3",freePolicy:{zeroCostOnly:true,providerId:"ollama-local",accessClass:"local",freeStatus:"recurring",quotaBasis:"local_compute",hardStop:true,eligibilityGate:"local_runtime",tosRisk:"ok",sourceLastResearched:"2026-10-05",sourceUrl:"https://github.com/diegosouzapw/OmniRoute"}}};
+const zeroCostAllowedSpec={...zeroCostRejectedSpec,name:"zero-cost-allowed",provider:{...zeroCostRejectedSpec.provider,providerId:"ollama-local",model:"llama3",freePolicy:{zeroCostOnly:true,providerId:"ollama-local",accessClass:"local",freeStatus:"recurring",quotaBasis:"local_compute",hardStop:true,eligibilityGate:"local_runtime",tosRisk:"ok",sourceLastResearched:"2026-10-17",sourceUrl:"https://docs.ollama.com/",officialSourceVerified:true}}};
 const allowedArtifact=compileApi(zeroCostAllowedSpec,root);
 const allowedDir=path.join(root,"zero-cost-allowed");
 execFileSync("npm",["install","--ignore-scripts","--no-audit","--no-fund"],{cwd:allowedDir,stdio:"inherit"});
