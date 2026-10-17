@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import fs from "node:fs";
 import path from "node:path";
 import {createRegistryStore} from "./registry-store.mjs";
+import {createArtifactStore} from "./artifact-store.mjs";
 import {validateSpec,compileApi} from "./factory.mjs";
 import {deploymentPlan} from "./deployment.mjs";
 import {runSherlock,validateUsername} from "./sherlock-username.mjs";
@@ -16,6 +17,7 @@ const root=process.env.FACTORY_OUTPUT_DIR||path.join(process.env.VERCEL?"/tmp":p
 const registryFile=process.env.FACTORY_REGISTRY_FILE||path.join(process.env.VERCEL?"/tmp":process.cwd(),"api-factory-registry.json");
 fs.mkdirSync(root,{recursive:true});
 const registryStore=createRegistryStore({file:registryFile});
+const artifactStore=createArtifactStore({root});
 async function readRegistry(){return registryStore.read();}
 async function writeRegistry(x){return registryStore.write(x);}
 function auth(request,reply){const configuredKey=process.env.FACTORY_API_KEY;if(typeof configuredKey!=="string"||configuredKey.length===0)return reply.code(503).send({ok:false,error:"API factory authentication is not configured",code:"AUTH_CONFIGURATION_REQUIRED"});if(request.headers["x-api-key"]!==configuredKey)return reply.code(401).send({ok:false,error:"Unauthorized",code:"UNAUTHORIZED"});}
@@ -25,7 +27,8 @@ app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:
 app.get("/ready",async(request,reply)=>{
   const authConfigured=typeof process.env.FACTORY_API_KEY==="string"&&process.env.FACTORY_API_KEY.length>0;
   if(!authConfigured)return reply.code(503).send({ok:false,ready:false,code:"AUTH_CONFIGURATION_REQUIRED",checks:{authentication:false}});
-  return {ok:true,ready:true,degraded:!registryStore.durable,checks:{authentication:true,registryPersistence:registryStore.durable},storage:{mode:registryStore.mode,durable:registryStore.durable}};
+  const persistenceReady=registryStore.durable&&artifactStore.durable;
+  return {ok:true,ready:true,degraded:!persistenceReady,checks:{authentication:true,registryPersistence:registryStore.durable,artifactPersistence:artifactStore.durable},storage:{registryMode:registryStore.mode,artifactMode:artifactStore.mode,durable:persistenceReady}};
 });
 app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","build","register","inspect","deploy-plan","consume-soat-evidence"],evidence:["VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","BUSINESS_VERIFIED"],deployment:["railway","vercel"]}));
 app.post("/v1/factory/research/username",async(request,reply)=>{
