@@ -6,6 +6,12 @@ on:
       - feat/api-factory-railway-deployable-2026-10-16
     paths:
       - AI-API-HUB/api-factory/server.mjs
+      - AI-API-HUB/api-factory/factory.mjs
+      - AI-API-HUB/api-factory/provider.mjs
+      - AI-API-HUB/api-factory/test-factory.mjs
+      - AI-API-HUB/FREE-PROVIDER-POLICY.md
+      - AI-API-HUB/free-provider-policy-fixture.json
+      - AI-API-HUB/test-free-provider-policy.mjs
       - AI-API-HUB/api-factory/api/index.mjs
       - AI-API-HUB/api-factory/registry-store.mjs
       - AI-API-HUB/api-factory/artifact-store.mjs
@@ -14,6 +20,12 @@ on:
   pull_request:
     paths:
       - AI-API-HUB/api-factory/server.mjs
+      - AI-API-HUB/api-factory/factory.mjs
+      - AI-API-HUB/api-factory/provider.mjs
+      - AI-API-HUB/api-factory/test-factory.mjs
+      - AI-API-HUB/FREE-PROVIDER-POLICY.md
+      - AI-API-HUB/free-provider-policy-fixture.json
+      - AI-API-HUB/test-free-provider-policy.mjs
       - AI-API-HUB/api-factory/api/index.mjs
       - AI-API-HUB/api-factory/registry-store.mjs
       - AI-API-HUB/api-factory/artifact-store.mjs
