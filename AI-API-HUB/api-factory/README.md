@@ -19,6 +19,8 @@ It is not an API catalog and it is not a single AI endpoint. A manifest is the m
 
 Set `FACTORY_API_KEY` in production to protect the control plane. Protected endpoints fail closed with HTTP 503 (`AUTH_CONFIGURATION_REQUIRED`) when the key is missing and HTTP 401 (`UNAUTHORIZED`) when the supplied key does not match. `/health` and the non-mutating capabilities description remain public.
 
+Production readiness requires durable registry **and** artifact storage. Configure `FACTORY_REGISTRY_URL`, `FACTORY_REGISTRY_SERVICE_ROLE_KEY`, and the private `api-factory-artifacts` storage bucket before routing production traffic. Without both storage paths, `/ready` returns HTTP 503 (`DURABLE_STORAGE_REQUIRED`); local-file and Vercel `/tmp` modes are explicitly non-durable and are not considered production-ready. The service-role credential must remain server-side and must never be exposed to clients.
+
 The generated API is independent of the factory after compilation. Provider credentials are never invented or embedded.
 
 ## Current manufacturing capabilities
