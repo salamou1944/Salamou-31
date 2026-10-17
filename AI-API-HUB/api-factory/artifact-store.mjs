@@ -86,6 +86,36 @@ export function createArtifactStore({
         storage: { mode, durable: true, bucket, keys }
       };
     },
+    async readFiles(artifact) {
+      const files = Array.isArray(artifact?.files) ? artifact.files : [];
+      const storage = artifact?.storage;
+      const output = [];
+      if (storage?.durable === true && storage.mode === "supabase-storage" && remoteConfigured) {
+        const keys = Array.isArray(storage.keys) ? storage.keys : [];
+        for (const file of files) {
+          const objectKey = keys.find(key => key.endsWith("/" + file));
+          if (!objectKey) {
+            const error = new Error("Artifact object is missing: " + file);
+            error.code = "ARTIFACT_NOT_FOUND";
+            throw error;
+          }
+          const response = await request("GET", objectKey);
+          output.push({ name: file, content: await response.text() });
+        }
+        return output;
+      }
+      const directory = typeof artifact?.directory === "string" ? artifact.directory : "";
+      for (const file of files) {
+        const fullPath = directory ? path.join(directory, file) : "";
+        if (!fullPath || !fs.existsSync(fullPath)) {
+          const error = new Error("Artifact file is missing: " + file);
+          error.code = "ARTIFACT_NOT_FOUND";
+          throw error;
+        }
+        output.push({ name: file, content: fs.readFileSync(fullPath, "utf8") });
+      }
+      return output;
+    },
     async inspect(artifact) {
       const files = Array.isArray(artifact?.files) ? artifact.files : [];
       const storage = artifact?.storage;
