@@ -29,6 +29,7 @@ for (const item of fixture) {
   assert.ok(["ok", "review", "avoid"].includes(item.tos_risk));
   assert.match(item.source_last_researched, /^2026-10-05$/);
   assert.match(item.source_url, /^https:\/\//);
+  assert.equal(item.official_source_verified, false);
 }
 
 console.log("free-provider-policy fixture + fail-closed rules: PASS");
