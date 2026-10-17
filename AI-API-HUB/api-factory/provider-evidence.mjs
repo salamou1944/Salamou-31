@@ -8,11 +8,17 @@ export function validateProviderEvidence(evidence={}){
   if(evidence.evidence_level!=="REAL_COMPLETION" || evidence.completion_received!==true || evidence.exact_output_match!==true){
     return {ok:false,code:"REAL_COMPLETION_GATE_FAILED"};
   }
+  if(typeof evidence.provider!=="string" || evidence.provider.trim().length===0) return {ok:false,code:"INVALID_PROVIDER_NAME"};
+  if(typeof evidence.selected_model!=="string" || evidence.selected_model.trim().length===0) return {ok:false,code:"INVALID_SELECTED_MODEL"};
+  if(typeof evidence.base_url!=="string" || evidence.base_url.trim().length===0) return {ok:false,code:"INVALID_PROVIDER_BASE_URL"};
+  let baseUrl;
+  try{baseUrl=new URL(evidence.base_url);}catch{return {ok:false,code:"INVALID_PROVIDER_BASE_URL"};}
+  if(baseUrl.protocol!=="https:" || !baseUrl.hostname) return {ok:false,code:"INVALID_PROVIDER_BASE_URL"};
   if(evidence.models_status!==undefined && Number(evidence.models_status)!==200) return {ok:false,code:"MODEL_DISCOVERY_GATE_FAILED"};
   if(Number(evidence.completion_status)!==200){
     return {ok:false,code:"HTTP_SUCCESS_GATE_FAILED"};
   }
-  return {ok:true,provider:evidence.provider,model:evidence.selected_model,evidenceLevel:"REAL_COMPLETION"};
+  return {ok:true,provider:evidence.provider.trim(),model:evidence.selected_model.trim(),evidenceLevel:"REAL_COMPLETION"};
 }
 
 export function assertProviderEvidence(evidence){
