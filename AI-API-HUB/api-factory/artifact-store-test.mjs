@@ -26,6 +26,7 @@ try {
     root,
     fetchImpl:async(url,options)=>{
       calls.push({url,options});
+      if(options.method==="GET") return {ok:true,status:200,text:async()=> "durable artifact content"};
       return {ok:true,status:200,json:async()=>({})};
     }
   });
@@ -43,6 +44,11 @@ try {
   assert.deepEqual(remoteInspection.missing,[]);
   assert.equal(calls.length,4);
   assert(calls.slice(2).every(x=>x.options.method==="HEAD"));
+  const remoteFiles=await remote.readFiles(stored);
+  assert.deepEqual(remoteFiles.map(file=>file.name),["server.mjs","openapi.json"]);
+  assert(remoteFiles.every(file=>file.content==="durable artifact content"));
+  assert.equal(calls.length,6);
+  assert(calls.slice(4).every(x=>x.options.method==="GET"));
 
   const partial=createArtifactStore({env:{FACTORY_REGISTRY_URL:"https://db.example.test"},root});
   await assert.rejects(()=>partial.persist(artifact,"demo-api"),e=>e.code==="ARTIFACT_STORAGE_NOT_CONFIGURED");
