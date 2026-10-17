@@ -17,3 +17,7 @@ The registry adapter uses Supabase REST and the artifact adapter uses the privat
 ## Current limitation
 
 The code supports durable state, but the deployment is **not durable until the environment variables point to a separately approved/dedicated project and the migration is applied**. The existing EASY project is intentionally excluded. No paid resource was created.
+
+## Scope boundary
+
+This adapter persists the **Factory's registry and generated bundle files only**. It does not automatically move the generated API's own request-idempotency ledger, usage ledger, quota state, or application/business data to remote storage. Those generated runtime files currently use local paths and are ephemeral on serverless/free hosts. A generated API that mutates state must not be advertised as production-durable until its own state store is separately designed and tested. The Vercel Factory deployment is therefore a verified control-plane endpoint plus bundle export, not proof that arbitrary generated APIs are durably hosted.
