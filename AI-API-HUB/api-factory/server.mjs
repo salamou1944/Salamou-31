@@ -121,6 +121,18 @@ app.post("/v1/factory/register",async(request,reply)=>{
   }catch(e){return reply.code(400).send({ok:false,error:e.message});}
 });
 app.get("/v1/factory/apis/:name",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;const item=(await readRegistry()).apis.find(x=>x.name===request.params.name);if(!item)return reply.code(404).send({error:"API not found"});return {ok:true,api:item};});
+app.get("/v1/factory/export/:name",async(request,reply)=>{
+  const denied=auth(request,reply);if(denied)return denied;
+  const item=(await readRegistry()).apis.find(x=>x.name===request.params.name);
+  if(!item)return reply.code(404).send({ok:false,error:"API not found"});
+  try{
+    const files=await artifactStore.readFiles(item.artifact);
+    return {ok:true,api:{name:item.name,version:item.version,auth:item.auth,provider:item.provider},files};
+  }catch(e){
+    const status=e.code==="ARTIFACT_NOT_FOUND"?410:503;
+    return reply.code(status).send({ok:false,error:e.message,code:e.code||"ARTIFACT_EXPORT_UNAVAILABLE"});
+  }
+});
 app.get("/v1/factory/inspect/:name",async(request,reply)=>{
   const denied=auth(request,reply);if(denied)return denied;
   const item=(await readRegistry()).apis.find(x=>x.name===request.params.name);
