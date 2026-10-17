@@ -89,6 +89,13 @@ try{
   assert.equal(inspection.artifactPresent,true);\n  assert.equal(inspection.durable,false);
   assert.deepEqual(inspection.missing,[]);
 
+  const exported=await fetch(base+"/v1/factory/export/"+spec.name,{headers:{"x-api-key":"factory-secret"}});
+  assert.equal(exported.status,200);
+  const exportBody=await exported.json();
+  assert.equal(exportBody.ok,true);
+  assert(exportBody.files.some(file=>file.name==="server.mjs"&&file.content.includes("/v1/ping")));
+  assert(exportBody.files.some(file=>file.name==="openapi.json"));
+
   const registered=await fetch(base+"/v1/factory/register",{method:"POST",headers,body:JSON.stringify(spec)});
   assert.equal(registered.status,200);
   const registeredBody=await registered.json();
