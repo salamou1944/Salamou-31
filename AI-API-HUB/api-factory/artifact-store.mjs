@@ -130,7 +130,7 @@ export function createArtifactStore({
             continue;
           }
           try {
-            await request("HEAD", keyForFile);
+            await request("GET", keyForFile);
             present.push(file);
           } catch {
             missing.push(file);
