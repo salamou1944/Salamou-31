@@ -11,6 +11,14 @@ on:
       - AI-API-HUB/api-factory/artifact-store.mjs
       - AI-API-HUB/api-factory/vercel.json
       - .github/workflows/api-factory-vercel-smoke.yml
+  pull_request:
+    paths:
+      - AI-API-HUB/api-factory/server.mjs
+      - AI-API-HUB/api-factory/api/index.mjs
+      - AI-API-HUB/api-factory/registry-store.mjs
+      - AI-API-HUB/api-factory/artifact-store.mjs
+      - AI-API-HUB/api-factory/vercel.json
+      - .github/workflows/api-factory-vercel-smoke.yml
 
 permissions:
   contents: read
