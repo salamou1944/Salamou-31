@@ -49,3 +49,13 @@ A provider may move from catalog/reference status to automatic zero-cost routing
 - the provider passes an isolated routing-policy test;
 - runtime evidence confirms the selected access path;
 - no paid fallback can occur silently.
+
+## Discovery sources and normalization
+
+These community sources are **discovery feeds only**, never the final authority for price, quota or eligibility:
+
+- OmniRoute provider-intelligence snapshot: `COLLECTION/VERIFIED_EXTERNAL/OMNIROUTE_PROVIDER_INTELLIGENCE_2026-10-05.md` (source revision `release/v3.8.52`; aggregate provider/free-tier figures are maintainer estimates).
+- `mnfst/awesome-free-llm-apis`: `COLLECTION/ACCOUNTS/MNFST_AWESOME_FREE_LLM_APIS_2026-09-26.md` (captured upstream revision `cf97c32fec1b2e96e9936746e2731a81bd5ea33f`; upstream `data.json` says `lastUpdated: 2026-10-05`). Repository metadata updated on 2026-10-16 did not change the tracked extraction contents.
+- `open-free-llm-api/awesome-freellm-apis`: `COLLECTION/ACCOUNTS/OPEN_FREE_LLM_API_ACCOUNT_WIDE_2026-10-17.md` (README revision `2a44aa956de7c683eaebbe6dbfe97561fafe9197`; README reports 508+ directory entries across 30 providers and a visible 2026-10-16 refresh marker).
+
+Normalize entries by canonical provider ID + exact model ID + base URL + access class. Do not sum quota across aliases or shared provider pools. Keep permanent free tiers separate from one-time credits and renewable promotions. A directory's refresh marker does not prove that every provider's terms were checked on that date. Every production-eligible record must link to the provider's own current terms/quota page and record the date checked.
