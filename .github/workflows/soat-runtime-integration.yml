@@ -157,8 +157,10 @@ jobs:
               hardStop: true,
               eligibilityGate: "local-runtime",
               tosRisk: "ok",
-              sourceLastResearched: "2026-10-05",
-              sourceUrl: "https://ollama.com"
+              // Synthetic local-only CI policy fixture: this date keeps the isolated smoke fixture fresh; it is not a production provider attestation.
+              sourceLastResearched: new Date().toISOString().slice(0,10),
+              sourceUrl: "https://docs.ollama.com/",
+              officialSourceVerified: true
             }
           });
 
@@ -193,8 +195,10 @@ jobs:
               hardStop: true,
               eligibilityGate: "local-runtime",
               tosRisk: "ok",
-              sourceLastResearched: "2026-10-05",
-              sourceUrl: "https://ollama.com"
+              // Synthetic local-only CI policy fixture: this date keeps the isolated smoke fixture fresh; it is not a production provider attestation.
+              sourceLastResearched: new Date().toISOString().slice(0,10),
+              sourceUrl: "https://docs.ollama.com/",
+              officialSourceVerified: true
             }
           });
 
