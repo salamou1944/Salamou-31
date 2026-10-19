@@ -38,3 +38,11 @@ Current external-runtime blockers remain:
 4. A fresh authenticated smoke must target the actual deployed service and prove persistence across process/invocation boundaries before production status advances.
 
 No production secrets are included in this record.
+
+
+## Repeat verification on the evidence-note commit
+
+- Repeat run: [39186226159](https://github.com/salamou1944/Salamou-31/actions/runs/39186226159) — **completed success** on source commit `f2e0b8c73979189555a8583361a5f8d547766033`.
+- The repeat run passed the same deterministic API Factory tests, SOAT request mapping, pinned runtime health, authenticated local Ollama bootstrap/probe, real completion, official SOAT smoke, execution-contract validation, evidence persistence/consumption, business-outcome gate, artifact upload and cleanup.
+- Latest artifact: [12158456947](https://github.com/salamou1944/Salamou-31/actions/runs/39186226159/artifacts/12158456947), SHA-256 `e05b92477f7f4a3e8caea1a18db3c5c8758c2283181474349802e5de78f64d6a`.
+- The repeat confirms the CI-local path remains reproducible after the documentation commit. It does not change the explicit `production_status: not_proven` boundary.
