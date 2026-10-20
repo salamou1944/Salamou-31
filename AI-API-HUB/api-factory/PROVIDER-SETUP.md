@@ -15,6 +15,8 @@ In the GitHub repository, open **Settings → Secrets and variables → Actions 
 
 Do not commit keys to source code, workflow files, issues, or chat messages.
 
+For the manual **Free Provider Real Probe**, Groq and OpenRouter require their corresponding `*_BILLING_TIER=free` repository variables. Hugging Face additionally requires an exact `model` workflow input, `HUGGINGFACE_INFERENCE_BILLING_TIER=free`, and the `model_free_confirmed` boolean set to true only after official pricing verifies that exact model/provider is zero-cost. Otherwise the probe exits `NOT_VERIFIED` before any network request. A model license or a generic HF token is not proof of free inference.
+
 ## Run and verify
 
 1. Open **Actions** in the repository.
