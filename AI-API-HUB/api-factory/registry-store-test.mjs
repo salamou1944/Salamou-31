@@ -40,7 +40,7 @@ try {
   assert.equal(calls[0].options.headers.authorization,"Bearer test-only-secret");
   assert(calls[0].url.includes("/rest/v1/api_factory_registry?id=eq.singleton&select=id,payload"));
   assert(calls[1].url.includes("/rest/v1/api_factory_registry?on_conflict=id"));
-  assert.deepEqual(await remote.check(),{ok:true,mode:"supabase-rest"});
+  assert.deepEqual(await remote.check(),{ok:false,mode:"supabase-rest",reason:"REGISTRY_STORAGE_WRITE_READ_UNVERIFIED"});
 
   const partial=createRegistryStore({env:{FACTORY_REGISTRY_URL:"https://db.example.test"},file});
   await assert.rejects(()=>partial.read(),e=>e.code==="REGISTRY_STORAGE_NOT_CONFIGURED");
