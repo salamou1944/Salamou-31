@@ -40,6 +40,15 @@ Current external-runtime blockers remain:
 No production secrets are included in this record.
 
 
+
+## Repeat verification on 2026-10-20
+
+- Repeat run: [39483019962](https://github.com/salamou1944/Salamou-31/actions/runs/39483019962) — **completed success** on source commit `b4989d6ed19cd9a4d383f44b1cc14f5bcb239a89`.
+- API Factory deterministic tests, SOAT request mapping, pinned SOAT health, authenticated local Ollama provider bootstrap, authenticated API Factory probe, real completion, official SOAT smoke, execution contract, evidence persistence/consumption, business-outcome gate, artifact upload and cleanup all passed.
+- The observed completion was again `"4"` (`completionChars: 1`), which is correct for the deterministic prompt but is not a content-quality benchmark.
+- The verification record explicitly remains `evidence_level: provider`, `scope: ci-pinned-local-runtime`, and `production_status: not_proven`.
+- Live Railway connector inspection on 2026-10-20 found the existing `salamou31-api-factory` service inside `EASY Runtime Production`, with no service variables, no attached volume, and a failed deployment. The deployment diagnosis reports `BUILD_IMAGE` / `Railpack failed to prepare the build`. It is not a verified API Factory runtime; no production deploy was attempted.
+
 ## Repeat verification on the evidence-note commit
 
 - Repeat run: [39186226159](https://github.com/salamou1944/Salamou-31/actions/runs/39186226159) — **completed success** on source commit `f2e0b8c73979189555a8583361a5f8d547766033`.
