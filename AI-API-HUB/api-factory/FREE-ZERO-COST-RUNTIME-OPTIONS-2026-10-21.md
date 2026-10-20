@@ -17,7 +17,7 @@
 | 3 | Groq API | Free-plan rate limits apply; quotas vary by model/account | Existing OpenAI-compatible probe exists. Latest run [39481985765](https://github.com/salamou1944/Salamou-31/actions/runs/39481985765) did not send a request because `GROQ_BILLING_TIER` was empty. Confirm plan and model in the provider dashboard first. |
 | 4 | OpenRouter `:free` models | Free model availability and limits can change; requires account/key | Existing probe filters discovered models to explicit free models. The same run [39481985765](https://github.com/salamou1944/Salamou-31/actions/runs/39481985765) made zero requests because `OPENROUTER_BILLING_TIER` was empty. Never fall back to a paid model automatically. |
 | 5 | Mistral API | Free mode/quotas are account- and model-dependent; do not treat credits as perpetual | Probe and billing-tier guard exist. Verify current terms and eligible model in the official console before enabling. |
-| 6 | Hugging Face Inference Providers | Free credits/limits may be small and can change; not assumed to be unlimited recurring access | Existing probe is gated. Treat as trial/limited until the current account's quota is confirmed. |
+| 6 | Hugging Face Inference Providers | Free credits/limits may be small and can change; not assumed to be unlimited recurring access | Probe is blocked before network access unless both `PROVIDER_MODEL` and `HF_MODEL_FREE_CONFIRMED=true` are set for a specifically verified free model/provider. |
 | 7 | OmniRoute as a routing layer | Router is open source; upstream requests still consume each configured provider's quota | Potentially reduces integration work, not the need for eligible accounts, API keys, policy review, and quota tracking. Do not install or expose a production endpoint until dependency/security and provider-terms review passes. |
 
 ## The “ChatGPT account” question
@@ -33,7 +33,7 @@ ChatGPT product access and API billing remain separate. OmniRoute also contains 
 ## Safety rules for this project
 
 1. No paid fallback; no card/billing activation as part of a free-provider probe.
-2. Require a provider-specific billing-tier value of exactly `free` before making a network request.
+2. Require a provider-specific billing-tier value of exactly `free` before making a network request. Hugging Face also requires an explicit model and `HF_MODEL_FREE_CONFIRMED=true` before any provider call.
 3. Record `NOT_VERIFIED` when a probe is skipped; a green workflow alone is not live-provider evidence.
 4. Promote only after an official source confirms the current plan, the real completion returns the exact sentinel, and the evidence artifact passes validation.
 5. Keep API keys in repository/service secrets only. Never print, copy, commit, or request them in chat.
