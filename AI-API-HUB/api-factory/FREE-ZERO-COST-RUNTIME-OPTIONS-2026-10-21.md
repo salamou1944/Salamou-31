@@ -22,7 +22,9 @@
 
 ## The “ChatGPT account” question
 
-A GitHub repository cannot create free OpenAI API quota from a ChatGPT account. ChatGPT product access and API billing are separate. OmniRoute contains a ChatGPT Web (Codex) MCP adapter entry point, but the existence of that code does **not** prove that it is an officially supported, free, stable API route for this service. Do not import browser cookies/session tokens, share accounts, scrape a web session, or route production traffic through that adapter unless its implementation and current OpenAI terms are explicitly reviewed and permitted. Prefer official API credentials or a local model.
+**There is a legitimate free coding route:** OpenAI's current Help Center says Codex is included on ChatGPT Free, including the local/CLI/IDE experience, subject to plan usage limits. Codex Cloud is **not** included on Free or Go. This lets a user sign in with their ChatGPT account to run the coding agent in a supported local client; it does not create a general OpenAI API key, free API quota, or an always-on production inference endpoint. See https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan.
+
+ChatGPT product access and API billing remain separate. OmniRoute also contains a ChatGPT Web (Codex) MCP adapter entry point, but the existence of that code does **not** prove that it is an officially supported, free, stable API route for this service. Do not import browser cookies/session tokens, share accounts, scrape a web session, or route production traffic through that adapter unless its implementation and current OpenAI terms are explicitly reviewed and permitted. Prefer the supported Codex local client for coding work, or official API credentials/local inference for a service.
 
 ## GitHub Models status
 
