@@ -15,6 +15,11 @@ if (!cfg) {
   console.error(JSON.stringify({ error: "UNSUPPORTED_PROVIDER", provider, supported: Object.keys(PROVIDERS) }));
   process.exit(2);
 }
+const billingTierEnv = `${provider.toUpperCase()}_BILLING_TIER`;
+if (process.env[billingTierEnv] !== "free") {
+  console.log(JSON.stringify({ evidence_level: "NOT_VERIFIED", provider, reason: "billing_tier_not_explicitly_free", required_env: `${billingTierEnv}=free`, network_requests_made: 0, secret_committed: false }));
+  process.exit(0);
+}
 const key = process.env[cfg.env];
 if (!key) {
   console.error(JSON.stringify({ error: "MISSING_PROVIDER_KEY", provider, required_env: cfg.env }));
