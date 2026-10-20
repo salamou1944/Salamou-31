@@ -89,10 +89,14 @@ export function createRegistryStore({
             ? { ok: true, mode, writeVerified: true }
             : { ok: false, mode, reason: "REGISTRY_STORAGE_WRITE_READ_UNVERIFIED" };
         }
+        // A read-only GET does not prove that the registry can write and read back.
+        // Do not mutate the live singleton as a health probe: a concurrent write could be lost.
+        // Direct REST mode remains available for normal operations, but readiness fails closed
+        // until a non-destructive write/read-back probe is provided by a dedicated gateway.
         const rows = await remoteRequest("GET", undefined);
         const row = Array.isArray(rows) ? rows.find(item => item.id === SINGLETON_ID) : null;
         if (row && (!row.payload || !Array.isArray(row.payload.apis))) return { ok: false, mode, reason: "REGISTRY_STORAGE_INVALID_PAYLOAD" };
-        return { ok: true, mode };
+        return { ok: false, mode, reason: "REGISTRY_STORAGE_WRITE_READ_UNVERIFIED" };
       } catch (error) {
         return { ok: false, mode, reason: error?.code || "REGISTRY_STORAGE_CHECK_FAILED" };
       }
