@@ -1,5 +1,9 @@
 import process from "node:process";
 
+if (process.env.NVIDIA_NIM_BILLING_TIER !== "free") {
+  console.log(JSON.stringify({ evidence_level: "NOT_VERIFIED", provider: "nvidia_nim", reason: "billing_tier_not_explicitly_free", required_env: "NVIDIA_NIM_BILLING_TIER=free", network_requests_made: 0, secret_committed: false }));
+  process.exit(0);
+}
 const key = process.env.NVIDIA_NIM_API_KEY;
 const model = process.env.PROVIDER_MODEL ?? "meta/llama-3.1-8b-instruct";
 
