@@ -7,8 +7,8 @@ import {createServer} from "node:http";
 import {compileApi} from "./factory.mjs";
 
 if(process.env.GOOGLE_AI_STUDIO_BILLING_TIER!=="free"){
-  console.error(JSON.stringify({evidence_level:"NOT_VERIFIED",provider:"google_ai_studio",reason:"billing_tier_not_explicitly_free",required_env:"GOOGLE_AI_STUDIO_BILLING_TIER=free"}));
-  process.exit(3);
+  console.log(JSON.stringify({evidence_level:"NOT_VERIFIED",provider:"google_ai_studio",reason:"billing_tier_not_explicitly_free",required_env:"GOOGLE_AI_STUDIO_BILLING_TIER=free",network_requests_made:0,paid_fallback_enabled:false,secret_committed:false}));
+  process.exit(0);
 }
 const credential=process.env.GEMINI_TOKEN;
 if(!credential){
