@@ -10,10 +10,16 @@ on:
         options:
           - groq
           - openrouter
+          - huggingface_inference
       model:
         description: Optional model override
         required: false
         type: string
+      model_free_confirmed:
+        description: Confirm the exact Hugging Face model/provider has been verified as zero-cost in official pricing
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   probe:
@@ -26,6 +32,9 @@ jobs:
       PROVIDER_MODEL: ${{ inputs.model }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_MODEL_FREE_CONFIRMED: ${{ inputs.model_free_confirmed }}
+      HUGGINGFACE_INFERENCE_BILLING_TIER: ${{ vars.HUGGINGFACE_INFERENCE_BILLING_TIER }}
       GROQ_BILLING_TIER: ${{ vars.GROQ_BILLING_TIER }}
       OPENROUTER_BILLING_TIER: ${{ vars.OPENROUTER_BILLING_TIER }}
     steps:
