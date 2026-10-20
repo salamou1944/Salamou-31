@@ -84,6 +84,8 @@ try{
   assert.equal(built.api.artifact.directory,path.join(root,spec.name));
   assert.equal(built.api.artifact.storage.durable,false);
   assert.equal(built.api.artifact.storage.mode,"local-file");
+  assert.equal(built.api.runtimeState.durable,false);
+  assert.equal(built.api.runtimeState.blocker,"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED");
   assert(fs.existsSync(path.join(root,spec.name,"server.mjs")));
 
   const listed=await fetch(base+"/v1/factory/apis",{headers:{"x-api-key":"factory-secret"}});
@@ -101,6 +103,8 @@ try{
   assert.equal(exported.status,200);
   const exportBody=await exported.json();
   assert.equal(exportBody.ok,true);
+  assert.equal(exportBody.api.runtimeState.durable,false);
+  assert.equal(exportBody.api.runtimeState.blocker,"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED");
   assert(exportBody.files.some(file=>file.name==="server.mjs"&&file.content.includes("/v1/ping")));
   assert(exportBody.files.some(file=>file.name==="openapi.json"));
 
