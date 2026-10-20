@@ -48,6 +48,21 @@ export function createArtifactStore({
   return {
     mode,
     durable: remoteConfigured,
+    async check() {
+      if (!remoteConfigured) return { ok: false, mode, reason: remoteRequested ? "ARTIFACT_STORAGE_CONFIGURATION_INCOMPLETE" : "ARTIFACT_STORAGE_NOT_CONFIGURED" };
+      try {
+        const response = await fetchImpl(url + "/storage/v1/object/list/" + encodeURIComponent(bucket), {
+          method: "POST",
+          headers: { apikey: key, authorization: "Bearer " + key, "content-type": "application/json" },
+          body: JSON.stringify({ prefix: "", limit: 1, offset: 0, sortBy: { column: "name", order: "asc" } }),
+          signal: AbortSignal.timeout(5000)
+        });
+        if (!response.ok) return { ok: false, mode, reason: "ARTIFACT_STORAGE_UPSTREAM_HTTP_" + response.status };
+        return { ok: true, mode };
+      } catch (error) {
+        return { ok: false, mode, reason: error?.code || "ARTIFACT_STORAGE_CHECK_FAILED" };
+      }
+    },
     async persist(artifact, apiName) {
       if (!artifact || !Array.isArray(artifact.files) || typeof artifact.directory !== "string") {
         throw new TypeError("Artifact metadata is invalid");
