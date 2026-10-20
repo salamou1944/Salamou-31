@@ -31,6 +31,8 @@ jobs:
       PROVIDER: ${{ matrix.provider }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      GROQ_BILLING_TIER: ${{ vars.GROQ_BILLING_TIER }}
+      OPENROUTER_BILLING_TIER: ${{ vars.OPENROUTER_BILLING_TIER }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

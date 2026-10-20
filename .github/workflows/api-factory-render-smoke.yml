@@ -10,12 +10,16 @@ on:
       - "AI-API-HUB/api-factory/server.mjs"
       - "AI-API-HUB/api-factory/registry-store.mjs"
       - "AI-API-HUB/api-factory/artifact-store.mjs"
+      - "AI-API-HUB/api-factory/package.json"
+      - "AI-API-HUB/api-factory/supabase/functions/api-factory-storage/**"
   pull_request:
     paths:
       - ".github/workflows/api-factory-render-smoke.yml"
       - "AI-API-HUB/api-factory/server.mjs"
       - "AI-API-HUB/api-factory/registry-store.mjs"
       - "AI-API-HUB/api-factory/artifact-store.mjs"
+      - "AI-API-HUB/api-factory/package.json"
+      - "AI-API-HUB/api-factory/supabase/functions/api-factory-storage/**"
 
 permissions:
   contents: read

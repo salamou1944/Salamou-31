@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyRegistryWriteRead } from "./registry-healthcheck.mjs";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const BUCKET = "api-factory-artifacts";
@@ -21,11 +22,24 @@ Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   const pathname = url.pathname.replace(/^.*\/api-factory-storage/, "") || "/";
   if (pathname === "/registry/check" && req.method === "GET") {
-    const { data: before, error: readError } = await supabase.from("api_factory_registry").select("id,payload").eq("id", "singleton").maybeSingle();
-    if (readError) return json({ ok: false, error: "REGISTRY_READ_FAILED" }, 502);
-    const payload = before?.payload && Array.isArray(before.payload.apis) ? before.payload : { apis: [] };
-    const { data: after, error: writeError } = await supabase.from("api_factory_registry").upsert({ id: "singleton", payload, updated_at: new Date().toISOString() }, { onConflict: "id" }).select("id,payload").single();
-    if (writeError || after?.id !== "singleton" || JSON.stringify(after.payload) !== JSON.stringify(payload)) return json({ ok: false, error: "REGISTRY_WRITE_READ_FAILED" }, 502);
+    const probe = await verifyRegistryWriteRead({
+      read: async () => {
+        const { data, error } = await supabase.from("api_factory_registry").select("id,payload,updated_at").eq("id", "singleton").maybeSingle();
+        if (error) throw error;
+        return data;
+      },
+      insert: async row => {
+        const { data, error } = await supabase.from("api_factory_registry").insert(row).select("id,payload,updated_at").maybeSingle();
+        if (error) throw error;
+        return data;
+      },
+      compareAndSwap: async ({ expectedUpdatedAt, updatedAt }) => {
+        const { data, error } = await supabase.from("api_factory_registry").update({ updated_at: updatedAt }).eq("id", "singleton").eq("updated_at", expectedUpdatedAt).select("id,payload,updated_at").maybeSingle();
+        if (error) throw error;
+        return data;
+      }
+    });
+    if (!probe.ok) return json({ ok: false, error: probe.error }, probe.error === "REGISTRY_WRITE_CONFLICT" ? 409 : 502);
     return json({ ok: true, mode: "supabase-edge-gateway", read: true, write: true, verified: true });
   }
   if (pathname === "/registry" && req.method === "GET") {

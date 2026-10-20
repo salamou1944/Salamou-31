@@ -22,6 +22,7 @@ jobs:
     env:
       GEMINI_TOKEN: ${{ secrets.Gemini_API_Key }}
       GOOGLE_MODEL: gemini-3.5-flash-lite
+      GOOGLE_AI_STUDIO_BILLING_TIER: ${{ vars.GOOGLE_AI_STUDIO_BILLING_TIER }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
