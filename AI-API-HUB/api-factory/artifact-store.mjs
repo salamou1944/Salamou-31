@@ -58,21 +58,29 @@ export function createArtifactStore({
     async check() {
       if (!remoteConfigured) return { ok: false, mode, reason: remoteRequested ? "ARTIFACT_STORAGE_CONFIGURATION_INCOMPLETE" : "ARTIFACT_STORAGE_NOT_CONFIGURED" };
       try {
-        const response = useGateway
-          ? await fetchImpl(gateway + "/artifacts/check", {
-              method: "POST",
-              headers: { "x-factory-key": internalKey, "content-type": "application/json" },
-              body: "{}",
-              signal: AbortSignal.timeout(5000)
-            })
-          : await fetchImpl(url + "/storage/v1/object/list/" + encodeURIComponent(bucket), {
-              method: "POST",
-              headers: { apikey: key, authorization: "Bearer " + key, "content-type": "application/json" },
-              body: JSON.stringify({ prefix: "", limit: 1, offset: 0, sortBy: { column: "name", order: "asc" } }),
-              signal: AbortSignal.timeout(5000)
-            });
-        if (!response.ok) return { ok: false, mode, reason: "ARTIFACT_STORAGE_UPSTREAM_HTTP_" + response.status };
-        return { ok: true, mode };
+        if (useGateway) {
+          const response = await fetchImpl(gateway + "/artifacts/check", {
+            method: "POST",
+            headers: { "x-factory-key": internalKey, "content-type": "application/json" },
+            body: "{}",
+            signal: AbortSignal.timeout(10000)
+          });
+          if (!response.ok) return { ok: false, mode, reason: "ARTIFACT_STORAGE_UPSTREAM_HTTP_" + response.status };
+          const probe = await response.json();
+          return probe?.ok === true && probe?.write === true && probe?.read === true && probe?.verified === true
+            ? { ok: true, mode, writeVerified: true }
+            : { ok: false, mode, reason: "ARTIFACT_STORAGE_WRITE_READ_UNVERIFIED" };
+        }
+        // Listing a bucket proves permissions to list, not that generated artifacts can be written and read.
+        // Verify the exact storage path used by generated artifacts with a small, deterministic probe.
+        const probeKey = "api-factory-healthcheck/readiness-probe.txt";
+        const probeContent = "api-factory-artifact-readiness-v1";
+        await request("PUT", probeKey, probeContent, "text/plain; charset=utf-8");
+        const downloaded = await request("GET", probeKey);
+        if (await downloaded.text() !== probeContent) {
+          return { ok: false, mode, reason: "ARTIFACT_STORAGE_WRITE_READ_UNVERIFIED" };
+        }
+        return { ok: true, mode, writeVerified: true };
       } catch (error) {
         return { ok: false, mode, reason: error?.code || "ARTIFACT_STORAGE_CHECK_FAILED" };
       }
