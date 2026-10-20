@@ -51,7 +51,7 @@ jobs:
             const x=require("./ready.json"); const status=process.env.STATUS;
             const durable=status==="200" && x?.ok===true && x?.ready===true && x?.checks?.authentication===true && x?.checks?.registryPersistence===true && x?.checks?.artifactPersistence===true && x?.storage?.durable===true && x?.storage?.registryMode==="supabase-edge-gateway" && x?.storage?.artifactMode==="supabase-edge-gateway";
             const authBlocked=status==="503" && x?.ok===false && x?.ready===false && x?.code==="AUTH_CONFIGURATION_REQUIRED" && x?.checks?.authentication===false;
-            const storageBlocked=status==="503" && x?.ok===false && x?.ready===false && x?.code==="DURABLE_STORAGE_REQUIRED" && x?.checks?.authentication===true && x?.checks?.registryPersistence===false && x?.checks?.artifactPersistence===false;
+            const storageBlocked=status==="503" && x?.ok===false && x?.ready===false && x?.code==="DURABLE_STORAGE_REQUIRED" && x?.checks?.authentication===true && x?.storage?.durable===false && (x?.checks?.registryPersistence===false || x?.checks?.artifactPersistence===false);
             if(!durable && !authBlocked && !storageBlocked){console.error("Unexpected readiness contract",status,x);process.exit(1)}
             console.log(JSON.stringify({readiness:durable?"DURABLE_STORAGE_VERIFIED":authBlocked?"AUTH_CONFIGURATION_REQUIRED":"DURABLE_STORAGE_REQUIRED",httpStatus:Number(status),checks:x.checks,storage:x.storage||null}));
           '
