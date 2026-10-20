@@ -15,7 +15,7 @@ The active preview uses the dedicated Salamou-31 Supabase project through the `a
 
 The gateway uses the Supabase service-role credential only inside the Supabase Edge Function environment. Do not copy that credential into Render, GitHub, client-side code, or chat. The gateway validates the internal key by comparing its SHA-256 digest; the raw key is not stored in the repository.
 
-The registry check performs a read and upsert/read-back verification. The artifact check uploads a probe object to the private bucket and downloads it to verify the content. The generated API artifact store also uses the gateway for object upload and retrieval. The externally observed `DURABLE_STORAGE_VERIFIED` smoke is evidence for the preview's registry and artifact paths, not a general production SLA.
+The registry readiness check reads the singleton and compare-and-swap updates only `updated_at`, conditioned on the exact timestamp previously read, then verifies that the payload is unchanged. If the singleton is absent, it inserts an empty row only; a concurrent insert/update causes a fail-closed conflict rather than replacing live data. The artifact check uploads a deterministic probe object to the private bucket and downloads it to verify exact content. The generated API artifact store also uses the gateway for object upload and retrieval. The externally observed `DURABLE_STORAGE_VERIFIED` smoke is evidence for the preview's registry and artifact paths, not a general production SLA.
 
 ## Direct Supabase mode
 
