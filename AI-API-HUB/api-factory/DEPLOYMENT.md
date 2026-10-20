@@ -44,7 +44,7 @@ The Vercel deployment remains fail-closed because the connected Vercel integrati
 
 ## Railway alternative
 
-Railway can use this directory as the service root and its railway.json configuration. A Railway project, service, billing eligibility, and secrets are account-level setup; this repository does not create them. Do not deploy to the existing EASY project/service.
+Railway can use this directory as the service root and its railway.json configuration. The deployment preflight requires `RAILWAY_TOKEN`, `RAILWAY_PROJECT_ID`, and `RAILWAY_ENVIRONMENT_ID` so the target is explicit; a token alone is not sufficient. A Railway project, service, billing eligibility, and secrets are account-level setup; this repository does not create them. The currently connected Railway account exposes only the existing EASY projects, so no safe dedicated API Factory target is configured. Do not deploy to the existing EASY project/service or create a new paid resource without explicit account-level setup and cost confirmation.
 
 ## Deployment execution status
 
