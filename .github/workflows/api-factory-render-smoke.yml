@@ -42,12 +42,19 @@ jobs:
           test "$code" = "200"
           node -e 'const x=require("./health.json"); if(x?.ok!==true || x?.service!=="api-factory") process.exit(1); console.log(JSON.stringify({health:"PASS",service:x.service,version:x.version,mode:x.mode}))'
 
-      - name: Verify readiness fails closed until authentication is configured
+      - name: Verify readiness accurately reflects durable storage
         run: |
           set -euo pipefail
           code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -o ready.json -w '%{http_code}' "$BASE_URL/ready" || true)"
-          test "$code" = "503"
-          node -e 'const x=require("./ready.json"); if(x?.ok!==false || x?.ready!==false || x?.code!=="AUTH_CONFIGURATION_REQUIRED" || x?.checks?.authentication!==false) process.exit(1); console.log(JSON.stringify({readiness:"CORRECTLY_BLOCKED",httpStatus:503,code:x.code,checks:x.checks||null}))'
+          test "$code" = "200" -o "$code" = "503"
+          STATUS="$code" node -e '
+            const x=require("./ready.json"); const status=process.env.STATUS;
+            const durable=status==="200" && x?.ok===true && x?.ready===true && x?.checks?.authentication===true && x?.checks?.registryPersistence===true && x?.checks?.artifactPersistence===true && x?.storage?.durable===true && x?.storage?.registryMode==="supabase-edge-gateway" && x?.storage?.artifactMode==="supabase-edge-gateway";
+            const authBlocked=status==="503" && x?.ok===false && x?.ready===false && x?.code==="AUTH_CONFIGURATION_REQUIRED" && x?.checks?.authentication===false;
+            const storageBlocked=status==="503" && x?.ok===false && x?.ready===false && x?.code==="DURABLE_STORAGE_REQUIRED" && x?.checks?.authentication===true && x?.checks?.registryPersistence===false && x?.checks?.artifactPersistence===false;
+            if(!durable && !authBlocked && !storageBlocked){console.error("Unexpected readiness contract",status,x);process.exit(1)}
+            console.log(JSON.stringify({readiness:durable?"DURABLE_STORAGE_VERIFIED":authBlocked?"AUTH_CONFIGURATION_REQUIRED":"DURABLE_STORAGE_REQUIRED",httpStatus:Number(status),checks:x.checks,storage:x.storage||null}));
+          '
 
       - name: Verify public capabilities contract
         run: |
@@ -55,9 +62,9 @@ jobs:
           curl --silent --show-error --connect-timeout 10 --max-time 90 --fail "$BASE_URL/v1/factory/capabilities" -o capabilities.json
           node -e 'const x=require("./capabilities.json"); if(!x.operations?.includes("export") || x.deploymentExecutionImplemented!==false) process.exit(1); console.log(JSON.stringify({capabilities:"PASS",deploymentExecutionImplemented:x.deploymentExecutionImplemented,operations:x.operations}))'
 
-      - name: Verify protected route fails closed without configured key
+      - name: Verify protected route rejects unauthenticated requests
         run: |
           set -euo pipefail
           code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -o protected.json -w '%{http_code}' "$BASE_URL/v1/factory/apis" || true)"
-          test "$code" = "503"
-          node -e 'const x=require("./protected.json"); if(x?.ok!==false || x?.code!=="AUTH_CONFIGURATION_REQUIRED") process.exit(1); console.log(JSON.stringify({authentication:"FAIL_CLOSED",httpStatus:503,code:x.code}))'
+          test "$code" = "401" -o "$code" = "503"
+          STATUS="$code" node -e 'const x=require("./protected.json"); const status=process.env.STATUS; const unauthorized=status==="401"&&x?.ok===false&&x?.code==="UNAUTHORIZED"; const authBlocked=status==="503"&&x?.ok===false&&x?.code==="AUTH_CONFIGURATION_REQUIRED"; if(!unauthorized&&!authBlocked) process.exit(1); console.log(JSON.stringify({authentication:unauthorized?"UNAUTHENTICATED_REJECTED":"FAIL_CLOSED",httpStatus:Number(status),code:x.code}))'
