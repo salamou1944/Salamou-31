@@ -17,6 +17,7 @@ jobs:
         working-directory: AI-API-HUB/api-factory
     env:
       OPENAI_API_KEY: ${{ secrets.chatgpt_API_Key }}
+      OPENAI_BILLING_TIER: ${{ vars.OPENAI_BILLING_TIER }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
