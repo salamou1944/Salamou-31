@@ -33,6 +33,7 @@ try {
   const stored=await remote.persist(artifact,"demo-api");
   assert.equal(stored.storage.durable,true);
   assert.equal(stored.storage.mode,"supabase-storage");
+  assert.deepEqual(await remote.check(),{ok:true,mode:"supabase-storage"});
   assert.equal(calls.length,2);
   assert(calls.every(x=>x.options.method==="PUT"));
   assert(calls.every(x=>x.url.includes("/storage/v1/object/api-factory-artifacts/demo-api/")));
@@ -52,6 +53,7 @@ try {
 
   const partial=createArtifactStore({env:{FACTORY_REGISTRY_URL:"https://db.example.test"},root});
   await assert.rejects(()=>partial.persist(artifact,"demo-api"),e=>e.code==="ARTIFACT_STORAGE_NOT_CONFIGURED");
+  assert.equal((await partial.check()).ok,false);
 
   const broken=createArtifactStore({
     env:{FACTORY_REGISTRY_URL:"https://db.example.test",FACTORY_REGISTRY_SERVICE_ROLE_KEY:"test-only-secret"},
@@ -59,6 +61,7 @@ try {
     fetchImpl:async()=>({ok:false,status:503,json:async()=>({})})
   });
   await assert.rejects(()=>broken.persist(artifact,"demo-api"),e=>e.code==="ARTIFACT_STORAGE_UPSTREAM_ERROR"&&e.status===503);
+  assert.equal((await broken.check()).ok,false);
   console.log("artifact-store: local inspection, private remote persistence, and fail-closed contracts passed");
 } finally {
   fs.rmSync(root,{recursive:true,force:true});
