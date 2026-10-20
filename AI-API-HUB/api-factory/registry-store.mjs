@@ -64,6 +64,17 @@ export function createRegistryStore({
     mode: remoteConfigured ? "supabase-rest" : isVercel ? "ephemeral-file" : "local-file",
     durable: remoteConfigured,
     configured: remoteConfigured,
+    async check() {
+      if (!remoteConfigured) return { ok: false, mode: this.mode, reason: remoteRequested ? "REGISTRY_STORAGE_CONFIGURATION_INCOMPLETE" : "REGISTRY_STORAGE_NOT_CONFIGURED" };
+      try {
+        const rows = await remoteRequest("GET", undefined);
+        const row = Array.isArray(rows) ? rows.find(item => item.id === SINGLETON_ID) : null;
+        if (row && (!row.payload || !Array.isArray(row.payload.apis))) return { ok: false, mode: "supabase-rest", reason: "REGISTRY_STORAGE_INVALID_PAYLOAD" };
+        return { ok: true, mode: "supabase-rest" };
+      } catch (error) {
+        return { ok: false, mode: "supabase-rest", reason: error?.code || "REGISTRY_STORAGE_CHECK_FAILED" };
+      }
+    },
     async read() {
       if (remoteRequested) {
         const rows = await remoteRequest("GET", undefined);
