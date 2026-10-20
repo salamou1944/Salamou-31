@@ -4,6 +4,8 @@ import path from "node:path";
 
 const scripts = [
   { file: "free-provider-probe.mjs", env: { PROVIDER: "groq" }, provider: "groq" },
+  { file: "free-provider-probe.mjs", env: { PROVIDER: "huggingface_inference", HUGGINGFACE_INFERENCE_BILLING_TIER: "free" }, provider: "huggingface_inference" },
+  { file: "free-provider-probe.mjs", env: { PROVIDER: "huggingface_inference", HUGGINGFACE_INFERENCE_BILLING_TIER: "free", PROVIDER_MODEL: "vendor/model:provider" }, provider: "huggingface_inference" },
   { file: "google-provider-probe.mjs", env: {}, provider: "google_ai_studio" },
   { file: "openai-provider-probe.mjs", env: {}, provider: "openai" },
   { file: "google-factory-real-probe.mjs", env: {}, provider: "google_ai_studio" },
