@@ -1,5 +1,9 @@
 import process from "node:process";
 
+if (process.env.CLOUDFLARE_WORKERS_AI_BILLING_TIER !== "free") {
+  console.log(JSON.stringify({ evidence_level: "NOT_VERIFIED", provider: "cloudflare_workers_ai", reason: "billing_tier_not_explicitly_free", required_env: "CLOUDFLARE_WORKERS_AI_BILLING_TIER=free", network_requests_made: 0, secret_committed: false }));
+  process.exit(0);
+}
 const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 const token = process.env.CLOUDFLARE_API_TOKEN;
 const model = process.env.PROVIDER_MODEL ?? "@cf/meta/llama-3.1-8b-instruct";

@@ -21,6 +21,7 @@ jobs:
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_WORKERS_AI_BILLING_TIER: ${{ vars.CLOUDFLARE_WORKERS_AI_BILLING_TIER }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,7 +31,7 @@ jobs:
         id: config
         shell: bash
         run: |
-          if [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+          if [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CLOUDFLARE_API_TOKEN" ] && [ "$CLOUDFLARE_WORKERS_AI_BILLING_TIER" = "free" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
@@ -41,7 +42,7 @@ jobs:
         run: |
           echo "## Provider verification: NOT VERIFIED" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Cloudflare Workers AI is NOT VERIFIED because CLOUDFLARE_ACCOUNT_ID and/or CLOUDFLARE_API_TOKEN is missing." >> "$GITHUB_STEP_SUMMARY"
+          echo "Cloudflare Workers AI is NOT VERIFIED because credentials are missing or CLOUDFLARE_WORKERS_AI_BILLING_TIER is not explicitly free." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "No live request was made and no production readiness is implied. Add the required secret(s) in GitHub repository Settings > Secrets and variables > Actions, then rerun this workflow." >> "$GITHUB_STEP_SUMMARY"
 

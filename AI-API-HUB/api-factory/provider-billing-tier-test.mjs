@@ -6,7 +6,9 @@ const scripts = [
   { file: "free-provider-probe.mjs", env: { PROVIDER: "groq" }, provider: "groq" },
   { file: "google-provider-probe.mjs", env: {}, provider: "google_ai_studio" },
   { file: "openai-provider-probe.mjs", env: {}, provider: "openai" },
-  { file: "google-factory-real-probe.mjs", env: {}, provider: "google_ai_studio" }
+  { file: "google-factory-real-probe.mjs", env: {}, provider: "google_ai_studio" },
+  { file: "nvidia-nim-probe.mjs", env: {}, provider: "nvidia_nim" },
+  { file: "cloudflare-workers-ai-probe.mjs", env: {}, provider: "cloudflare_workers_ai" }
 ];
 const cleanEnv = {
   PATH: process.env.PATH || "",
