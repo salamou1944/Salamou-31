@@ -27,10 +27,12 @@ app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:
 app.get("/ready",async(request,reply)=>{
   const authConfigured=typeof process.env.FACTORY_API_KEY==="string"&&process.env.FACTORY_API_KEY.length>0;
   if(!authConfigured)return reply.code(503).send({ok:false,ready:false,code:"AUTH_CONFIGURATION_REQUIRED",checks:{authentication:false}});
-  const persistenceReady=registryStore.durable&&artifactStore.durable;
+  const [registryCheck,artifactCheck]=await Promise.all([registryStore.check(),artifactStore.check()]);
+  const persistenceReady=registryCheck.ok&&artifactCheck.ok;
   const readiness={
-    checks:{authentication:true,registryPersistence:registryStore.durable,artifactPersistence:artifactStore.durable},
-    storage:{registryMode:registryStore.mode,artifactMode:artifactStore.mode,durable:persistenceReady}
+    checks:{authentication:true,registryPersistence:registryCheck.ok,artifactPersistence:artifactCheck.ok},
+    storage:{registryMode:registryStore.mode,artifactMode:artifactStore.mode,durable:persistenceReady},
+    ...(persistenceReady?{}:{storageErrors:{registry:registryCheck.reason||null,artifacts:artifactCheck.reason||null}})
   };
   if(!persistenceReady)return reply.code(503).send({ok:false,ready:false,code:"DURABLE_STORAGE_REQUIRED",...readiness});
   return {ok:true,ready:true,degraded:false,...readiness};
