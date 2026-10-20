@@ -8,6 +8,20 @@ assert.ok(resources.some((resource) => resource.id === "github-public"));
 assert.ok(resources.some((resource) => resource.id === "google-workspace"));
 assert.ok(resources.some((resource) => resource.id === "google-ai-studio"));
 assert.ok(resources.some((resource) => resource.id === "local-ollama"));
+assert.ok(resources.some((resource) => resource.id === "groq-api" && resource.cost === "quota-dependent"));
+assert.ok(resources.some((resource) => resource.id === "openrouter-free-models" && resource.cost === "quota-dependent"));
+assert.ok(resources.some((resource) => resource.id === "mistral-api" && resource.cost === "quota-dependent"));
+assert.ok(resources.some((resource) => resource.id === "huggingface-inference" && resource.cost === "quota-dependent"));
+
+for (const id of ["groq-api", "openrouter-free-models", "mistral-api", "huggingface-inference"]) {
+  assert.throws(
+    () => buildExecutionPlan(id, { policy: { zeroCostOnly: true, allowQuotaDependent: false } }),
+    (error) => error instanceof ResourceBlockedError && error.code === "RESOURCE_BLOCKED"
+  );
+  const plan = buildExecutionPlan(id, { policy: { zeroCostOnly: true, allowQuotaDependent: true } });
+  assert.equal(plan.requiresCredential, true);
+  assert.equal(plan.hardStopOnUnexpectedCost, true);
+}
 
 const github = buildExecutionPlan("github-public", {
   policy: { zeroCostOnly: true, allowQuotaDependent: false }
