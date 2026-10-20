@@ -4,6 +4,8 @@ The factory must distinguish process health from durable storage. `GET /health` 
 
 ## Current verified zero-upfront-cost configuration
 
+The main-branch Render service at `https://salamou-31-api-factory.onrender.com` is live on commit `83f69126689eaac920f044b1e54cb8878d52fffc`, but its latest external smoke returned HTTP 503 `DURABLE_STORAGE_REQUIRED` with both registry and artifact modes set to `local-file`. It is **not production-ready**. The preview remains the only endpoint currently verified with durable registry and artifact storage. Do not switch the main service to the gateway until its existing registry/artifact state and matching gateway-key configuration can be verified and migrated safely.
+
 The active preview uses the dedicated Salamou-31 Supabase project through the `api-factory-storage` Edge Function gateway:
 
 - `FACTORY_STORAGE_GATEWAY_URL`: the deployed `api-factory-storage` Edge Function URL.
