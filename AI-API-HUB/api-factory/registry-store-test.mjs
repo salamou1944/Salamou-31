@@ -33,6 +33,7 @@ try {
   });
   assert.equal(remote.mode,"supabase-rest");
   assert.equal(remote.durable,true);
+  assert.deepEqual(await remote.check(),{ok:true,mode:"supabase-rest"});
   assert.deepEqual(await remote.read(),registry);
   const updated={apis:[...registry.apis,{name:"second-api",version:"v1"}]};
   await remote.write(updated);
@@ -43,6 +44,7 @@ try {
 
   const partial=createRegistryStore({env:{FACTORY_REGISTRY_URL:"https://db.example.test"},file});
   await assert.rejects(()=>partial.read(),e=>e.code==="REGISTRY_STORAGE_NOT_CONFIGURED");
+  assert.equal((await partial.check()).ok,false);
 
   const broken=createRegistryStore({
     env:{FACTORY_REGISTRY_URL:"https://db.example.test",FACTORY_REGISTRY_SERVICE_ROLE_KEY:"test-only-secret"},
@@ -50,6 +52,7 @@ try {
     fetchImpl:async()=>({ok:false,status:503,json:async()=>({})})
   });
   await assert.rejects(()=>broken.read(),e=>e.code==="REGISTRY_STORAGE_UPSTREAM_ERROR"&&e.status===503);
+  assert.deepEqual(await broken.check(),{ok:false,mode:"supabase-rest",reason:"REGISTRY_STORAGE_UPSTREAM_ERROR"});
   console.log("registry-store: local atomic file and remote fail-closed contracts passed");
 } finally {
   fs.rmSync(root,{recursive:true,force:true});
