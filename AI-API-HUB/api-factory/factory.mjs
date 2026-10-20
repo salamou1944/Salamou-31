@@ -108,6 +108,7 @@ import {UsageLedger} from "./usage.mjs";
 import {QuotaGuard,QuotaExceededError} from "./quota.mjs";
 ${providerImport}const app=Fastify({logger:true,bodyLimit:64*1024});
 const port=Number(process.env.PORT||3000);
+const runtimeState={durable:false,status:"NOT_VERIFIED",blocker:"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED",components:["request-idempotency-ledger","usage-ledger","quota-state"],scope:"local-files-or-process-memory"};
 const requestLedger=new RequestLedger(process.env.REQUEST_LEDGER_FILE||"./data/requests.json");
 const usageLedger=new UsageLedger(process.env.USAGE_LEDGER_FILE||"./data/usage.json");
 const quota=new QuotaGuard(Number(process.env.API_QUOTA_LIMIT||0));
@@ -162,8 +163,8 @@ app.get("/health",async()=>({ok:true,service:${JSON.stringify(s.name)},version:$
 app.get("/metrics",async()=>({ok:true,service:${JSON.stringify(s.name)},usage:usageLedger.snapshot(),quota:quota.snapshot()}));
 app.get("/ready",async(request,reply)=>{
   const providerHealth=provider?await provider.health():{available:true,reason:"not_required"};
-  if(!providerHealth.available) return reply.code(503).send({ok:false,ready:false,provider:providerHealth});
-  return {ok:true,ready:true,provider:providerHealth};
+  if(!providerHealth.available) return reply.code(503).send({ok:false,ready:false,productionReady:false,runtimeState,productionBlockers:[runtimeState.blocker],provider:providerHealth});
+  return {ok:true,ready:true,productionReady:false,runtimeState,productionBlockers:[runtimeState.blocker],provider:providerHealth};
 });
 ${routes}
 await app.listen({port,host:"0.0.0.0"});
