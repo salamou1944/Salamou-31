@@ -82,7 +82,10 @@ export function createArtifactStore({
         }
         return { ok: true, mode, writeVerified: true };
       } catch (error) {
-        return { ok: false, mode, reason: error?.code || "ARTIFACT_STORAGE_CHECK_FAILED" };
+        const reason = typeof error?.code === "string" && error.code ? error.code
+          : error?.name === "TimeoutError" ? "ARTIFACT_STORAGE_CHECK_TIMEOUT"
+          : "ARTIFACT_STORAGE_CHECK_FAILED";
+        return { ok: false, mode, reason };
       }
     },
     async persist(artifact, apiName) {
