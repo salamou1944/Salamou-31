@@ -62,6 +62,10 @@ A provider-backed API without real credentials remains **COMPILED** and can be *
 
 The `POST /v1/factory/deploy/plan` route is a preflight planner only. Neither Railway nor Vercel has a verified deployment execution adapter in this version. The factory must not report a deployment as successful until it can create or update a provider deployment, wait for completion, resolve a public URL, and pass an authenticated or appropriately public smoke test against that URL. Having provider credentials alone is not proof of execution.
 
+## Zero-cost model runtime options
+
+See [FREE-ZERO-COST-RUNTIME-OPTIONS-2026-10-21.md](./FREE-ZERO-COST-RUNTIME-OPTIONS-2026-10-21.md) for the ranked free/local options, live-probe evidence, provider eligibility gates, and the GitHub Models retirement status. No provider is considered verified when its live probe is skipped.
+
 ## Research evidence boundary
 
 The factory includes a provider-neutral evidence ledger extracted from the multi-source research pattern used by Panniantong/last30days-skill. It normalizes source URLs, removes duplicates, records retrieval time, classifies evidence as `fresh`, `stale`, `undated`, or `future`, and can fail closed when a minimum amount of fresh evidence is required.
