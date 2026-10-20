@@ -24,10 +24,19 @@ permissions:
 
 jobs:
   render-readiness-smoke:
+    name: render-readiness-smoke (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: preview
+            base_url: https://salamou31-api-factory-preview.onrender.com
+          - target: production
+            base_url: https://salamou-31-api-factory.onrender.com
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
-      BASE_URL: https://salamou31-api-factory-preview.onrender.com
+      BASE_URL: ${{ matrix.base_url }}
     steps:
       - name: Probe public health endpoint
         run: |
