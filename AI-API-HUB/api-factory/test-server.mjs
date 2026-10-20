@@ -168,16 +168,20 @@ try{
   assert.equal(deploymentBody.plan.credentialsReady,false);
   assert.equal(deploymentBody.plan.adapterImplemented,false);
   assert.equal(deploymentBody.plan.executionAvailable,false);
-  assert.deepEqual(deploymentBody.plan.blockers,["RAILWAY_TOKEN","DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
-  const priorRailwayToken=process.env.RAILWAY_TOKEN;
+  assert.deepEqual(deploymentBody.plan.blockers,["RAILWAY_TOKEN","RAILWAY_PROJECT_ID","RAILWAY_ENVIRONMENT_ID","DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
+  const priorRailwayEnv={token:process.env.RAILWAY_TOKEN,project:process.env.RAILWAY_PROJECT_ID,environment:process.env.RAILWAY_ENVIRONMENT_ID};
   process.env.RAILWAY_TOKEN="test-token";
+  process.env.RAILWAY_PROJECT_ID="test-dedicated-project";
+  process.env.RAILWAY_ENVIRONMENT_ID="test-dedicated-environment";
   const credentialedPlan=deploymentPlan({target:"railway",serviceName:"credentialed-contract-demo"});
-  if(priorRailwayToken===undefined) delete process.env.RAILWAY_TOKEN; else process.env.RAILWAY_TOKEN=priorRailwayToken;
+  if(priorRailwayEnv.token===undefined) delete process.env.RAILWAY_TOKEN; else process.env.RAILWAY_TOKEN=priorRailwayEnv.token;
+  if(priorRailwayEnv.project===undefined) delete process.env.RAILWAY_PROJECT_ID; else process.env.RAILWAY_PROJECT_ID=priorRailwayEnv.project;
+  if(priorRailwayEnv.environment===undefined) delete process.env.RAILWAY_ENVIRONMENT_ID; else process.env.RAILWAY_ENVIRONMENT_ID=priorRailwayEnv.environment;
   assert.equal(credentialedPlan.credentialsReady,true);
   assert.equal(credentialedPlan.adapterImplemented,false);
   assert.equal(credentialedPlan.deployable,false,"credentials alone must not claim a deployment can execute");
   assert.deepEqual(credentialedPlan.blockers,["DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
-  assert.deepEqual(deploymentBody.plan.missing,["RAILWAY_TOKEN"]);
+  assert.deepEqual(deploymentBody.plan.missing,["RAILWAY_TOKEN","RAILWAY_PROJECT_ID","RAILWAY_ENVIRONMENT_ID"]);
 
   const unsupportedDeployment=await fetch(base+"/v1/factory/deploy/plan",{method:"POST",headers,body:JSON.stringify({target:"unknown",serviceName:"server-contract-demo"})});
   assert.equal(unsupportedDeployment.status,400);
