@@ -55,3 +55,12 @@ No production secrets are included in this record.
 - The repeat run passed the same deterministic API Factory tests, SOAT request mapping, pinned runtime health, authenticated local Ollama bootstrap/probe, real completion, official SOAT smoke, execution-contract validation, evidence persistence/consumption, business-outcome gate, artifact upload and cleanup.
 - Latest artifact: [12158456947](https://github.com/salamou1944/Salamou-31/actions/runs/39186226159/artifacts/12158456947), SHA-256 `e05b92477f7f4a3e8caea1a18db3c5c8758c2283181474349802e5de78f64d6a`.
 - The repeat confirms the CI-local path remains reproducible after the documentation commit. It does not change the explicit `production_status: not_proven` boundary.
+
+## Repeat verification — 2026-10-21
+
+- Workflow: [SOAT Runtime Integration Smoke run 39516376544](https://github.com/salamou1944/Salamou-31/actions/runs/39516376544) — **passed**.
+- Commit: `c39898e97fe42cc8486af906ca5fec7fadaa674c`; pinned SOAT SHA: `600721c1fa30de27c14f6da5e5917049a5339036`.
+- Evidence level: `provider`; scope: `ci-pinned-local-runtime`; production status: `not_proven`.
+- Verified gates: health, authentication, provider resolution, API Factory probe, real chat completion through local Ollama, official SOAT smoke suite, execution contract, and business-outcome gate.
+- Deterministic completion returned `4` (`completionChars: 1`). The official smoke suite passed with exit code 0 and no timeout (320,183 ms).
+- This proves the local CI runtime path works; it does **not** prove the Railway/Render production endpoint is deployed, persistent, or human-ready.
