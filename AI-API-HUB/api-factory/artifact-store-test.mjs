@@ -33,7 +33,6 @@ try {
   const stored=await remote.persist(artifact,"demo-api");
   assert.equal(stored.storage.durable,true);
   assert.equal(stored.storage.mode,"supabase-storage");
-  assert.deepEqual(await remote.check(),{ok:true,mode:"supabase-storage"});
   assert.equal(calls.length,2);
   assert(calls.every(x=>x.options.method==="PUT"));
   assert(calls.every(x=>x.url.includes("/storage/v1/object/api-factory-artifacts/demo-api/")));
@@ -50,6 +49,9 @@ try {
   assert(remoteFiles.every(file=>file.content==="durable artifact content"));
   assert.equal(calls.length,6);
   assert(calls.slice(4).every(x=>x.options.method==="GET"));
+  assert.deepEqual(await remote.check(),{ok:true,mode:"supabase-storage"});
+  assert.equal(calls.length,7);
+  assert.equal(calls[6].options.method,"POST");
 
   const partial=createArtifactStore({env:{FACTORY_REGISTRY_URL:"https://db.example.test"},root});
   await assert.rejects(()=>partial.persist(artifact,"demo-api"),e=>e.code==="ARTIFACT_STORAGE_NOT_CONFIGURED");
