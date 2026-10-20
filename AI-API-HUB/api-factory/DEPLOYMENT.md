@@ -46,7 +46,7 @@ The Vercel deployment remains fail-closed because the connected Vercel integrati
 
 ## Railway alternative
 
-Railway can use this directory as the service root and its railway.json configuration. The deployment preflight requires `RAILWAY_TOKEN`, `RAILWAY_PROJECT_ID`, and `RAILWAY_ENVIRONMENT_ID` so the target is explicit; a token alone is not sufficient. A Railway project, service, billing eligibility, and secrets are account-level setup; this repository does not create them. The currently connected Railway account exposes only the existing EASY projects, so no safe dedicated API Factory target is configured. Do not deploy to the existing EASY project/service or create a new paid resource without explicit account-level setup and cost confirmation.
+Railway can use this directory as the service root and its `railway.json` configuration. The deployment preflight requires `RAILWAY_TOKEN`, `RAILWAY_PROJECT_ID`, and `RAILWAY_ENVIRONMENT_ID` so the target is explicit; a token alone is not sufficient. A live Railway service named `salamou31-api-factory` exists inside the `EASY Runtime Production` project, but the connected-account inspection found **zero service variables, no attached volume, and a latest deployment in `FAILED` state**. Railway's deployment diagnosis reports a `BUILD_IMAGE` failure (`Railpack failed to prepare the build`). This service is not a verified API Factory runtime and must not be presented as deployable. The account exposes only the existing EASY projects; no separate isolated API Factory project/environment is configured. Do not redirect or redeploy production services, copy EASY secrets, or create a new paid resource without explicit target setup and cost confirmation.
 
 ## Deployment execution status
 
