@@ -20,7 +20,7 @@ For the manual **Free Provider Real Probe**, Groq and OpenRouter require their c
 ## Run and verify
 
 1. Open **Actions** in the repository.
-2. Select the matching **P1 … Real Probe** workflow.
+2. Select **Free Provider Real Probe** for Groq, OpenRouter, or Hugging Face; use the matching **P1 … Real Probe** workflow for Cloudflare, Mistral, or NVIDIA NIM.
 3. Choose **Run workflow** on `main`.
 4. Open the run summary and artifact.
 5. Count the provider as verified only when the real probe and evidence-validation steps both pass and the artifact records a successful real completion. A skipped probe means **NOT VERIFIED**, not success.
