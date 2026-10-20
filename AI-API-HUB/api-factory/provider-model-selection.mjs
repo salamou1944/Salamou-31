@@ -6,6 +6,6 @@ export function chooseProviderModel({ provider, configuredModel, discoveredModel
   if (provider === "openrouter") {
     return freeModels.find((id) => id.toLowerCase() !== "openrouter/free" && isChatCandidate(id)) ?? "openrouter/free";
   }
-  if (provider === "huggingface_inference") return "openai/gpt-oss-120b:fastest";
+  if (provider === "huggingface_inference") return null;
   return discoveredModels.find(isChatCandidate) ?? null;
 }
