@@ -35,7 +35,7 @@ jobs:
         id: config
         shell: bash
         run: |
-          if [ -n "$MISTRAL_API_KEY" ]; then
+          if [ -n "$MISTRAL_API_KEY" ] && [ "$MISTRAL_BILLING_TIER" = "free" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "## Provider verification: NOT VERIFIED" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Mistral is NOT VERIFIED because MISTRAL_API_KEY is missing." >> "$GITHUB_STEP_SUMMARY"
+          echo "Mistral is NOT VERIFIED because MISTRAL_API_KEY is missing or MISTRAL_BILLING_TIER is not explicitly free." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "No live request was made and no production readiness is implied. Add the required secret(s) in GitHub repository Settings > Secrets and variables > Actions, then rerun this workflow." >> "$GITHUB_STEP_SUMMARY"
 
