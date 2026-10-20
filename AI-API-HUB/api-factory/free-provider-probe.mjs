@@ -20,6 +20,17 @@ if (process.env[billingTierEnv] !== "free") {
   console.log(JSON.stringify({ evidence_level: "NOT_VERIFIED", provider, reason: "billing_tier_not_explicitly_free", required_env: `${billingTierEnv}=free`, network_requests_made: 0, secret_committed: false }));
   process.exit(0);
 }
+if (provider === "huggingface_inference" && (!process.env.PROVIDER_MODEL || process.env.HF_MODEL_FREE_CONFIRMED !== "true")) {
+  console.log(JSON.stringify({
+    evidence_level: "NOT_VERIFIED",
+    provider,
+    reason: "model_specific_free_access_not_confirmed",
+    required_env: ["PROVIDER_MODEL=<verified model/provider>", "HF_MODEL_FREE_CONFIRMED=true"],
+    network_requests_made: 0,
+    secret_committed: false
+  }));
+  process.exit(0);
+}
 const key = process.env[cfg.env];
 if (!key) {
   console.error(JSON.stringify({ error: "MISSING_PROVIDER_KEY", provider, required_env: cfg.env }));
