@@ -81,7 +81,7 @@ export function createRegistryStore({
           const response = await fetchImpl(gateway + "/registry/check", {
             method: "GET",
             headers: { "x-factory-key": internalKey },
-            signal: AbortSignal.timeout(10000)
+            signal: AbortSignal.timeout(20000)
           });
           if (!response.ok) return { ok: false, mode, reason: "REGISTRY_STORAGE_UPSTREAM_HTTP_" + response.status };
           const probe = await response.json();
@@ -98,7 +98,10 @@ export function createRegistryStore({
         if (row && (!row.payload || !Array.isArray(row.payload.apis))) return { ok: false, mode, reason: "REGISTRY_STORAGE_INVALID_PAYLOAD" };
         return { ok: false, mode, reason: "REGISTRY_STORAGE_WRITE_READ_UNVERIFIED" };
       } catch (error) {
-        return { ok: false, mode, reason: error?.code || "REGISTRY_STORAGE_CHECK_FAILED" };
+        const reason = typeof error?.code === "string" && error.code ? error.code
+          : error?.name === "TimeoutError" ? "REGISTRY_STORAGE_CHECK_TIMEOUT"
+          : "REGISTRY_STORAGE_CHECK_FAILED";
+        return { ok: false, mode, reason };
       }
     },
     async read() {
