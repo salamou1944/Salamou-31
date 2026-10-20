@@ -77,6 +77,18 @@ export function createRegistryStore({
     async check() {
       if (!remoteConfigured) return { ok: false, mode, reason: remoteRequested ? "REGISTRY_STORAGE_CONFIGURATION_INCOMPLETE" : "REGISTRY_STORAGE_NOT_CONFIGURED" };
       try {
+        if (useGateway) {
+          const response = await fetchImpl(gateway + "/registry/check", {
+            method: "GET",
+            headers: { "x-factory-key": internalKey },
+            signal: AbortSignal.timeout(10000)
+          });
+          if (!response.ok) return { ok: false, mode, reason: "REGISTRY_STORAGE_UPSTREAM_HTTP_" + response.status };
+          const probe = await response.json();
+          return probe?.ok === true && probe?.read === true && probe?.write === true && probe?.verified === true
+            ? { ok: true, mode, writeVerified: true }
+            : { ok: false, mode, reason: "REGISTRY_STORAGE_WRITE_READ_UNVERIFIED" };
+        }
         const rows = await remoteRequest("GET", undefined);
         const row = Array.isArray(rows) ? rows.find(item => item.id === SINGLETON_ID) : null;
         if (row && (!row.payload || !Array.isArray(row.payload.apis))) return { ok: false, mode, reason: "REGISTRY_STORAGE_INVALID_PAYLOAD" };
