@@ -38,3 +38,25 @@ Never convert configuration-gate SUCCESS into REAL_COMPLETION or PRODUCTION-VERI
 ## Next promotion condition
 
 When valid provider credentials become available, run the corresponding `workflow_dispatch` probe and promote only from the resulting evidence artifact after the real-completion gate passes.
+
+
+## Repeat gate verification — 2026-10-20
+
+The provider-specific billing-tier guard was added for NVIDIA NIM, Cloudflare Workers AI, Hugging Face Inference, and Mistral. Each probe requires its provider credential **and** an explicit repository variable whose value is exactly `free`; otherwise the real probe is skipped before any provider network request.
+
+| Provider | Latest workflow run | Result | Gate evidence |
+|---|---:|---|---|
+| NVIDIA NIM | [39483019938](https://github.com/salamou1944/Salamou-31/actions/runs/39483019938) | SUCCESS | credential and billing-tier variables empty; NOT VERIFIED; no live request |
+| Cloudflare Workers AI | [39483019957](https://github.com/salamou1944/Salamou-31/actions/runs/39483019957) | SUCCESS | credentials and billing-tier variable empty; NOT VERIFIED; no live request |
+| Mistral | [39483019940](https://github.com/salamou1944/Salamou-31/actions/runs/39483019940) | SUCCESS | credential and billing-tier variable empty; NOT VERIFIED; no live request |
+| Hugging Face Inference | [39483019959](https://github.com/salamou1944/Salamou-31/actions/runs/39483019959) | SUCCESS | credential and billing-tier variable empty; NOT VERIFIED; no live request |
+
+The latest API Factory Test on the documentation follow-up commit also passed: [run 39489047000](https://github.com/salamou1944/Salamou-31/actions/runs/39489047000). These results prove the safety gates behave as intended; they are **not** evidence that any of the four hosted providers is configured or available.
+
+Required repository variables:
+- `NVIDIA_NIM_BILLING_TIER=free`
+- `CLOUDFLARE_WORKERS_AI_BILLING_TIER=free`
+- `MISTRAL_BILLING_TIER=free`
+- `HUGGINGFACE_INFERENCE_BILLING_TIER=free`
+
+Do not set a tier to `free` unless the actual account/model access is confirmed free under its current terms. No provider secrets were added by this work.
