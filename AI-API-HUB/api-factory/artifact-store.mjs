@@ -8,14 +8,19 @@ export function createArtifactStore({
 } = {}) {
   const url = typeof env.FACTORY_REGISTRY_URL === "string" ? env.FACTORY_REGISTRY_URL.trim().replace(/\/$/, "") : "";
   const key = typeof env.FACTORY_REGISTRY_SERVICE_ROLE_KEY === "string" ? env.FACTORY_REGISTRY_SERVICE_ROLE_KEY.trim() : "";
-  const remoteRequested = Boolean(url || key);
-  const remoteConfigured = Boolean(url && key);
+  const gateway = typeof env.FACTORY_STORAGE_GATEWAY_URL === "string" ? env.FACTORY_STORAGE_GATEWAY_URL.trim().replace(/\/$/, "") : "";
+  const internalKey = typeof env.FACTORY_API_KEY === "string" ? env.FACTORY_API_KEY.trim() : "";
+  const gatewayConfigured = Boolean(url && gateway && internalKey);
+  const remoteRequested = Boolean(url || key || gateway);
+  const remoteConfigured = Boolean(url && (key || gatewayConfigured));
+  const useGateway = gatewayConfigured && !key;
   const bucket = typeof env.FACTORY_ARTIFACT_BUCKET === "string" && env.FACTORY_ARTIFACT_BUCKET.trim()
     ? env.FACTORY_ARTIFACT_BUCKET.trim()
     : "api-factory-artifacts";
-  const mode = remoteConfigured ? "supabase-storage" : env.VERCEL ? "ephemeral-file" : "local-file";
+  const mode = remoteConfigured ? (useGateway ? "supabase-edge-gateway" : "supabase-storage") : env.VERCEL ? "ephemeral-file" : "local-file";
 
   function objectUrl(objectKey) {
+    if (useGateway) return gateway + "/artifacts/" + objectKey.split("/").map(encodeURIComponent).join("/");
     return url + "/storage/v1/object/" + encodeURIComponent(bucket) + "/" + objectKey.split("/").map(encodeURIComponent).join("/");
   }
 
@@ -27,12 +32,14 @@ export function createArtifactStore({
     }
     const response = await fetchImpl(objectUrl(objectKey), {
       method,
-      headers: {
-        apikey: key,
-        authorization: "Bearer " + key,
-        ...(contentType ? { "content-type": contentType } : {}),
-        ...(method === "PUT" ? { "x-upsert": "true" } : {})
-      },
+      headers: useGateway
+        ? { "x-factory-key": internalKey, ...(contentType ? { "content-type": contentType } : {}) }
+        : {
+            apikey: key,
+            authorization: "Bearer " + key,
+            ...(contentType ? { "content-type": contentType } : {}),
+            ...(method === "PUT" ? { "x-upsert": "true" } : {})
+          },
       ...(body === undefined ? {} : { body }),
       signal: AbortSignal.timeout(10000)
     });
@@ -51,12 +58,19 @@ export function createArtifactStore({
     async check() {
       if (!remoteConfigured) return { ok: false, mode, reason: remoteRequested ? "ARTIFACT_STORAGE_CONFIGURATION_INCOMPLETE" : "ARTIFACT_STORAGE_NOT_CONFIGURED" };
       try {
-        const response = await fetchImpl(url + "/storage/v1/object/list/" + encodeURIComponent(bucket), {
-          method: "POST",
-          headers: { apikey: key, authorization: "Bearer " + key, "content-type": "application/json" },
-          body: JSON.stringify({ prefix: "", limit: 1, offset: 0, sortBy: { column: "name", order: "asc" } }),
-          signal: AbortSignal.timeout(5000)
-        });
+        const response = useGateway
+          ? await fetchImpl(gateway + "/artifacts/check", {
+              method: "POST",
+              headers: { "x-factory-key": internalKey, "content-type": "application/json" },
+              body: "{}",
+              signal: AbortSignal.timeout(5000)
+            })
+          : await fetchImpl(url + "/storage/v1/object/list/" + encodeURIComponent(bucket), {
+              method: "POST",
+              headers: { apikey: key, authorization: "Bearer " + key, "content-type": "application/json" },
+              body: JSON.stringify({ prefix: "", limit: 1, offset: 0, sortBy: { column: "name", order: "asc" } }),
+              signal: AbortSignal.timeout(5000)
+            });
         if (!response.ok) return { ok: false, mode, reason: "ARTIFACT_STORAGE_UPSTREAM_HTTP_" + response.status };
         return { ok: true, mode };
       } catch (error) {
@@ -104,9 +118,9 @@ export function createArtifactStore({
     async readFiles(artifact) {
       const files = Array.isArray(artifact?.files) ? artifact.files : [];
       const storage = artifact?.storage;
-      const output = [];
-      if (storage?.durable === true && storage.mode === "supabase-storage" && remoteConfigured) {
+      if (storage?.durable === true && ["supabase-storage", "supabase-edge-gateway"].includes(storage.mode) && remoteConfigured) {
         const keys = Array.isArray(storage.keys) ? storage.keys : [];
+        const output = [];
         for (const file of files) {
           const objectKey = keys.find(key => key.endsWith("/" + file));
           if (!objectKey) {
@@ -120,6 +134,7 @@ export function createArtifactStore({
         return output;
       }
       const directory = typeof artifact?.directory === "string" ? artifact.directory : "";
+      const output = [];
       for (const file of files) {
         const fullPath = directory ? path.join(directory, file) : "";
         if (!fullPath || !fs.existsSync(fullPath)) {
@@ -134,7 +149,7 @@ export function createArtifactStore({
     async inspect(artifact) {
       const files = Array.isArray(artifact?.files) ? artifact.files : [];
       const storage = artifact?.storage;
-      if (storage?.durable === true && storage.mode === "supabase-storage" && remoteConfigured) {
+      if (storage?.durable === true && ["supabase-storage", "supabase-edge-gateway"].includes(storage.mode) && remoteConfigured) {
         const keys = Array.isArray(storage.keys) ? storage.keys : [];
         const present = [];
         const missing = [];
