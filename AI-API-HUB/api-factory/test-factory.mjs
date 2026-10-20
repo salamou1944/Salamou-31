@@ -115,7 +115,12 @@ await wait(1000);
 assert.equal(allowedChild.exitCode,null);
 const allowedReady=await fetch("http://127.0.0.1:3011/ready");
 assert.equal(allowedReady.status,200);
-assert.equal((await allowedReady.json()).ready,true);
+const allowedReadyBody=await allowedReady.json();
+assert.equal(allowedReadyBody.ready,true);
+assert.equal(allowedReadyBody.productionReady,false);
+assert.equal(allowedReadyBody.runtimeState.durable,false);
+assert.equal(allowedReadyBody.runtimeState.blocker,"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED");
+assert.deepEqual(allowedReadyBody.productionBlockers,["GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED"]);
 allowedChild.kill("SIGTERM");
 await wait(300);
 
