@@ -12,5 +12,6 @@ assert.equal(chooseProviderModel({
 }), "vendor/chat-model:free");
 assert.equal(chooseProviderModel({provider: "mistral", configuredModel: "mistral-small-latest"}), "mistral-small-latest");
 assert.equal(chooseProviderModel({provider: "groq", discoveredModels: ["canopylabs/orpheus-v1-english"]}), null);
-assert.equal(chooseProviderModel({provider: "huggingface_inference"}), "openai/gpt-oss-120b:fastest");
+assert.equal(chooseProviderModel({provider: "huggingface_inference"}), null);
+assert.equal(chooseProviderModel({provider: "huggingface_inference", configuredModel: "vendor/verified-model:provider"}), "vendor/verified-model:provider");
 console.log("provider-model-selection-test: OK");
