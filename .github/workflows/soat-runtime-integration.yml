@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: soat-runtime-integration-${{ github.run_id }}
-  cancel-in-progress: false
+  group: soat-runtime-integration-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   runtime-smoke:
