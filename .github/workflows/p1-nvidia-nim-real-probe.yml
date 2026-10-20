@@ -20,6 +20,7 @@ jobs:
         working-directory: AI-API-HUB/api-factory
     env:
       NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
+      NVIDIA_NIM_BILLING_TIER: ${{ vars.NVIDIA_NIM_BILLING_TIER }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
