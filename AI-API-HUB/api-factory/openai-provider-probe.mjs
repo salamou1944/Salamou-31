@@ -1,5 +1,9 @@
 import https from "node:https";
 
+if (process.env.OPENAI_BILLING_TIER !== "free") {
+  console.log(JSON.stringify({ evidence_level: "NOT_VERIFIED", provider: "openai", reason: "billing_tier_not_explicitly_free", required_env: "OPENAI_BILLING_TIER=free", network_requests_made: 0, secret_committed: false }));
+  process.exit(0);
+}
 const key = process.env.OPENAI_API_KEY;
 if (!key) {
   console.error(JSON.stringify({ evidence_level: "FAILED", provider: "openai", reason: "OPENAI_API_KEY_MISSING" }));
