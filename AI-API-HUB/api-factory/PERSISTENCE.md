@@ -17,7 +17,7 @@ The registry check performs a read and upsert/read-back verification. The artifa
 
 ## Direct Supabase mode
 
-The adapters also support direct server-side Supabase REST and Storage calls through `FACTORY_REGISTRY_SERVICE_ROLE_KEY`. If this mode is used, the service-role key must be stored only as a protected server environment variable and must never be committed or exposed to a client. Use a dedicated Salamou-31 project; never point these variables at EASY's project.
+The adapters also support direct server-side Supabase REST and Storage calls through `FACTORY_REGISTRY_SERVICE_ROLE_KEY`. If this mode is used, the service-role key must be stored only as a protected server environment variable and must never be committed or exposed to a client. Use a dedicated Salamou-31 project; never point these variables at EASY's project. Direct REST registry readiness currently fails closed with `REGISTRY_STORAGE_WRITE_READ_UNVERIFIED`: a GET-only probe is insufficient, and writing the live singleton as a health check could overwrite a concurrent registry update. Use the Edge Function gateway for a readiness-verified deployment until a safe, isolated direct-mode probe exists.
 
 ## Runtime and deployment limitations
 
