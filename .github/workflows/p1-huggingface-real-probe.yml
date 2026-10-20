@@ -23,6 +23,7 @@ jobs:
     env:
       PROVIDER: huggingface_inference
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HUGGINGFACE_INFERENCE_BILLING_TIER: ${{ vars.HUGGINGFACE_INFERENCE_BILLING_TIER }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
