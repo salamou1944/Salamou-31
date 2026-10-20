@@ -26,7 +26,7 @@ try {
     root,
     fetchImpl:async(url,options)=>{
       calls.push({url,options});
-      if(options.method==="GET") return {ok:true,status:200,text:async()=> "durable artifact content"};
+      if(options.method==="GET") return {ok:true,status:200,text:async()=> url.includes("api-factory-healthcheck/readiness-probe.txt") ? "api-factory-artifact-readiness-v1" : "durable artifact content"};
       return {ok:true,status:200,json:async()=>({})};
     }
   });
@@ -49,9 +49,16 @@ try {
   assert(remoteFiles.every(file=>file.content==="durable artifact content"));
   assert.equal(calls.length,6);
   assert(calls.slice(4).every(x=>x.options.method==="GET"));
+  assert.deepEqual(await remote.check(),{ok:true,mode:"supabase-storage",writeVerified:true});
+  assert.equal(calls.length,8);
+  assert.equal(calls[6].options.method,"PUT");
+  assert(calls[6].url.includes("/storage/v1/object/api-factory-artifacts/api-factory-healthcheck/readiness-probe.txt"));
+  assert.equal(calls[7].options.method,"GET");
+  assert.equal(calls[7].url,calls[6].url);
 
   const partial=createArtifactStore({env:{FACTORY_REGISTRY_URL:"https://db.example.test"},root});
   await assert.rejects(()=>partial.persist(artifact,"demo-api"),e=>e.code==="ARTIFACT_STORAGE_NOT_CONFIGURED");
+  assert.equal((await partial.check()).ok,false);
 
   const broken=createArtifactStore({
     env:{FACTORY_REGISTRY_URL:"https://db.example.test",FACTORY_REGISTRY_SERVICE_ROLE_KEY:"test-only-secret"},
@@ -59,6 +66,7 @@ try {
     fetchImpl:async()=>({ok:false,status:503,json:async()=>({})})
   });
   await assert.rejects(()=>broken.persist(artifact,"demo-api"),e=>e.code==="ARTIFACT_STORAGE_UPSTREAM_ERROR"&&e.status===503);
+  assert.equal((await broken.check()).ok,false);
   console.log("artifact-store: local inspection, private remote persistence, and fail-closed contracts passed");
 } finally {
   fs.rmSync(root,{recursive:true,force:true});

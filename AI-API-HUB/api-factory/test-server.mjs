@@ -84,6 +84,8 @@ try{
   assert.equal(built.api.artifact.directory,path.join(root,spec.name));
   assert.equal(built.api.artifact.storage.durable,false);
   assert.equal(built.api.artifact.storage.mode,"local-file");
+  assert.equal(built.api.runtimeState.durable,false);
+  assert.equal(built.api.runtimeState.blocker,"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED");
   assert(fs.existsSync(path.join(root,spec.name,"server.mjs")));
 
   const listed=await fetch(base+"/v1/factory/apis",{headers:{"x-api-key":"factory-secret"}});
@@ -97,18 +99,22 @@ try{
   assert.equal(inspection.durable,false);
   assert.deepEqual(inspection.missing,[]);
 
-  const exported=await fetch(base+"/v1/factory/export/"+spec.name,{headers:{"x-api-key":"factory-secret"}});
-  assert.equal(exported.status,200);
-  const exportBody=await exported.json();
-  assert.equal(exportBody.ok,true);
-  assert(exportBody.files.some(file=>file.name==="server.mjs"&&file.content.includes("/v1/ping")));
-  assert(exportBody.files.some(file=>file.name==="openapi.json"));
 
   const registered=await fetch(base+"/v1/factory/register",{method:"POST",headers,body:JSON.stringify(spec)});
   assert.equal(registered.status,200);
   const registeredBody=await registered.json();
   assert.equal(registeredBody.api.status,"REGISTERED");
   assert.equal(registeredBody.api.evidence,"COMPILED");
+
+  // Validate -> Build -> Register -> Export is the exercised production lifecycle.
+  const exported=await fetch(base+"/v1/factory/export/"+spec.name,{headers:{"x-api-key":"factory-secret"}});
+  assert.equal(exported.status,200);
+  const exportBody=await exported.json();
+  assert.equal(exportBody.ok,true);
+  assert.equal(exportBody.api.runtimeState.durable,false);
+  assert.equal(exportBody.api.runtimeState.blocker,"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED");
+  assert(exportBody.files.some(file=>file.name==="server.mjs"&&file.content.includes("/v1/ping")));
+  assert(exportBody.files.some(file=>file.name==="openapi.json"));
 
   const detail=await fetch(base+"/v1/factory/apis/"+spec.name,{headers:{"x-api-key":"factory-secret"}});
   assert.equal(detail.status,200);

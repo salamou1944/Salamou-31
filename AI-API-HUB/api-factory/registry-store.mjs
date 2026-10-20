@@ -11,9 +11,13 @@ export function createRegistryStore({
 } = {}) {
   const url = typeof env.FACTORY_REGISTRY_URL === "string" ? env.FACTORY_REGISTRY_URL.trim().replace(/\/$/, "") : "";
   const key = typeof env.FACTORY_REGISTRY_SERVICE_ROLE_KEY === "string" ? env.FACTORY_REGISTRY_SERVICE_ROLE_KEY.trim() : "";
-  const remoteRequested = Boolean(url || key);
-  const remoteConfigured = Boolean(url && key);
-  const isVercel = Boolean(env.VERCEL);
+  const gateway = typeof env.FACTORY_STORAGE_GATEWAY_URL === "string" ? env.FACTORY_STORAGE_GATEWAY_URL.trim().replace(/\/$/, "") : "";
+  const internalKey = typeof env.FACTORY_API_KEY === "string" ? env.FACTORY_API_KEY.trim() : "";
+  const gatewayConfigured = Boolean(url && gateway && internalKey);
+  const remoteRequested = Boolean(url || key || gateway);
+  const remoteConfigured = Boolean(url && (key || gatewayConfigured));
+  const useGateway = gatewayConfigured && !key;
+  const mode = remoteConfigured ? (useGateway ? "supabase-edge-gateway" : "supabase-rest") : env.VERCEL ? "ephemeral-file" : "local-file";
 
   function readFile() {
     try {
@@ -38,18 +42,24 @@ export function createRegistryStore({
       error.code = "REGISTRY_STORAGE_NOT_CONFIGURED";
       throw error;
     }
-    const query = method === "POST" ? "?on_conflict=id" : "?id=eq." + SINGLETON_ID + "&select=id,payload";
-    const response = await fetchImpl(url + "/rest/v1/" + TABLE + query, {
-      method,
-      headers: {
-        apikey: key,
-        authorization: "Bearer " + key,
-        "content-type": "application/json",
-        prefer: "resolution=merge-duplicates,return=representation"
-      },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      signal: AbortSignal.timeout(5000)
-    });
+    const response = useGateway
+      ? await fetchImpl(gateway + "/registry", {
+          method,
+          headers: { "x-factory-key": internalKey, "content-type": "application/json" },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          signal: AbortSignal.timeout(5000)
+        })
+      : await fetchImpl(url + "/rest/v1/" + TABLE + (method === "POST" ? "?on_conflict=id" : "?id=eq." + SINGLETON_ID + "&select=id,payload"), {
+          method,
+          headers: {
+            apikey: key,
+            authorization: "Bearer " + key,
+            "content-type": "application/json",
+            prefer: "resolution=merge-duplicates,return=representation"
+          },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          signal: AbortSignal.timeout(5000)
+        });
     if (!response.ok) {
       const error = new Error("Registry storage request failed with HTTP " + response.status);
       error.code = "REGISTRY_STORAGE_UPSTREAM_ERROR";
@@ -61,9 +71,39 @@ export function createRegistryStore({
   }
 
   return {
-    mode: remoteConfigured ? "supabase-rest" : isVercel ? "ephemeral-file" : "local-file",
+    mode,
     durable: remoteConfigured,
     configured: remoteConfigured,
+    async check() {
+      if (!remoteConfigured) return { ok: false, mode, reason: remoteRequested ? "REGISTRY_STORAGE_CONFIGURATION_INCOMPLETE" : "REGISTRY_STORAGE_NOT_CONFIGURED" };
+      try {
+        if (useGateway) {
+          const response = await fetchImpl(gateway + "/registry/check", {
+            method: "GET",
+            headers: { "x-factory-key": internalKey },
+            signal: AbortSignal.timeout(20000)
+          });
+          if (!response.ok) return { ok: false, mode, reason: "REGISTRY_STORAGE_UPSTREAM_HTTP_" + response.status };
+          const probe = await response.json();
+          return probe?.ok === true && probe?.read === true && probe?.write === true && probe?.verified === true
+            ? { ok: true, mode, writeVerified: true }
+            : { ok: false, mode, reason: "REGISTRY_STORAGE_WRITE_READ_UNVERIFIED" };
+        }
+        // A read-only GET does not prove that the registry can write and read back.
+        // Do not mutate the live singleton as a health probe: a concurrent write could be lost.
+        // Direct REST mode remains available for normal operations, but readiness fails closed
+        // until a non-destructive write/read-back probe is provided by a dedicated gateway.
+        const rows = await remoteRequest("GET", undefined);
+        const row = Array.isArray(rows) ? rows.find(item => item.id === SINGLETON_ID) : null;
+        if (row && (!row.payload || !Array.isArray(row.payload.apis))) return { ok: false, mode, reason: "REGISTRY_STORAGE_INVALID_PAYLOAD" };
+        return { ok: false, mode, reason: "REGISTRY_STORAGE_WRITE_READ_UNVERIFIED" };
+      } catch (error) {
+        const reason = typeof error?.code === "string" && error.code ? error.code
+          : error?.name === "TimeoutError" ? "REGISTRY_STORAGE_CHECK_TIMEOUT"
+          : "REGISTRY_STORAGE_CHECK_FAILED";
+        return { ok: false, mode, reason };
+      }
+    },
     async read() {
       if (remoteRequested) {
         const rows = await remoteRequest("GET", undefined);

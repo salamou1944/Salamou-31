@@ -21,16 +21,18 @@ const artifactStore=createArtifactStore({root});
 async function readRegistry(){return registryStore.read();}
 async function writeRegistry(x){return registryStore.write(x);}
 function auth(request,reply){const configuredKey=process.env.FACTORY_API_KEY;if(typeof configuredKey!=="string"||configuredKey.length===0)return reply.code(503).send({ok:false,error:"API factory authentication is not configured",code:"AUTH_CONFIGURATION_REQUIRED"});if(request.headers["x-api-key"]!==configuredKey)return reply.code(401).send({ok:false,error:"Unauthorized",code:"UNAUTHORIZED"});}
-function registryEntry(spec,artifact){return {identity:spec.name,name:spec.name,version:spec.version,status:"COMPILED",evidence:"COMPILED",capabilities:spec.capabilities,auth:spec.auth,operations:spec.operations.length,provider:spec.provider?.kind||null,runtime:"node-fastify",deployment:{status:"NOT_DEPLOYED"},artifact,updatedAt:new Date().toISOString()};}
+function registryEntry(spec,artifact){return {identity:spec.name,name:spec.name,version:spec.version,status:"COMPILED",evidence:"COMPILED",capabilities:spec.capabilities,auth:spec.auth,operations:spec.operations.length,provider:spec.provider?.kind||null,runtime:"node-fastify",runtimeState:artifact.runtimeState||{durable:false,status:"NOT_VERIFIED",blocker:"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED"},deployment:{status:"NOT_DEPLOYED"},artifact,updatedAt:new Date().toISOString()};}
 async function register(spec,artifact){const registry=await readRegistry();registry.apis=registry.apis.filter(x=>x.name!==spec.name);registry.apis.push(registryEntry(spec,artifact));await writeRegistry(registry);return registry.apis.find(x=>x.name===spec.name);}
 app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:"manifest-to-runnable-api"}));
 app.get("/ready",async(request,reply)=>{
   const authConfigured=typeof process.env.FACTORY_API_KEY==="string"&&process.env.FACTORY_API_KEY.length>0;
   if(!authConfigured)return reply.code(503).send({ok:false,ready:false,code:"AUTH_CONFIGURATION_REQUIRED",checks:{authentication:false}});
-  const persistenceReady=registryStore.durable&&artifactStore.durable;
+  const [registryCheck,artifactCheck]=await Promise.all([registryStore.check(),artifactStore.check()]);
+  const persistenceReady=registryCheck.ok&&artifactCheck.ok;
   const readiness={
-    checks:{authentication:true,registryPersistence:registryStore.durable,artifactPersistence:artifactStore.durable},
-    storage:{registryMode:registryStore.mode,artifactMode:artifactStore.mode,durable:persistenceReady}
+    checks:{authentication:true,registryPersistence:registryCheck.ok,artifactPersistence:artifactCheck.ok},
+    storage:{registryMode:registryStore.mode,artifactMode:artifactStore.mode,durable:persistenceReady},
+    ...(persistenceReady?{}:{storageErrors:{registry:registryCheck.reason||null,artifacts:artifactCheck.reason||null}})
   };
   if(!persistenceReady)return reply.code(503).send({ok:false,ready:false,code:"DURABLE_STORAGE_REQUIRED",...readiness});
   return {ok:true,ready:true,degraded:false,...readiness};
@@ -132,7 +134,7 @@ app.get("/v1/factory/export/:name",async(request,reply)=>{
   if(!item)return reply.code(404).send({ok:false,error:"API not found"});
   try{
     const files=await artifactStore.readFiles(item.artifact);
-    return {ok:true,api:{name:item.name,version:item.version,auth:item.auth,provider:item.provider},files};
+    return {ok:true,api:{name:item.name,version:item.version,auth:item.auth,provider:item.provider,runtimeState:item.runtimeState||item.artifact?.runtimeState||{durable:false,status:"NOT_VERIFIED",blocker:"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED"}},files};
   }catch(e){
     const status=e.code==="ARTIFACT_NOT_FOUND"?410:503;
     return reply.code(status).send({ok:false,error:e.message,code:e.code||"ARTIFACT_EXPORT_UNAVAILABLE"});

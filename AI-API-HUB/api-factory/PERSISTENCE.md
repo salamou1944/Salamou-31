@@ -1,23 +1,30 @@
 # API Factory persistence setup
 
-The Vercel runtime uses ephemeral `/tmp` storage unless a dedicated external store is configured. Health can pass while the service is in a degraded state; the `/ready` response exposes `checks.registryPersistence`, `checks.artifactPersistence`, and `degraded`.
+The factory must distinguish process health from durable storage. `GET /health` only proves that the process responds; `GET /ready` returns HTTP 200 only after authenticated registry and artifact read/write verification. Incomplete or failed remote storage returns HTTP 503 and must never be silently downgraded to ephemeral storage.
 
-## Required configuration for durable state
+## Current verified zero-upfront-cost configuration
 
-Use a **dedicated Supabase project for Salamou-31**. Never point these variables at EASY's project.
+The active preview uses the dedicated Salamou-31 Supabase project through the `api-factory-storage` Edge Function gateway:
 
-- `FACTORY_REGISTRY_URL`: project URL, e.g. `https://PROJECT_REF.supabase.co`.
-- `FACTORY_REGISTRY_SERVICE_ROLE_KEY`: Supabase service-role secret. Store only as a sensitive Vercel environment variable; never commit it or paste it into chat.
+- `FACTORY_STORAGE_GATEWAY_URL`: the deployed `api-factory-storage` Edge Function URL.
+- `FACTORY_REGISTRY_URL`: the dedicated Salamou-31 Supabase project URL.
 - `FACTORY_ARTIFACT_BUCKET`: optional; defaults to `api-factory-artifacts`.
+- `FACTORY_API_KEY`: the internal gateway key, configured as a sensitive environment variable on the Render preview and matched to the digest in the Edge Function source.
 
-Apply `migrations/20261017_api_factory_storage.sql` in that dedicated project's SQL editor. It creates the private artifact bucket and a singleton JSONB registry table with RLS enabled and no anon/authenticated access. The service-role key is required for server-to-server operations.
+The gateway uses the Supabase service-role credential only inside the Supabase Edge Function environment. Do not copy that credential into Render, GitHub, client-side code, or chat. The gateway validates the internal key by comparing its SHA-256 digest; the raw key is not stored in the repository.
 
-The registry adapter uses Supabase REST and the artifact adapter uses the private Supabase Storage API directly; no new npm dependency is required. Build and inspection use remote object storage when configured, while the registry row stores the artifact manifest. When remote configuration is partially present or remote requests fail, it fails closed rather than silently switching to ephemeral storage.
+The registry check performs a read and upsert/read-back verification. The artifact check uploads a probe object to the private bucket and downloads it to verify the content. The generated API artifact store also uses the gateway for object upload and retrieval. The externally observed `DURABLE_STORAGE_VERIFIED` smoke is evidence for the preview's registry and artifact paths, not a general production SLA.
 
-## Current limitation
+## Direct Supabase mode
 
-The code supports durable state, but the deployment is **not durable until the environment variables point to a separately approved/dedicated project and the migration is applied**. The existing EASY project is intentionally excluded. No paid resource was created.
+The adapters also support direct server-side Supabase REST and Storage calls through `FACTORY_REGISTRY_SERVICE_ROLE_KEY`. If this mode is used, the service-role key must be stored only as a protected server environment variable and must never be committed or exposed to a client. Use a dedicated Salamou-31 project; never point these variables at EASY's project. Direct REST registry readiness currently fails closed with `REGISTRY_STORAGE_WRITE_READ_UNVERIFIED`: a GET-only probe is insufficient, and writing the live singleton as a health check could overwrite a concurrent registry update. Use the Edge Function gateway for a readiness-verified deployment until a safe, isolated direct-mode probe exists.
 
-## Scope boundary
+## Runtime and deployment limitations
 
-This adapter persists the **Factory's registry and generated bundle files only**. It does not automatically move the generated API's own request-idempotency ledger, usage ledger, quota state, or application/business data to remote storage. Those generated runtime files currently use local paths and are ephemeral on serverless/free hosts. A generated API that mutates state must not be advertised as production-durable until its own state store is separately designed and tested. The Vercel Factory deployment is therefore a verified control-plane endpoint plus bundle export, not proof that arbitrary generated APIs are durably hosted.
+- Render's Free preview can sleep while idle. Verified persistence does not provide an uptime guarantee.
+- Vercel remains fail-closed until its environment can be configured with the gateway URL and matching internal key through authorized project/team access.
+- Local-file and Vercel `/tmp` modes are not durable.
+- The factory's registry and generated bundle files are persisted, but a generated API's own request-idempotency ledger, usage ledger, quota state, and application/business data are not automatically moved to the remote store. A generated API that mutates state must not be advertised as production-durable until its own state store is separately designed and tested.
+- Deployment planning is not deployment execution. The current Railway/Vercel deployment adapter is unimplemented; provider credentials alone do not prove that a service has been created, deployed, or smoke-tested.
+
+No paid resource is required for the currently verified preview configuration. Do not upgrade a service or add a payment method just to complete setup.

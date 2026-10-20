@@ -19,7 +19,9 @@ assert.throws(()=>validateSpec({...spec,operations:[spec.operations[0],spec.oper
 assert.throws(()=>validateSpec({...spec,operations:[{...spec.operations[0],handler:"provider"}]}),/provider handler requires/);
 
 const artifact=compileApi(spec,root);
+assert.deepEqual(artifact.runtimeState,{durable:false,status:"NOT_VERIFIED",blocker:"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED",components:["request-idempotency-ledger","usage-ledger","quota-state"],scope:"local-files-or-process-memory"});
 for(const file of artifact.files) assert.equal(fs.existsSync(path.join(root,"demo-orders",file)),true);
+assert.match(fs.readFileSync(path.join(root,"demo-orders","README.md"),"utf8"),/GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED/);
 const generated=path.join(root,"demo-orders");
 assert.match(fs.readFileSync(path.join(generated,"server.mjs"),"utf8"),/RequestLedger/);
 assert.match(fs.readFileSync(path.join(generated,"openapi.json"),"utf8"),/"x-api-key"/);
