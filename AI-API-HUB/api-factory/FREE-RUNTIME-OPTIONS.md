@@ -21,8 +21,8 @@ Use an existing, explicitly authorized account quota or local inference first. K
 
 Check only accounts the operator already owns and their current terms:
 
-1. GitHub Copilot: connect through the official OAuth flow only if the account has an active free/paid allowance. GitHub login alone does not imply Copilot entitlement.
-2. Gemini CLI: its OAuth-based CLI has had a free allowance, but quota, model access, regions, and acceptable-use terms can change. Verify the current account UI/official terms before treating it as available.
+1. GitHub Copilot: the official Copilot Free plan is limited and model selection may be restricted; GitHub login alone does not imply Copilot entitlement. Prefer the official client unless the account's current terms permit the intended third-party routing. Current plan details: https://docs.github.com/en/copilot/get-started/plans
+2. Gemini CLI: use its OAuth allowance through the official Gemini CLI itself, subject to current account limits. Google announced anti-abuse measures specifically addressing Gemini CLI OAuth used by third-party software and limited free-tier access to Flash models; do **not** route Gemini CLI OAuth through OmniRoute or another third-party proxy unless Google's current terms explicitly permit that exact use. Source: https://github.com/google-gemini/gemini-cli/discussions/22970
 3. OpenAI Codex: use the quota included with an eligible ChatGPT plan via the official Codex CLI/app-server route. This is an existing subscription allowance, not a free API key or a way to bypass OpenAI billing.
 
 Do not rotate identities, share tokens, or proxy session cookies to evade provider limits or terms. Treat provider quotas as separate, finite entitlements.
