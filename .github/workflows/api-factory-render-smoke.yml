@@ -1,0 +1,39 @@
+name: API Factory Render External Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/api-factory-render-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  render-readiness-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Probe public health endpoint
+        env:
+          BASE_URL: https://salamou-31-api-factory.onrender.com
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4; do
+            code="$(curl --silent --show-error --max-time 90 -o health.json -w '%{http_code}' "$BASE_URL/health" || true)"
+            if [ "$code" = "200" ]; then break; fi
+            echo "health attempt $attempt returned HTTP ${code:-no-response}"
+            sleep 5
+          done
+          test "$code" = "200"
+          node -e 'const x=require("./health.json"); if(x?.ok!==true || x?.service!=="api-factory") process.exit(1); console.log(JSON.stringify({health:"PASS",service:x.service,version:x.version,mode:x.mode}))'
+
+      - name: Verify readiness fails closed until production prerequisites exist
+        env:
+          BASE_URL: https://salamou-31-api-factory.onrender.com
+        run: |
+          set -euo pipefail
+          code="$(curl --silent --show-error --max-time 90 -o ready.json -w '%{http_code}' "$BASE_URL/ready" || true)"
+          test "$code" = "503"
+          node -e 'const x=require("./ready.json"); if(x?.ok!==false || x?.ready!==false || !["AUTH_CONFIGURATION_REQUIRED","DURABLE_STORAGE_REQUIRED"].includes(x?.code)) process.exit(1); console.log(JSON.stringify({readiness:"CORRECTLY_BLOCKED",httpStatus:503,code:x.code,checks:x.checks||null,storage:x.storage||null}))'
