@@ -4,6 +4,8 @@
 
 The existing Free Render service is a live **preview runtime** at https://salamou31-api-factory-preview.onrender.com. It can sleep when idle and does not have a persistent local disk, so the local filesystem is never treated as durable storage.
 
+The separate main-branch service at https://salamou-31-api-factory.onrender.com is live on commit `83f69126689eaac920f044b1e54cb8878d52fffc`, but the production smoke currently reports HTTP 503 `DURABLE_STORAGE_REQUIRED` and both stores as `local-file`. Treat it as **not production-ready**. The preview is the only endpoint currently verified with durable storage. Do not simply add gateway variables to the main service until its existing local registry/artifacts and matching gateway key have been verified and safely migrated.
+
 Durable registry and artifact storage is provided by the dedicated Supabase project salamou-31-api-factory using the Edge Function api-factory-storage:
 - Registry records use the private public.api_factory_registry table.
 - Artifact files use the private api-factory-artifacts Storage bucket.
