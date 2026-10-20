@@ -3,27 +3,38 @@ name: API Factory Render External Smoke
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - fix/api-factory-live-storage-readiness-2026-10-20
     paths:
       - ".github/workflows/api-factory-render-smoke.yml"
+      - "AI-API-HUB/api-factory/server.mjs"
+      - "AI-API-HUB/api-factory/registry-store.mjs"
+      - "AI-API-HUB/api-factory/artifact-store.mjs"
+  pull_request:
+    paths:
+      - ".github/workflows/api-factory-render-smoke.yml"
+      - "AI-API-HUB/api-factory/server.mjs"
+      - "AI-API-HUB/api-factory/registry-store.mjs"
+      - "AI-API-HUB/api-factory/artifact-store.mjs"
 
 permissions:
   contents: read
 
-# This workflow performs GET-only probes; it never mutates factory state.
+# GET-only public probes. No factory state is mutated and no secret is required.
 
 jobs:
   render-readiness-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    env:
+      BASE_URL: https://salamou31-api-factory-preview.onrender.com
     steps:
       - name: Probe public health endpoint
-        env:
-          BASE_URL: https://salamou-31-api-factory.onrender.com
         run: |
           set -euo pipefail
-          for attempt in 1 2 3 4; do
-            code="$(curl --silent --show-error --max-time 90 -o health.json -w '%{http_code}' "$BASE_URL/health" || true)"
+          code=""
+          for attempt in 1 2 3 4 5 6; do
+            code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -o health.json -w '%{http_code}' "$BASE_URL/health" || true)"
             if [ "$code" = "200" ]; then break; fi
             echo "health attempt $attempt returned HTTP ${code:-no-response}"
             sleep 5
@@ -31,11 +42,22 @@ jobs:
           test "$code" = "200"
           node -e 'const x=require("./health.json"); if(x?.ok!==true || x?.service!=="api-factory") process.exit(1); console.log(JSON.stringify({health:"PASS",service:x.service,version:x.version,mode:x.mode}))'
 
-      - name: Verify readiness fails closed until production prerequisites exist
-        env:
-          BASE_URL: https://salamou-31-api-factory.onrender.com
+      - name: Verify readiness fails closed until authentication is configured
         run: |
           set -euo pipefail
-          code="$(curl --silent --show-error --max-time 90 -o ready.json -w '%{http_code}' "$BASE_URL/ready" || true)"
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -o ready.json -w '%{http_code}' "$BASE_URL/ready" || true)"
           test "$code" = "503"
-          node -e 'const x=require("./ready.json"); if(x?.ok!==false || x?.ready!==false || !["AUTH_CONFIGURATION_REQUIRED","DURABLE_STORAGE_REQUIRED"].includes(x?.code)) process.exit(1); console.log(JSON.stringify({readiness:"CORRECTLY_BLOCKED",httpStatus:503,code:x.code,checks:x.checks||null,storage:x.storage||null}))'
+          node -e 'const x=require("./ready.json"); if(x?.ok!==false || x?.ready!==false || x?.code!=="AUTH_CONFIGURATION_REQUIRED" || x?.checks?.authentication!==false) process.exit(1); console.log(JSON.stringify({readiness:"CORRECTLY_BLOCKED",httpStatus:503,code:x.code,checks:x.checks||null}))'
+
+      - name: Verify public capabilities contract
+        run: |
+          set -euo pipefail
+          curl --silent --show-error --connect-timeout 10 --max-time 90 --fail "$BASE_URL/v1/factory/capabilities" -o capabilities.json
+          node -e 'const x=require("./capabilities.json"); if(!x.operations?.includes("export") || x.deploymentExecutionImplemented!==false) process.exit(1); console.log(JSON.stringify({capabilities:"PASS",deploymentExecutionImplemented:x.deploymentExecutionImplemented,operations:x.operations}))'
+
+      - name: Verify protected route fails closed without configured key
+        run: |
+          set -euo pipefail
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -o protected.json -w '%{http_code}' "$BASE_URL/v1/factory/apis" || true)"
+          test "$code" = "503"
+          node -e 'const x=require("./protected.json"); if(x?.ok!==false || x?.code!=="AUTH_CONFIGURATION_REQUIRED") process.exit(1); console.log(JSON.stringify({authentication:"FAIL_CLOSED",httpStatus:503,code:x.code}))'
