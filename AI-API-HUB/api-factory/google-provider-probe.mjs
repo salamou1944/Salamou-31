@@ -1,5 +1,9 @@
 import process from "node:process";
 
+if (process.env.GOOGLE_AI_STUDIO_BILLING_TIER !== "free") {
+  console.log(JSON.stringify({ evidence_level: "NOT_VERIFIED", provider: "google_ai_studio", reason: "billing_tier_not_explicitly_free", required_env: "GOOGLE_AI_STUDIO_BILLING_TIER=free", network_requests_made: 0, secret_committed: false }));
+  process.exit(0);
+}
 const key = process.env.GOOGLE_AI_API_KEY;
 if (!key) {
   console.error(JSON.stringify({ error: "MISSING_PROVIDER_KEY", provider: "google_ai_studio", required_env: "GOOGLE_AI_API_KEY" }));
