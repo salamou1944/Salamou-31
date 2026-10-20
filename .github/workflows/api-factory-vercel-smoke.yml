@@ -51,7 +51,7 @@ jobs:
             sleep 10
           done
           node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(x.ok!==true||x.service!=="api-factory") process.exit(1); console.log(JSON.stringify(x))'
-      - name: Verify readiness endpoint is honest about durable storage
+      - name: Verify readiness endpoint fails closed without durable storage
         shell: bash
         run: |
           set -euo pipefail
@@ -64,7 +64,15 @@ jobs:
             sleep 10
           done
           test -s /tmp/ready.json
-          STATUS="$status" node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/ready.json","utf8")); const status=process.env.STATUS; const durable=x.checks?.registryPersistence===true&&x.checks?.artifactPersistence===true&&x.storage?.durable===true&&x.ready===true&&x.ok===true; const failClosed=status==="503"&&x.ok===false&&x.ready===false&&x.code==="DURABLE_STORAGE_REQUIRED"&&x.checks?.authentication===true&&x.checks?.registryPersistence===false&&x.checks?.artifactPersistence===false&&x.storage?.durable===false; if(!durable&&!failClosed) { console.error("Readiness contract mismatch; HTTP "+status, x); process.exit(1); } console.log(JSON.stringify({httpStatus:Number(status),productionReady:durable,expectedBlocker:failClosed?x.code:null,body:x}));'
+          STATUS="$status" node -e '
+            const x=JSON.parse(require("fs").readFileSync("/tmp/ready.json","utf8"));
+            const status=process.env.STATUS;
+            const durable=status==="200"&&x.checks?.registryPersistence===true&&x.checks?.artifactPersistence===true&&x.storage?.durable===true&&x.ready===true&&x.ok===true;
+            const authBlocked=status==="503"&&x.ok===false&&x.ready===false&&x.code==="AUTH_CONFIGURATION_REQUIRED"&&x.checks?.authentication===false;
+            const storageBlocked=status==="503"&&x.ok===false&&x.ready===false&&x.code==="DURABLE_STORAGE_REQUIRED"&&x.checks?.authentication===true&&x.checks?.registryPersistence===false&&x.checks?.artifactPersistence===false&&x.storage?.durable===false;
+            if(!durable&&!authBlocked&&!storageBlocked) { console.error("Readiness contract mismatch; HTTP "+status, x); process.exit(1); }
+            console.log(JSON.stringify({httpStatus:Number(status),productionReady:durable,expectedBlocker:authBlocked?"AUTH_CONFIGURATION_REQUIRED":storageBlocked?"DURABLE_STORAGE_REQUIRED":null,body:x}));
+          '
       - name: Verify live capabilities and export route contract
         shell: bash
         run: |
@@ -75,6 +83,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          status=$(curl --connect-timeout 5 --max-time 10 --silent --show-error -o /tmp/export-unauth.json -w '%{http_code}' https://salamou31-api-factory.vercel.app/v1/factory/export/__smoke_test__)
-          test "$status" = "401"
-          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/export-unauth.json","utf8")); if(x.ok!==false) process.exit(1); console.log("export authentication gate: PASS")'
+          status=$(curl --connect-timeout 5 --max-time 10 --silent --show-error -o /tmp/export-unauth.json -w '%{http_code}' https://salamou31-api-factory.vercel.app/v1/factory/export/__smoke_test__ || true)
+          test "$status" = "401" -o "$status" = "503"
+          STATUS="$status" node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/export-unauth.json","utf8")); const status=process.env.STATUS; const authConfigured=status==="401"&&x.ok===false&&x.code==="UNAUTHORIZED"; const authMissing=status==="503"&&x.ok===false&&x.code==="AUTH_CONFIGURATION_REQUIRED"; if(!authConfigured&&!authMissing) process.exit(1); console.log(JSON.stringify({authenticationGate:"PASS",httpStatus:Number(status),code:x.code}))'
