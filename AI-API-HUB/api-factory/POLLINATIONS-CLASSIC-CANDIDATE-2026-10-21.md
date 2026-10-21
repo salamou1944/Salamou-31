@@ -27,6 +27,6 @@ Pollinations is a plausible no-key test path, but the current product has two di
 
 - Status: **candidate — not live-verified**.
 - Suitable next experiment: one non-sensitive deterministic sentinel through the official Classic endpoint, with no API key and no paid fallback.
-- Do not mark `official_source_verified=true` in the routing fixture or enable automatic production routing until the live sentinel passes and current provider-owned usage/terms are confirmed.
+- The provider-owned privacy source has now been reviewed and recorded in the fixture, but runtime evidence is still missing. Keep `hard_stop=false` and do not enable automatic routing until the live sentinel and exact quota behavior are verified.
 - A proposed one-shot GitHub Actions workflow was blocked by the connected execution tool's safety checks, and the browser tool could not access the endpoint. No network request was made from this session, no provider was enabled, and no paid resource was created.
 - Keep the existing provider gate fail-closed. The current OpenAI-compatible provider registry can be extended only after the separate probe and policy test are implemented and pass.
