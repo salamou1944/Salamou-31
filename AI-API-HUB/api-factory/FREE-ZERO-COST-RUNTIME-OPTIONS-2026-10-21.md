@@ -53,3 +53,26 @@ ChatGPT product access and API billing remain separate. OmniRoute also contains 
 - GitHub Models retirement announcement: https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/
 
 Researched 2026-10-21. Recheck official provider terms before enabling a provider; catalog numbers and quotas are not guarantees.
+
+## Official free-tier refresh — 2026-10-21
+
+### OpenRouter free tier
+OpenRouter's current official pricing page lists 25+ free models and 4 free providers on its Free plan. Free-model requests are capped at 20 requests/minute and 50 requests/day; the 1,000/day allowance is unlocked only after the account has purchased $10 of credits, which is outside this project's no-spend policy. Failed attempts count toward the daily cap, and free-model availability/limits can change. Sources:
+- https://openrouter.ai/pricing
+- https://openrouter.ai/collections/free-models/
+
+This makes OpenRouter the next practical hosted candidate for a single, non-sensitive sentinel test only if an existing account/key is already available and its plan is confirmed. The connected tools do not expose an OpenRouter account or prove a usable key. The existing probe deliberately skipped the request while OPENROUTER_BILLING_TIER was empty; do not change that guard based only on the existence of a free plan.
+
+### Gemini free tier and data boundary
+Google's official pricing page lists free input/output tokens for certain eligible models, with model-specific limits. It also states that content in the free tier is used to improve Google's products, unlike the paid tier. Therefore do not send customer data, secrets, or confidential business content through a free-tier Gemini probe. Account/model eligibility still needs to be verified before any request:
+- https://ai.google.dev/gemini-api/docs/pricing
+- https://ai.google.dev/gemini-api/docs/rate-limits
+
+### Supported ChatGPT/Codex route
+OpenAI's Help Center currently says Codex is included with ChatGPT Free and Go, subject to plan usage limits, but Codex Cloud is not included in Free or Go. The supported local CLI/app/IDE route is a coding agent, not a general OpenAI API key or always-on inference endpoint:
+- https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan
+
+### Current decision
+1. First try to verify the existing OpenRouter account/key without revealing the key or activating billing. If no account/key is already available, do not create paid dependencies.
+2. If account access is confirmed, run exactly one deterministic sentinel through a strictly free model, with paid fallback disabled, save response metadata, and record rate/terms.
+3. In parallel, restore the existing Windows self-hosted runner to Idle so the local inventory can prove whether Ollama/Codex CLI is installed. The queued runner workflow is not evidence of local availability.
