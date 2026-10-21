@@ -27,9 +27,16 @@ for (const item of fixture) {
   assert.ok(["recurring", "one_time_initial", "promotion", "none", "unknown"].includes(item.free_status));
   assert.ok(typeof item.hard_stop === "boolean");
   assert.ok(["ok", "review", "avoid"].includes(item.tos_risk));
-  assert.match(item.source_last_researched, /^2026-10-05$/);
+  const sourceDate = new Date(`${item.source_last_researched}T00:00:00Z`);
+  assert.ok(!Number.isNaN(sourceDate.getTime()), `${item.provider_id}: invalid source date`);
+  const ageDays = (Date.now() - sourceDate.getTime()) / (24 * 60 * 60 * 1000);
+  assert.ok(ageDays >= 0 && ageDays <= 30, `${item.provider_id}: source evidence is stale or future-dated`);
   assert.match(item.source_url, /^https:\/\//);
-  assert.equal(item.official_source_verified, false);
+  assert.equal(typeof item.official_source_verified, "boolean");
+  if (item.official_source_verified) {
+    const host = new URL(item.source_url).hostname.toLowerCase();
+    assert.ok(!["github.com", "www.github.com", "freellm.net"].includes(host), `${item.provider_id}: community catalog cannot be official evidence`);
+  }
 }
 
 console.log("free-provider-policy fixture + fail-closed rules: PASS");
