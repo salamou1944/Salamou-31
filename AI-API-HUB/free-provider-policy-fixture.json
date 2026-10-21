@@ -16,14 +16,15 @@
     "provider_id": "pollinations",
     "access_class": "keyless",
     "free_status": "recurring",
-    "quota_basis": "provider-defined keyless allowance",
+    "quota_basis": "Free API Classic anonymous access; IP-based abuse limits exist, exact current limit not verified",
     "estimated_monthly_tokens": null,
     "hard_stop": false,
     "eligibility_gate": "none",
     "tos_risk": "review",
-    "source_last_researched": "2026-10-05",
-    "source_url": "https://github.com/diegosouzapw/OmniRoute",
-    "official_source_verified": false
+    "source_last_researched": "2026-10-21",
+    "source_url": "https://enter.pollinations.ai/privacy",
+    "official_source_verified": true,
+    "notes": "Official source reviewed. Keep hard_stop=false until a live non-sensitive sentinel and exact quota behavior are verified; current Gen API requires a key and must not be confused with the Classic endpoint."
   },
   {
     "provider_id": "ollama-local",
