@@ -26,6 +26,27 @@
 
 ChatGPT product access and API billing remain separate. OmniRoute also contains a ChatGPT Web (Codex) MCP adapter entry point, but the existence of that code does **not** prove that it is an officially supported, free, stable API route for this service. Do not import browser cookies/session tokens, share accounts, scrape a web session, or route production traffic through that adapter unless its implementation and current OpenAI terms are explicitly reviewed and permitted. Prefer the supported Codex local client for coding work, or official API credentials/local inference for a service.
 
+## Newly verified path: OmniRoute + Codex App-Server
+
+The current OmniRoute upstream documentation describes two different Codex integrations:
+
+- `codex` directly replays the ChatGPT/OpenAI OAuth token to the Responses API; the guide explicitly says the official session is not authorized for proxy/router use. Do not use this mode.
+- `codex-app-server` drives the official Codex CLI app-server over JSON-RPC/WebSocket. The CLI owns and refreshes its own OAuth, so OmniRoute does not replay the token. The guide documents this as a separate integration and supports signing in with ChatGPT via device OAuth.
+
+Reference: [Codex App-Server provider guide](https://github.com/cheaper-inference/OmniRoute/blob/39777dfe307994101079b8313339c6b7180176fa/docs/guides/CODEX-APP-SERVER-PROVIDER.md); [MIT license](https://github.com/cheaper-inference/OmniRoute/blob/release/v3.8.53/LICENSE).
+
+### Why this matters
+
+This is the strongest discovered route that could let us use the user's existing ChatGPT/Codex entitlement for coding-agent work without creating an OpenAI API key. It does not remove Codex usage limits or turn the subscription into unrestricted production API capacity.
+
+### Requirements and current blocker
+
+- OmniRoute + Codex CLI app-server must run together; the provider needs the app-server URL and an internal WebSocket capability token.
+- Sign-in uses the standard Codex device-OAuth flow. The authenticated `~/.codex/auth.json` must be kept private in persistent storage.
+- The app-server must remain internal, never publicly exposed. Do not use the token-replay `codex` mode.
+- Our current connected runtime inventory has no reachable Termalin hosts, no verified local runner execution, no Railway attached volumes, and no verified persistent storage on the available Render Free services. Therefore the path is **source-verified but not deployed or runtime-verified**.
+- Next safe step: inspect OmniRoute's container/compose profile and license/security posture, then choose an isolated execution target with persistent storage and private access. Do not use EASY production or paid resources.
+
 ## GitHub Models status
 
 **Do not build on GitHub Models:** GitHub's own changelog says the service, including its inference API, was retired on **2026-07-30**. Existing examples or old repositories mentioning it are stale for a live runtime.
