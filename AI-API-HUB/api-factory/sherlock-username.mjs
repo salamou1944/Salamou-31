@@ -1,7 +1,16 @@
 import {execFile} from "node:child_process";
 
 const DEFAULT_TIMEOUT_MS=30_000;
+const DEFAULT_SITE_TIMEOUT_SECONDS=10;
+const DEFAULT_SITES=["GitHub","GitLab","Reddit","YouTube"];
 const MAX_USERNAME_LENGTH=128;
+
+export function getSherlockSites(){
+  const configured=process.env.SHERLOCK_SITES;
+  const sites=(typeof configured==="string"&&configured.trim()?configured.split(","):DEFAULT_SITES)
+    .map(site=>site.trim()).filter(Boolean);
+  return [...new Set(sites)].slice(0,12);
+}
 
 export function validateUsername(username){
   if(typeof username!=="string")throw new Error("username must be a string");
@@ -14,7 +23,11 @@ export function validateUsername(username){
 }
 
 export function buildSherlockArgs(username){
-  return [validateUsername(username),"--print-found","--no-color","--timeout","20"];
+  const timeoutSeconds=process.env.SHERLOCK_SITE_TIMEOUT_SECONDS||String(DEFAULT_SITE_TIMEOUT_SECONDS);
+  if(!/^\\d+(?:\\.\\d+)?$/.test(timeoutSeconds)||Number(timeoutSeconds)<1||Number(timeoutSeconds)>60)throw new Error("SHERLOCK_SITE_TIMEOUT_SECONDS must be between 1 and 60");
+  const sites=getSherlockSites();
+  if(sites.length===0)throw new Error("at least one Sherlock site must be configured");
+  return [validateUsername(username),"--print-found","--no-color","--timeout",timeoutSeconds,...sites.flatMap(site=>["--site",site])];
 }
 
 export function parseSherlockOutput(stdout,username){
@@ -48,7 +61,7 @@ export function runSherlock(username,{executable=process.env.SHERLOCK_BIN||"sher
         const message=unavailable?"Sherlock executable not found":timeout?"Sherlock execution timed out":"Sherlock failed: "+(stderr?.trim()||error.message);
         return reject(Object.assign(new Error(message),{code:unavailable?"SHERLOCK_UNAVAILABLE":timeout?"SHERLOCK_TIMEOUT":"SHERLOCK_FAILED",evidence}));
       }
-      resolve({username:value,status:"DISCOVERED",verified:false,evidence});
+      resolve({username:value,status:"DISCOVERED",verified:false,evidence,sites:getSherlockSites()});
     });
     child.on("error",()=>{});
   });
