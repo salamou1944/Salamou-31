@@ -1,0 +1,55 @@
+name: API Factory Auth Rotation Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - fix/api-factory-live-storage-readiness-2026-10-20
+    paths:
+      - ".github/workflows/api-factory-auth-smoke.yml"
+      - "AI-API-HUB/api-factory/server.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  authenticated-api-smoke:
+    name: authenticated-api-smoke (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: preview
+            base_url: https://salamou31-api-factory-preview.onrender.com
+          - target: production
+            base_url: https://salamou-31-api-factory.onrender.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      BASE_URL: ${{ matrix.base_url }}
+      FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+    steps:
+      - name: Require repository key
+        run: |
+          set -euo pipefail
+          if [ -z "${FACTORY_API_KEY:-}" ]; then
+            echo "::error::FACTORY_API_KEY is missing; refusing to report a passing authentication smoke."
+            exit 1
+          fi
+          echo "Repository key is available to the runner; value remains masked."
+
+      - name: Verify authenticated control-plane route
+        run: |
+          set -euo pipefail
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 45 -H "x-api-key: $FACTORY_API_KEY" -o response.json -w '%{http_code}' "$BASE_URL/v1/factory/apis" || true)"
+          if [ "$code" != "200" ]; then
+            STATUS="$code" node -e 'const fs=require("node:fs"); let x={}; try{x=JSON.parse(fs.readFileSync("response.json","utf8"))}catch{}; console.error(JSON.stringify({authenticatedControlPlane:"FAIL",httpStatus:Number(process.env.STATUS)||0,code:x.code||"NON_JSON_RESPONSE"})); process.exit(1)'
+          fi
+          node -e 'const x=require("./response.json"); if(x?.ok!==true || !Array.isArray(x?.apis)) process.exit(1); console.log(JSON.stringify({authenticatedControlPlane:"PASS",apiCount:x.apis.length}))'
+
+      - name: Verify protected route rejects requests without a key
+        run: |
+          set -euo pipefail
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 30 -o protected.json -w '%{http_code}' "$BASE_URL/v1/factory/apis" || true)"
+          test "$code" = "401"
+          node -e 'const x=require("./protected.json"); if(x?.ok!==false || x?.code!=="UNAUTHORIZED") process.exit(1); console.log(JSON.stringify({unauthenticatedRequest:"REJECTED",code:x.code}))'
