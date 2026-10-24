@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import fs from "node:fs";
+import {createHash,timingSafeEqual} from "node:crypto";
 import path from "node:path";
 import {createRegistryStore} from "./registry-store.mjs";
 import {createArtifactStore} from "./artifact-store.mjs";
@@ -20,12 +21,12 @@ const registryStore=createRegistryStore({file:registryFile});
 const artifactStore=createArtifactStore({root});
 async function readRegistry(){return registryStore.read();}
 async function writeRegistry(x){return registryStore.write(x);}
-function auth(request,reply){const configuredKey=process.env.FACTORY_API_KEY;if(typeof configuredKey!=="string"||configuredKey.length===0)return reply.code(503).send({ok:false,error:"API factory authentication is not configured",code:"AUTH_CONFIGURATION_REQUIRED"});if(request.headers["x-api-key"]!==configuredKey)return reply.code(401).send({ok:false,error:"Unauthorized",code:"UNAUTHORIZED"});}
+function auth(request,reply){const configuredKey=process.env.FACTORY_API_KEY;const configuredHash=process.env.FACTORY_API_KEY_SHA256;const supplied=request.headers["x-api-key"];const keyConfigured=typeof configuredKey==="string"&&configuredKey.length>0;const hashConfigured=typeof configuredHash==="string"&&/^[a-f0-9]{64}$/i.test(configuredHash);if(!keyConfigured&&!hashConfigured)return reply.code(503).send({ok:false,error:"API factory authentication is not configured",code:"AUTH_CONFIGURATION_REQUIRED"});let accepted=keyConfigured&&typeof supplied==="string"&&supplied===configuredKey;if(!accepted&&hashConfigured&&typeof supplied==="string"){const actual=createHash("sha256").update(supplied,"utf8").digest();const expected=Buffer.from(configuredHash,"hex");accepted=actual.length===expected.length&&timingSafeEqual(actual,expected);}if(!accepted)return reply.code(401).send({ok:false,error:"Unauthorized",code:"UNAUTHORIZED"});}
 function registryEntry(spec,artifact){return {identity:spec.name,name:spec.name,version:spec.version,status:"COMPILED",evidence:"COMPILED",capabilities:spec.capabilities,auth:spec.auth,operations:spec.operations.length,provider:spec.provider?.kind||null,runtime:"node-fastify",runtimeState:artifact.runtimeState||{durable:false,status:"NOT_VERIFIED",blocker:"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED"},deployment:{status:"NOT_DEPLOYED"},artifact,updatedAt:new Date().toISOString()};}
 async function register(spec,artifact){const registry=await readRegistry();registry.apis=registry.apis.filter(x=>x.name!==spec.name);registry.apis.push(registryEntry(spec,artifact));await writeRegistry(registry);return registry.apis.find(x=>x.name===spec.name);}
 app.get("/health",async()=>({ok:true,service:"api-factory",version:"1.0.0",mode:"manifest-to-runnable-api"}));
 app.get("/ready",async(request,reply)=>{
-  const authConfigured=typeof process.env.FACTORY_API_KEY==="string"&&process.env.FACTORY_API_KEY.length>0;
+  const authConfigured=(typeof process.env.FACTORY_API_KEY==="string"&&process.env.FACTORY_API_KEY.length>0)||(typeof process.env.FACTORY_API_KEY_SHA256==="string"&&/^[a-f0-9]{64}$/i.test(process.env.FACTORY_API_KEY_SHA256));
   if(!authConfigured)return reply.code(503).send({ok:false,ready:false,code:"AUTH_CONFIGURATION_REQUIRED",checks:{authentication:false}});
   const [registryCheck,artifactCheck]=await Promise.all([registryStore.check(),artifactStore.check()]);
   const persistenceReady=registryCheck.ok&&artifactCheck.ok;
