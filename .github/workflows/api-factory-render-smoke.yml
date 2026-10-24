@@ -76,6 +76,21 @@ jobs:
           curl --silent --show-error --connect-timeout 10 --max-time 90 --fail "$BASE_URL/v1/factory/capabilities" -o capabilities.json
           node -e 'const x=require("./capabilities.json"); if(!x.operations?.includes("export") || x.deploymentExecutionImplemented!==false) process.exit(1); console.log(JSON.stringify({capabilities:"PASS",deploymentExecutionImplemented:x.deploymentExecutionImplemented,operations:x.operations}))'
 
+      - name: Verify repository key authenticates against this Render target
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FACTORY_API_KEY:-}" ]; then
+            echo "::warning::SKIPPED: repository secret FACTORY_API_KEY is not configured; authenticated routes are unverified."
+            exit 0
+          fi
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -H "x-api-key: $FACTORY_API_KEY" -o authenticated-apis.json -w '%{http_code}' "$BASE_URL/v1/factory/apis" || true)"
+          if [ "$code" != "200" ]; then
+            STATUS="$code" node -e 'const fs=require("node:fs"); let x={}; try{x=JSON.parse(fs.readFileSync("authenticated-apis.json","utf8"))}catch{}; console.error(JSON.stringify({authenticatedControlPlane:"FAIL",httpStatus:Number(process.env.STATUS)||0,code:x.code||"NON_JSON_RESPONSE"})); process.exit(1)'
+          fi
+          node -e 'const x=require("./authenticated-apis.json"); if(x?.ok!==true || !Array.isArray(x?.apis)) process.exit(1); console.log(JSON.stringify({authenticatedControlPlane:"PASS",apiCount:x.apis.length}))'
+
       - name: Verify authenticated username research entrypoint when a key is available
         env:
           FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
@@ -86,8 +101,10 @@ jobs:
             exit 0
           fi
           code="$(curl --silent --show-error --connect-timeout 10 --max-time 180 -H "x-api-key: $FACTORY_API_KEY" -H 'content-type: application/json' -o username-research.json -w '%{http_code}' -X POST "$BASE_URL/v1/factory/research/username" --data '{"username":"salamou1944","timeoutMs":120000}' || true)"
-          test "$code" = "200"
-          node -e 'const x=require("./username-research.json"); if(x?.ok!==true || x?.source!=="sherlock" || x?.username!=="salamou1944" || !Array.isArray(x?.evidence) || x?.verified!==false) { console.error("Unexpected username research response",x); process.exit(1) }; console.log(JSON.stringify({usernameResearch:"PASS",source:x.source,username:x.username,status:x.status,evidenceCount:x.evidence.length,verified:x.verified}))'
+          if [ "$code" != "200" ]; then
+            STATUS="$code" node -e 'const fs=require("node:fs"); let x={}; try{x=JSON.parse(fs.readFileSync("username-research.json","utf8"))}catch{}; console.error(JSON.stringify({usernameResearch:"FAIL",httpStatus:Number(process.env.STATUS)||0,code:x.code||"NON_JSON_RESPONSE",source:x.source||null})); process.exit(1)'
+          fi
+          node -e 'const x=require("./username-research.json"); if(x?.ok!==true || x?.source!=="sherlock" || x?.username!=="salamou1944" || !Array.isArray(x?.evidence) || x?.verified!==false) { console.error(JSON.stringify({usernameResearch:"FAIL",code:x?.code||"UNEXPECTED_RESPONSE",source:x?.source||null})); process.exit(1) }; console.log(JSON.stringify({usernameResearch:"PASS",source:x.source,username:x.username,status:x.status,evidenceCount:x.evidence.length,verified:x.verified}))'
 
       - name: Verify protected route rejects unauthenticated requests
         run: |
