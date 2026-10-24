@@ -25,6 +25,7 @@ permissions:
   contents: read
 
 # GET-only public probes. No factory state is mutated and no secret is required.
+# The same checks cover both preview and production after gateway-key rotation.
 
 jobs:
   render-readiness-smoke:
