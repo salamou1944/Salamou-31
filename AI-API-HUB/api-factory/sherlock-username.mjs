@@ -24,7 +24,7 @@ export function validateUsername(username){
 
 export function buildSherlockArgs(username){
   const timeoutSeconds=process.env.SHERLOCK_SITE_TIMEOUT_SECONDS||String(DEFAULT_SITE_TIMEOUT_SECONDS);
-  if(!/^\\d+(?:\\.\\d+)?$/.test(timeoutSeconds)||Number(timeoutSeconds)<1||Number(timeoutSeconds)>60)throw new Error("SHERLOCK_SITE_TIMEOUT_SECONDS must be between 1 and 60");
+  if(!/^\d+(?:\.\d+)?$/.test(timeoutSeconds)||Number(timeoutSeconds)<1||Number(timeoutSeconds)>60)throw new Error("SHERLOCK_SITE_TIMEOUT_SECONDS must be between 1 and 60");
   const sites=getSherlockSites();
   if(sites.length===0)throw new Error("at least one Sherlock site must be configured");
   return [validateUsername(username),"--print-found","--no-color","--timeout",timeoutSeconds,...sites.flatMap(site=>["--site",site])];
