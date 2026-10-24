@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import {buildSherlockArgs,parseSherlockOutput,validateUsername} from "./sherlock-username.mjs";
+import {buildSherlockArgs,getSherlockSites,parseSherlockOutput,validateUsername} from "./sherlock-username.mjs";
 
 assert.equal(validateUsername(" alice_01 "), "alice_01");
-assert.deepEqual(buildSherlockArgs("alice_01"),["alice_01","--print-found","--no-color","--timeout","20"]);
+assert.deepEqual(getSherlockSites(),["GitHub","GitLab","Reddit","YouTube"]);
+assert.deepEqual(buildSherlockArgs("alice_01"),["alice_01","--print-found","--no-color","--timeout","10","--site","GitHub","--site","GitLab","--site","Reddit","--site","YouTube"]);
 assert.throws(()=>validateUsername(""),/must not be empty/);
 assert.throws(()=>validateUsername("a b"),/unsupported characters/);
 assert.throws(()=>validateUsername("a/b"),/unsupported characters/);
