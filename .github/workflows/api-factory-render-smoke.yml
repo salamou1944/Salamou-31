@@ -76,6 +76,17 @@ jobs:
           curl --silent --show-error --connect-timeout 10 --max-time 90 --fail "$BASE_URL/v1/factory/capabilities" -o capabilities.json
           node -e 'const x=require("./capabilities.json"); if(!x.operations?.includes("export") || x.deploymentExecutionImplemented!==false) process.exit(1); console.log(JSON.stringify({capabilities:"PASS",deploymentExecutionImplemented:x.deploymentExecutionImplemented,operations:x.operations}))'
 
+      - name: Diagnose repository key fingerprint without exposing the key
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FACTORY_API_KEY:-}" ]; then
+            echo "::warning::FACTORY_API_KEY is unavailable to this workflow."
+            exit 0
+          fi
+          node -e 'const c=require("node:crypto"); const actual=c.createHash("sha256").update(process.env.FACTORY_API_KEY,"utf8").digest("hex"); const expected="b8c910bfff9dc0847928a9cdebe3820122a94dacf9553d4f9c834ded7bd47db9"; console.log(JSON.stringify({keyFingerprint:actual,expectedFingerprintMatches:actual===expected}))'
+
       - name: Verify repository key authenticates against this Render target
         env:
           FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
