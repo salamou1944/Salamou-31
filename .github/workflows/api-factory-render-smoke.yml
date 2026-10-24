@@ -24,8 +24,8 @@ on:
 permissions:
   contents: read
 
-# GET-only public probes. No factory state is mutated and no secret is required.
-# The same checks cover both preview and production after gateway-key rotation.
+# Read-only public probes plus an optional authenticated Sherlock positive-path smoke.
+# The authenticated smoke runs only when the repository secret FACTORY_API_KEY exists; no state is mutated.
 
 jobs:
   render-readiness-smoke:
