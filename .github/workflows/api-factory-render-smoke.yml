@@ -76,6 +76,19 @@ jobs:
           curl --silent --show-error --connect-timeout 10 --max-time 90 --fail "$BASE_URL/v1/factory/capabilities" -o capabilities.json
           node -e 'const x=require("./capabilities.json"); if(!x.operations?.includes("export") || x.deploymentExecutionImplemented!==false) process.exit(1); console.log(JSON.stringify({capabilities:"PASS",deploymentExecutionImplemented:x.deploymentExecutionImplemented,operations:x.operations}))'
 
+      - name: Verify authenticated username research entrypoint when a key is available
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FACTORY_API_KEY:-}" ]; then
+            echo "::warning::SKIPPED: repository secret FACTORY_API_KEY is not configured; authenticated Sherlock runtime path remains unverified."
+            exit 0
+          fi
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 180 -H "x-api-key: $FACTORY_API_KEY" -H 'content-type: application/json' -o username-research.json -w '%{http_code}' -X POST "$BASE_URL/v1/factory/research/username" --data '{"username":"salamou1944","timeoutMs":120000}' || true)"
+          test "$code" = "200"
+          node -e 'const x=require("./username-research.json"); if(x?.ok!==true || x?.source!=="sherlock" || x?.username!=="salamou1944" || !Array.isArray(x?.evidence) || x?.verified!==false) { console.error("Unexpected username research response",x); process.exit(1) }; console.log(JSON.stringify({usernameResearch:"PASS",source:x.source,username:x.username,status:x.status,evidenceCount:x.evidence.length,verified:x.verified}))'
+
       - name: Verify protected route rejects unauthenticated requests
         run: |
           set -euo pipefail
