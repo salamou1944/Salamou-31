@@ -2,7 +2,7 @@
   "schema": "sal31-product-evidence/v1",
   "product_id": "username-research-api",
   "technical": {
-    "state": "IMPLEMENTED_AWAITING_EXTERNAL_RUNTIME_VERIFICATION",
+    "state": "DURABLE_STORAGE_VERIFIED_ENTRYPOINT_PENDING",
     "verified": false
   },
   "business": {
@@ -24,6 +24,19 @@
       "evidence": "Railway rejected new project provisioning because the free-plan resource provision limit was exceeded.",
       "paid_upgrade": false,
       "timestamp": "2026-10-07"
+    },
+    {
+      "type": "external_runtime_readiness_smoke",
+      "result": "PASS",
+      "evidence": "GitHub Actions run 40120509043 independently checked both Render preview and production: /health HTTP 200, /ready HTTP 200 with authentication=true, registryPersistence=true, artifactPersistence=true, both storage modes supabase-edge-gateway and durable=true; public capabilities contract passed; unauthenticated protected route rejected with HTTP 401.",
+      "source": "https://github.com/salamou1944/Salamou-31/actions/runs/40120509043",
+      "timestamp": "2026-10-24"
+    },
+    {
+      "type": "product_entrypoint_verification",
+      "result": "PENDING",
+      "evidence": "The authenticated POST /v1/factory/research/username route has not yet been exercised against the live Render runtime with a valid x-api-key and Sherlock execution. Keep technical verified=false until that positive-path test passes.",
+      "timestamp": "2026-10-24"
     }
   ]
 }
