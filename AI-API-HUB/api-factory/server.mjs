@@ -40,7 +40,7 @@ function isFactoryKeyValue(supplied){
 function customerResearchAuth(request,reply){
   const supplied=request.headers["x-api-key"];
   if(isFactoryKeyValue(supplied))return {kind:"factory"};
-  if(typeof supplied!=="string"||!supplied.startsWith("sal31_")){
+  if(typeof supplied!=="string"||!/^sal31_[A-Za-z0-9_-]{43}$/.test(supplied)){
     reply.code(401).send({ok:false,error:"Unauthorized",code:"UNAUTHORIZED"});
     return null;
   }
