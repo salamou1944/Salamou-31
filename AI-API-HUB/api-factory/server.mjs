@@ -1,8 +1,9 @@
 import Fastify from "fastify";
 import fs from "node:fs";
-import {createHash,timingSafeEqual} from "node:crypto";
+import {createHash,timingSafeEqual,randomBytes} from "node:crypto";
 import path from "node:path";
 import {createRegistryStore} from "./registry-store.mjs";
+import {createCustomerKeyStore,hashCustomerApiKey} from "./customer-key-store.mjs";
 import {createArtifactStore} from "./artifact-store.mjs";
 import {validateSpec,compileApi} from "./factory.mjs";
 import {deploymentPlan} from "./deployment.mjs";
@@ -19,8 +20,61 @@ const registryFile=process.env.FACTORY_REGISTRY_FILE||path.join(process.env.VERC
 fs.mkdirSync(root,{recursive:true});
 const registryStore=createRegistryStore({file:registryFile});
 const artifactStore=createArtifactStore({root});
+const customerKeyStore=createCustomerKeyStore();
 async function readRegistry(){return registryStore.read();}
 async function writeRegistry(x){return registryStore.write(x);}
+function isFactoryKeyValue(supplied){
+  const configuredKey=process.env.FACTORY_API_KEY;
+  const configuredHash=process.env.FACTORY_API_KEY_SHA256;
+  const keyConfigured=typeof configuredKey==="string"&&configuredKey.length>0;
+  const hashConfigured=typeof configuredHash==="string"&&/^[a-f0-9]{64}$/i.test(configuredHash);
+  if(!keyConfigured&&!hashConfigured)return false;
+  let accepted=keyConfigured&&typeof supplied==="string"&&supplied===configuredKey;
+  if(!accepted&&hashConfigured&&typeof supplied==="string"){
+    const actual=createHash("sha256").update(supplied,"utf8").digest();
+    const expected=Buffer.from(configuredHash,"hex");
+    accepted=actual.length===expected.length&&timingSafeEqual(actual,expected);
+  }
+  return accepted;
+}
+function customerResearchAuth(request,reply){
+  const supplied=request.headers["x-api-key"];
+  if(isFactoryKeyValue(supplied))return {kind:"factory"};
+  if(typeof supplied!=="string"||!supplied.startsWith("sal31_")){
+    reply.code(401).send({ok:false,error:"Unauthorized",code:"UNAUTHORIZED"});
+    return null;
+  }
+  if(!customerKeyStore.configured){
+    reply.code(503).send({ok:false,error:"Customer API key storage is not configured",code:"CUSTOMER_KEY_STORE_NOT_CONFIGURED"});
+    return null;
+  }
+  return {kind:"customer",keyHash:hashCustomerApiKey(supplied)};
+}
+async function consumeCustomerResearchKey(authContext,request,reply){
+  if(authContext.kind!=="customer")return {usage:null};
+  let result;
+  try{
+    result=await customerKeyStore.consume({keyHash:authContext.keyHash,route:"username-research"});
+  }catch(error){
+    request.log.warn({code:error.code||"CUSTOMER_KEY_STORE_UNAVAILABLE"},"customer API key check failed");
+    return {response:reply.code(503).send({ok:false,error:"Customer API key verification is unavailable",code:"CUSTOMER_AUTH_UNAVAILABLE"})};
+  }
+  if(result.ok===true){
+    const usage={usageCount:result.usageCount,quotaLimit:result.quotaLimit,remaining:result.remaining};
+    reply.header("x-api-quota-limit",String(result.quotaLimit));
+    reply.header("x-api-quota-remaining",String(result.remaining));
+    return {usage};
+  }
+  if(result.code==="CUSTOMER_QUOTA_EXCEEDED"){
+    reply.header("x-api-quota-limit",String(result.quotaLimit));
+    reply.header("x-api-quota-remaining","0");
+    return {response:reply.code(429).send({ok:false,error:"Customer API quota exceeded",code:"CUSTOMER_QUOTA_EXCEEDED",usage:{usageCount:result.usageCount,quotaLimit:result.quotaLimit,remaining:0}})};
+  }
+  if(result.code==="CUSTOMER_API_KEY_REVOKED"||result.code==="CUSTOMER_API_KEY_INVALID"){
+    return {response:reply.code(401).send({ok:false,error:"Customer API key is invalid or revoked",code:result.code})};
+  }
+  return {response:reply.code(503).send({ok:false,error:"Customer API key verification is unavailable",code:"CUSTOMER_AUTH_UNAVAILABLE"})};
+}
 function auth(request,reply){const configuredKey=process.env.FACTORY_API_KEY;const configuredHash=process.env.FACTORY_API_KEY_SHA256;const supplied=request.headers["x-api-key"];const keyConfigured=typeof configuredKey==="string"&&configuredKey.length>0;const hashConfigured=typeof configuredHash==="string"&&/^[a-f0-9]{64}$/i.test(configuredHash);if(!keyConfigured&&!hashConfigured)return reply.code(503).send({ok:false,error:"API factory authentication is not configured",code:"AUTH_CONFIGURATION_REQUIRED"});let accepted=keyConfigured&&typeof supplied==="string"&&supplied===configuredKey;if(!accepted&&hashConfigured&&typeof supplied==="string"){const actual=createHash("sha256").update(supplied,"utf8").digest();const expected=Buffer.from(configuredHash,"hex");accepted=actual.length===expected.length&&timingSafeEqual(actual,expected);}if(!accepted)return reply.code(401).send({ok:false,error:"Unauthorized",code:"UNAUTHORIZED"});}
 function registryEntry(spec,artifact){return {identity:spec.name,name:spec.name,version:spec.version,status:"COMPILED",evidence:"COMPILED",capabilities:spec.capabilities,auth:spec.auth,operations:spec.operations.length,provider:spec.provider?.kind||null,runtime:"node-fastify",runtimeState:artifact.runtimeState||{durable:false,status:"NOT_VERIFIED",blocker:"GENERATED_RUNTIME_STATE_STORE_NOT_CONFIGURED"},deployment:{status:"NOT_DEPLOYED"},artifact,updatedAt:new Date().toISOString()};}
 async function register(spec,artifact){const registry=await readRegistry();registry.apis=registry.apis.filter(x=>x.name!==spec.name);registry.apis.push(registryEntry(spec,artifact));await writeRegistry(registry);return registry.apis.find(x=>x.name===spec.name);}
@@ -40,7 +94,7 @@ app.get("/ready",async(request,reply)=>{
 });
 app.get("/v1/factory/capabilities",async()=>({ok:true,operations:["validate","build","register","inspect","export","deploy-plan","consume-soat-evidence"],deploymentExecutionImplemented:false,evidence:["VALIDATED","COMPILED","RUNTIME_VERIFIED","PROVIDER_VERIFIED","BUSINESS_VERIFIED"],deployment:["railway","vercel"]}));
 app.post("/v1/factory/research/username",async(request,reply)=>{
-  const denied=auth(request,reply);if(denied)return denied;
+  const authContext=customerResearchAuth(request,reply);if(!authContext)return;
   let username;
   try{
     username=validateUsername(request.body?.username);
@@ -51,12 +105,15 @@ app.post("/v1/factory/research/username",async(request,reply)=>{
   if(timeoutMs!==undefined&&(!Number.isInteger(timeoutMs)||timeoutMs<1000||timeoutMs>300000)){
     return reply.code(400).send({ok:false,error:"timeoutMs must be between 1000 and 300000",code:"INVALID_TIMEOUT"});
   }
+  const consumed=await consumeCustomerResearchKey(authContext,request,reply);
+  if(consumed.response)return consumed.response;
+  const customerUsage=consumed.usage;
   try{
     const result=await runSherlock(username,{executable:process.env.SHERLOCK_BIN||"sherlock",timeoutMs:timeoutMs??30_000});
-    return {ok:true,source:"sherlock",...result};
+    return {ok:true,source:"sherlock",...result,...(customerUsage?{usage:customerUsage}:{})};
   }catch(e){
     const status=e.code==="SHERLOCK_UNAVAILABLE"?503:e.code==="SHERLOCK_TIMEOUT"?504:502;
-    return reply.code(status).send({ok:false,source:"sherlock",error:e.message,code:e.code,evidence:e.evidence||[]});
+    return reply.code(status).send({ok:false,source:"sherlock",error:e.message,code:e.code,evidence:e.evidence||[],...(customerUsage?{usage:customerUsage}:{})});
   }
 });
 app.post("/v1/factory/deploy/plan",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,plan:deploymentPlan({target:request.body?.target,serviceName:request.body?.serviceName})};}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
@@ -101,6 +158,44 @@ app.post("/v1/factory/verify/business-outcome",async(request,reply)=>{
     const transition=assertBusinessOutcomeTransition(request.body?.previousOutcome||"DISCOVERED",evidence.outcome);
     return {ok:true,evidence,transition};
   }catch(e){return reply.code(422).send({ok:false,error:e.message});}
+});
+app.post("/v1/factory/customer-keys",async(request,reply)=>{
+  const denied=auth(request,reply);if(denied)return denied;
+  const label=typeof request.body?.label==="string"?request.body.label.trim():"";
+  const quotaLimit=request.body?.quotaLimit;
+  if(label.length<1||label.length>100||!Number.isInteger(quotaLimit)||quotaLimit<1||quotaLimit>100000){
+    return reply.code(400).send({ok:false,error:"label must be 1-100 characters and quotaLimit must be an integer from 1 to 100000",code:"INVALID_CUSTOMER_KEY_INPUT"});
+  }
+  const apiKey="sal31_"+randomBytes(32).toString("base64url");
+  try{
+    const key=await customerKeyStore.create({keyHash:hashCustomerApiKey(apiKey),label,quotaLimit});
+    return reply.code(201).send({ok:true,apiKey,secretReturnedOnce:true,key});
+  }catch(error){
+    request.log.error({code:error.code||"CUSTOMER_KEY_STORE_UNAVAILABLE"},"customer API key creation failed");
+    return reply.code(503).send({ok:false,error:"Customer API key storage is unavailable",code:error.code||"CUSTOMER_KEY_STORE_UNAVAILABLE"});
+  }
+});
+app.post("/v1/factory/customer-keys/:id/revoke",async(request,reply)=>{
+  const denied=auth(request,reply);if(denied)return denied;
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(request.params.id)){
+    return reply.code(400).send({ok:false,error:"Invalid customer key id",code:"INVALID_CUSTOMER_KEY_ID"});
+  }
+  try{return {ok:true,key:await customerKeyStore.revoke({id:request.params.id})};}
+  catch(error){
+    const status=error.code==="CUSTOMER_KEY_NOT_FOUND"?404:503;
+    return reply.code(status).send({ok:false,error:status===404?"Customer key not found":"Customer API key storage is unavailable",code:error.code||"CUSTOMER_KEY_STORE_UNAVAILABLE"});
+  }
+});
+app.get("/v1/factory/customer-keys/:id/usage",async(request,reply)=>{
+  const denied=auth(request,reply);if(denied)return denied;
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(request.params.id)){
+    return reply.code(400).send({ok:false,error:"Invalid customer key id",code:"INVALID_CUSTOMER_KEY_ID"});
+  }
+  try{return await customerKeyStore.usage({id:request.params.id});}
+  catch(error){
+    const status=error.code==="CUSTOMER_KEY_NOT_FOUND"?404:503;
+    return reply.code(status).send({ok:false,error:status===404?"Customer key not found":"Customer API key storage is unavailable",code:error.code||"CUSTOMER_KEY_STORE_UNAVAILABLE"});
+  }
 });
 app.get("/v1/factory/apis",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;return {ok:true,apis:(await readRegistry()).apis};});
 app.post("/v1/factory/validate",async(request,reply)=>{const denied=auth(request,reply);if(denied)return denied;try{return {ok:true,spec:validateSpec(request.body)}}catch(e){return reply.code(400).send({ok:false,error:e.message});}});
