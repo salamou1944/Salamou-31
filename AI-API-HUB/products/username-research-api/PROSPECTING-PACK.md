@@ -2,7 +2,7 @@
 
 **Purpose:** acquire the first legitimate pilot customer for Username Research API without paid acquisition or new subscriptions.
 
-**Evidence boundary:** no prospect below has been contacted by this document. Fit is a hypothesis based on public company descriptions. Do not claim a partnership, integration, customer, or endorsement.
+**Evidence boundary:** two initial outreach emails were sent on 2026-10-25 from the dedicated AI API Pilot Outreach inbox. No reply, customer conversion, or revenue is confirmed. Fit remains a hypothesis based on public company descriptions. Do not claim a partnership, integration, customer, or endorsement.
 
 ## Pilot offer to validate
 
@@ -23,18 +23,20 @@ Do not issue a key until the prospect has agreed to scope and price. Never share
 - **Why:** its public site describes market research, data/AI, social-media listening, media intelligence, and business research—work where an analyst may need to triage public usernames.
 - **Contact:** contact@iea-etudes.com
 - **Phone:** +213 555 080 148
+- **Outreach:** sent 2026-10-25 from api-pilot@agentmail.to; message ID: <010001a170eb2421-6dd1c3e4-da1c-4cc3-a975-67b9d7b45d56-000000@email.amazonses.com>
 - **Website:** https://iea-etudes.com/
 - **Suggested angle:** test whether username discovery can reduce the manual first-pass work in a media-intelligence or brand-research workflow. Ask for one narrow workflow and do not imply the API replaces their existing research process.
-- **Status:** not contacted.
+- **Status:** CONTACTED — awaiting reply.
 
 ### 2. IMMAR Media — Algerian media monitoring and e-reputation
 
 - **Why:** its public site describes social-media monitoring, e-reputation, media monitoring, and audience measurement in Algeria.
 - **Contact:** contact@immar-media.net
 - **Phone:** +213 23 31 20 80
+- **Outreach:** sent 2026-10-25 from api-pilot@agentmail.to; message ID: <010001a170eb2dfd-e52f41e6-fe70-48e7-9ddf-6e07583f708a-000000@email.amazonses.com>
 - **Website:** https://immar-media.com/home/
 - **Suggested angle:** a small analyst-assist trial for discovering public profiles from a supplied username during an e-reputation investigation. Be explicit that this endpoint is not a full social-listening product.
-- **Status:** not contacted.
+- **Status:** CONTACTED — awaiting reply.
 
 ### 3. Linkiw — Algerian B2B prospecting platform
 
