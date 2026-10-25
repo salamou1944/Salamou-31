@@ -26,7 +26,7 @@ Set `FACTORY_API_KEY` in production to protect the control plane. Protected endp
 
 ## Durable storage
 
-The currently verified zero-upfront-cost Render deployments (Production and Preview) use a dedicated Salamou-31 Supabase project through the `api-factory-storage` Edge Function gateway. The latest external smoke run on 2026-10-25 verified authenticated registry and artifact write/read checks on both targets; see [PERSISTENCE.md](./PERSISTENCE.md) for deployment commits, evidence, and limitations. Configure:
+The currently verified zero-upfront-cost Render deployments (Production and Preview) use a dedicated Salamou-31 Supabase project through the `api-factory-storage` Edge Function gateway. The latest strict external smoke run on 2026-10-25, [40151811406](https://github.com/salamou1944/Salamou-31/actions/runs/40151811406), verified authenticated registry and artifact write/read checks on both targets after the gateway was updated; see [PERSISTENCE.md](./PERSISTENCE.md) for deployment commits, evidence, and limitations. Configure:
 
 - `FACTORY_STORAGE_GATEWAY_URL`: the deployed Edge Function URL.
 - `FACTORY_REGISTRY_URL`: the dedicated Supabase project URL.
