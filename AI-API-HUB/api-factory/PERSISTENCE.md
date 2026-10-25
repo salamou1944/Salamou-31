@@ -2,6 +2,19 @@
 
 The factory must distinguish process health from durable storage. `GET /health` only proves that the process responds; `GET /ready` returns HTTP 200 only after authenticated registry and artifact read/write verification. Incomplete or failed remote storage returns HTTP 503 and must never be silently downgraded to ephemeral storage.
 
+## Current deployment snapshot — 2026-10-25 02:45 UTC
+
+The post-merge customer-key lifecycle verification supersedes the older deployment snapshot below for current service versions:
+
+| Target | Current live deployment | Evidence |
+|---|---|---|
+| Production — https://salamou-31-api-factory.onrender.com | Render deploy `dep-dbemgpjncjis73enm7vg`, commit `a2ec755fa6e756c964dc654ad4c70505e1ef7dd2` | [Production customer-key lifecycle smoke](https://github.com/salamou1944/Salamou-31/actions/runs/40154410859) |
+| Preview — https://salamou31-api-factory-preview.onrender.com | Render deploy `dep-dbembkrrjlhs7385h6m0`, commit `f978b2e7d43024cf6ea54fac922b893791ecd29b` | [Preview customer-key lifecycle smoke](https://github.com/salamou1944/Salamou-31/actions/runs/40154267374) |
+
+The dedicated Supabase project `salamou-31-api-factory` is `ACTIVE_HEALTHY`; migration `20261025021137` (`customer_api_keys_20261025`) is applied, and `api-factory-storage` is ACTIVE at version 8. The lifecycle smoke verified customer-specific key creation, one successful live research request, durable quota enforcement (HTTP 429 after the configured single attempt), revocation, and subsequent rejection with HTTP 401 in both environments. Temporary test keys were revoked. This proves the technical customer access path; it does **not** prove a paying customer, customer revenue, a registered generated API, or an uptime SLA.
+
+The older strict storage/readiness smoke and deployment details below remain useful historical evidence for the registry/artifact persistence implementation, but their deployment SHAs and Edge Function version describe the earlier rollout, not the current customer-key release.
+
 ## Current verified zero-upfront-cost configuration
 
 As of 2026-10-25, the latest strict external Render Smoke run [40151811406](https://github.com/salamou1944/Salamou-31/actions/runs/40151811406) verified both live Render targets after the shared storage gateway was updated:
