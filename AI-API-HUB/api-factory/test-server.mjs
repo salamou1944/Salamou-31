@@ -50,6 +50,20 @@ try{
   const invalidTimeout=await fetch(base+"/v1/factory/research/username",{method:"POST",headers,body:JSON.stringify({username:"valid_name",timeoutMs:1})});
   assert.equal(invalidTimeout.status,400,"invalid timeout must be rejected before Sherlock is invoked");
   assert.equal((await invalidTimeout.json()).code,"INVALID_TIMEOUT");
+
+  const nonCustomerKey=await fetch(base+"/v1/factory/research/username",{method:"POST",headers:{"content-type":"application/json","x-api-key":"not-a-customer-key"},body:JSON.stringify({username:"valid_name"})});
+  assert.equal(nonCustomerKey.status,401,"the shared factory key must not be replaced by arbitrary customer-looking credentials");
+  assert.equal((await nonCustomerKey.json()).code,"UNAUTHORIZED");
+
+  const customerKeyCreateUnavailable=await fetch(base+"/v1/factory/customer-keys",{method:"POST",headers,body:JSON.stringify({label:"local-test",quotaLimit:10})});
+  assert.equal(customerKeyCreateUnavailable.status,503,"customer key issuance must fail closed when durable key storage is unavailable");
+  assert.equal((await customerKeyCreateUnavailable.json()).code,"CUSTOMER_KEY_STORE_NOT_CONFIGURED");
+
+  const malformedCustomerKey=await fetch(base+"/v1/factory/research/username",{method:"POST",headers:{"content-type":"application/json","x-api-key":"sal31_test_key"},body:JSON.stringify({username:"valid_name"})});
+  assert.equal(malformedCustomerKey.status,401,"malformed customer keys must be rejected before gateway calls");
+  const customerResearchUnavailable=await fetch(base+"/v1/factory/research/username",{method:"POST",headers:{"content-type":"application/json","x-api-key":"sal31_"+"A".repeat(43)},body:JSON.stringify({username:"valid_name"})});
+  assert.equal(customerResearchUnavailable.status,503,"a customer key must not be accepted without the durable key store");
+  assert.equal((await customerResearchUnavailable.json()).code,"CUSTOMER_KEY_STORE_NOT_CONFIGURED");
   const spec={
     name:"server-contract-demo",
     version:"v1",
@@ -168,16 +182,20 @@ try{
   assert.equal(deploymentBody.plan.credentialsReady,false);
   assert.equal(deploymentBody.plan.adapterImplemented,false);
   assert.equal(deploymentBody.plan.executionAvailable,false);
-  assert.deepEqual(deploymentBody.plan.blockers,["RAILWAY_TOKEN","DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
-  const priorRailwayToken=process.env.RAILWAY_TOKEN;
+  assert.deepEqual(deploymentBody.plan.blockers,["RAILWAY_TOKEN","RAILWAY_PROJECT_ID","RAILWAY_ENVIRONMENT_ID","DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
+  const priorRailwayEnv={token:process.env.RAILWAY_TOKEN,project:process.env.RAILWAY_PROJECT_ID,environment:process.env.RAILWAY_ENVIRONMENT_ID};
   process.env.RAILWAY_TOKEN="test-token";
+  process.env.RAILWAY_PROJECT_ID="test-dedicated-project";
+  process.env.RAILWAY_ENVIRONMENT_ID="test-dedicated-environment";
   const credentialedPlan=deploymentPlan({target:"railway",serviceName:"credentialed-contract-demo"});
-  if(priorRailwayToken===undefined) delete process.env.RAILWAY_TOKEN; else process.env.RAILWAY_TOKEN=priorRailwayToken;
+  if(priorRailwayEnv.token===undefined) delete process.env.RAILWAY_TOKEN; else process.env.RAILWAY_TOKEN=priorRailwayEnv.token;
+  if(priorRailwayEnv.project===undefined) delete process.env.RAILWAY_PROJECT_ID; else process.env.RAILWAY_PROJECT_ID=priorRailwayEnv.project;
+  if(priorRailwayEnv.environment===undefined) delete process.env.RAILWAY_ENVIRONMENT_ID; else process.env.RAILWAY_ENVIRONMENT_ID=priorRailwayEnv.environment;
   assert.equal(credentialedPlan.credentialsReady,true);
   assert.equal(credentialedPlan.adapterImplemented,false);
   assert.equal(credentialedPlan.deployable,false,"credentials alone must not claim a deployment can execute");
   assert.deepEqual(credentialedPlan.blockers,["DEPLOYMENT_ADAPTER_NOT_IMPLEMENTED"]);
-  assert.deepEqual(deploymentBody.plan.missing,["RAILWAY_TOKEN"]);
+  assert.deepEqual(deploymentBody.plan.missing,["RAILWAY_TOKEN","RAILWAY_PROJECT_ID","RAILWAY_ENVIRONMENT_ID"]);
 
   const unsupportedDeployment=await fetch(base+"/v1/factory/deploy/plan",{method:"POST",headers,body:JSON.stringify({target:"unknown",serviceName:"server-contract-demo"})});
   assert.equal(unsupportedDeployment.status,400);
