@@ -4,25 +4,27 @@ The factory must distinguish process health from durable storage. `GET /health` 
 
 ## Current verified zero-upfront-cost configuration
 
-As of 2026-10-25, the latest external Render Smoke run [40138094818](https://github.com/salamou1944/Salamou-31/actions/runs/40138094818) verified both live Render targets:
+As of 2026-10-25, the latest strict external Render Smoke run [40151811406](https://github.com/salamou1944/Salamou-31/actions/runs/40151811406) verified both live Render targets after the shared storage gateway was updated:
 
 | Target | Render deployment commit | Readiness result |
 |---|---|---|
 | Production — https://salamou-31-api-factory.onrender.com | `87c69c24c293486e7ae68194e5500eb705ab9d32` | `DURABLE_STORAGE_VERIFIED`, HTTP 200 |
 | Preview — https://salamou31-api-factory-preview.onrender.com | `a0ab62be7c3d71ef23f0cd018b38108bd2061786` | `DURABLE_STORAGE_VERIFIED`, HTTP 200 |
 
-For both targets, the smoke job observed authentication, registry persistence, and artifact persistence checks as true, with both storage modes reported as `supabase-edge-gateway`. The same run passed the public health and capabilities checks, authenticated control-plane access, the real Sherlock username-research entrypoint, and rejection of an unauthenticated protected request. The username-research response returned four evidence items for `salamou1944` with `verified:false`; discovery results must not be represented as independently verified identity claims.
+The shared Supabase Edge Function `api-factory-storage` is active at version 7. It preserves the currently deployed gateway authentication digests and uses a bounded retry for registry compare-and-swap conflicts.
+
+For both Render targets, the post-deployment smoke observed authentication, registry persistence, and artifact persistence checks as true, with both storage modes reported as `supabase-edge-gateway`. It also passed the public health and capabilities checks, authenticated control-plane access, the real Sherlock username-research entrypoint, and rejection of an unauthenticated protected request. The username-research response returned four evidence items for `salamou1944` with `verified:false`; discovery results must not be represented as independently verified identity claims.
 
 The active Production and Preview services use the dedicated Salamou-31 Supabase project through the `api-factory-storage` Edge Function gateway:
 
-- `FACTORY_STORAGE_GATEWAY_URL`: the deployed `api-factory-storage` Edge Function URL.
+- `FACTORY_STORAGE_GATEWAY_URL`: the deployed Edge Function URL.
 - `FACTORY_REGISTRY_URL`: the dedicated Salamou-31 Supabase project URL.
 - `FACTORY_ARTIFACT_BUCKET`: optional; defaults to `api-factory-artifacts`.
 - `FACTORY_API_KEY`: the internal gateway key, configured as a sensitive environment variable on the Render service and matched to the digest in the Edge Function source.
 
 The gateway uses the Supabase service-role credential only inside the Supabase Edge Function environment. Do not copy that credential into Render, GitHub, client-side code, or chat. The gateway validates the internal key by comparing its SHA-256 digest; the raw key is not stored in the repository.
 
-The registry readiness check reads the singleton and compare-and-swap updates only `updated_at`, conditioned on the exact timestamp previously read, then verifies that the payload is unchanged. If the singleton is absent, it inserts an empty row only; a concurrent insert/update causes a fail-closed conflict rather than replacing live data. The artifact check uploads a deterministic probe object to the private bucket and downloads it to verify exact content. The generated API artifact store also uses the gateway for object upload and retrieval.
+The registry readiness check reads the singleton and compare-and-swap updates only `updated_at`, conditioned on the exact timestamp previously read, then verifies that the payload is unchanged. The current healthcheck retries up to three times after a conflict, re-reading the latest row before retrying; it never writes a registry payload from a health probe. If the singleton is absent, it inserts an empty row only; a concurrent insert/update causes a fail-closed conflict rather than replacing live data. The artifact check uploads a deterministic probe object to the private bucket and downloads it to verify exact content. The generated API artifact store also uses the gateway for object upload and retrieval.
 
 These smoke results prove the tested persistence paths at the time of the run; they are not a general production SLA or an uptime guarantee. Both Render services use the Free plan and may sleep while idle. The smoke found zero registered APIs in both targets, so the control plane is verified but there is not yet a customer-facing generated API deployment evidenced by this run.
 
