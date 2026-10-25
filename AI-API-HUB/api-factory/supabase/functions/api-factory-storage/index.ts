@@ -4,7 +4,7 @@ import { verifyRegistryWriteRead } from "./registry-healthcheck.mjs";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const BUCKET = "api-factory-artifacts";
-const EXPECTED_KEY_SHA256 = "1053ed9dd79b1f627bfc66873834f4153d17aaaa129886ad2f07099ccdccdcd3";
+const EXPECTED_KEY_SHA256S = ["ea9f0392681a2e405a5c425a48324705bc7b58c199aedba238cd86f735b2c831", "b8c910bfff9dc0847928a9cdebe3820122a94dacf9553d4f9c834ded7bd47db9"];
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 function json(data: unknown, status = 200) { return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
 async function authorized(req: Request) {
@@ -12,9 +12,14 @@ async function authorized(req: Request) {
   if (!supplied || !SERVICE_KEY || !SUPABASE_URL) return false;
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(supplied));
   const actual = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("");
-  if (actual.length !== EXPECTED_KEY_SHA256.length) return false;
-  let diff = 0; for (let i = 0; i < actual.length; i++) diff |= actual.charCodeAt(i) ^ EXPECTED_KEY_SHA256.charCodeAt(i);
-  return diff === 0;
+  let accepted = false;
+  for (const expected of EXPECTED_KEY_SHA256S) {
+    if (actual.length !== expected.length) continue;
+    let diff = 0;
+    for (let i = 0; i < actual.length; i++) diff |= actual.charCodeAt(i) ^ expected.charCodeAt(i);
+    if (diff === 0) accepted = true;
+  }
+  return accepted;
 }
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204 });
