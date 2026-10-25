@@ -26,14 +26,14 @@ Set `FACTORY_API_KEY` in production to protect the control plane. Protected endp
 
 ## Durable storage
 
-The currently verified zero-upfront-cost preview uses a dedicated Salamou-31 Supabase project through the `api-factory-storage` Edge Function gateway. Configure:
+The currently verified zero-upfront-cost Render deployments (Production and Preview) use a dedicated Salamou-31 Supabase project through the `api-factory-storage` Edge Function gateway. The latest strict external smoke run on 2026-10-25, [40151811406](https://github.com/salamou1944/Salamou-31/actions/runs/40151811406), verified authenticated registry and artifact write/read checks on both targets after the gateway was updated; see [PERSISTENCE.md](./PERSISTENCE.md) for deployment commits, evidence, and limitations. Configure:
 
 - `FACTORY_STORAGE_GATEWAY_URL`: the deployed Edge Function URL.
 - `FACTORY_REGISTRY_URL`: the dedicated Supabase project URL.
 - `FACTORY_ARTIFACT_BUCKET`: optional; defaults to `api-factory-artifacts`.
 - `FACTORY_API_KEY`: the same gateway key configured as a sensitive Render environment variable; never commit or share it.
 
-The gateway keeps the Supabase service-role credential inside Supabase's Edge Function environment. Do not copy it into Render, GitHub, browser code, or chat. The gateway source contains only the SHA-256 digest of its expected internal key. The readiness check performs registry read/write/read-back and artifact upload/download probes. `/ready` returns HTTP 200 only when authentication and both persistence checks pass; otherwise it returns HTTP 503. The currently verified Render service is a **Free preview** that may sleep while idle, so this is not an uptime guarantee.
+The gateway keeps the Supabase service-role credential inside Supabase's Edge Function environment. Do not copy it into Render, GitHub, browser code, or chat. The gateway source contains only the SHA-256 digest of its expected internal key. The readiness check performs registry read/write/read-back and artifact upload/download probes. `/ready` returns HTTP 200 only when authentication and both persistence checks pass; otherwise it returns HTTP 503. The currently verified Render services use the Free plan and may sleep while idle, so this is not an uptime guarantee.
 
 Direct Supabase REST/Storage mode is also supported with `FACTORY_REGISTRY_SERVICE_ROLE_KEY`, but that secret must remain server-side. In direct REST registry mode, readiness intentionally fails closed with `REGISTRY_STORAGE_WRITE_READ_UNVERIFIED`: a GET-only check does not prove write/read-back, and writing the live singleton as a health probe could overwrite a concurrent update. Use the Edge Function gateway for readiness-verified deployments until a safe isolated direct-mode probe exists. If remote storage is partially configured or remote requests fail, the factory fails closed rather than silently treating local or Vercel `/tmp` storage as durable. See [PERSISTENCE.md](./PERSISTENCE.md) and [DEPLOYMENT.md](./DEPLOYMENT.md) for the current verified configuration and limitations.
 
