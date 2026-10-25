@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
       - fix/api-factory-live-storage-readiness-2026-10-20
     paths:
       - ".github/workflows/api-factory-render-smoke.yml"
@@ -11,6 +12,8 @@ on:
       - "AI-API-HUB/api-factory/registry-store.mjs"
       - "AI-API-HUB/api-factory/artifact-store.mjs"
       - "AI-API-HUB/api-factory/package.json"
+      - "AI-API-HUB/api-factory/sherlock-username.mjs"
+      - "AI-API-HUB/api-factory/sherlock-username-test.mjs"
       - "AI-API-HUB/api-factory/supabase/functions/api-factory-storage/**"
   pull_request:
     paths:
@@ -19,14 +22,34 @@ on:
       - "AI-API-HUB/api-factory/registry-store.mjs"
       - "AI-API-HUB/api-factory/artifact-store.mjs"
       - "AI-API-HUB/api-factory/package.json"
+      - "AI-API-HUB/api-factory/sherlock-username.mjs"
+      - "AI-API-HUB/api-factory/sherlock-username-test.mjs"
       - "AI-API-HUB/api-factory/supabase/functions/api-factory-storage/**"
 
 permissions:
   contents: read
 
-# GET-only public probes. No factory state is mutated and no secret is required.
+# Live readiness must be durable on both configured Render targets.
+# The authenticated positive-path smoke requires the repository FACTORY_API_KEY secret.
 
 jobs:
+  registry-healthcheck-unit:
+    name: registry-healthcheck-unit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check registry healthcheck syntax and concurrency behavior
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run focused registry healthcheck tests
+        run: |
+          set -euo pipefail
+          node --check AI-API-HUB/api-factory/supabase/functions/api-factory-storage/registry-healthcheck.mjs
+          node --check AI-API-HUB/api-factory/supabase/functions/api-factory-storage/registry-healthcheck-test.mjs
+          node AI-API-HUB/api-factory/supabase/functions/api-factory-storage/registry-healthcheck-test.mjs
+
   render-readiness-smoke:
     name: render-readiness-smoke (${{ matrix.target }})
     strategy:
@@ -55,18 +78,18 @@ jobs:
           test "$code" = "200"
           node -e 'const x=require("./health.json"); if(x?.ok!==true || x?.service!=="api-factory") process.exit(1); console.log(JSON.stringify({health:"PASS",service:x.service,version:x.version,mode:x.mode}))'
 
-      - name: Verify readiness accurately reflects durable storage
+      - name: Require durable storage readiness
         run: |
           set -euo pipefail
           code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -o ready.json -w '%{http_code}' "$BASE_URL/ready" || true)"
-          test "$code" = "200" -o "$code" = "503"
-          STATUS="$code" node -e '
-            const x=require("./ready.json"); const status=process.env.STATUS;
-            const durable=status==="200" && x?.ok===true && x?.ready===true && x?.checks?.authentication===true && x?.checks?.registryPersistence===true && x?.checks?.artifactPersistence===true && x?.storage?.durable===true && x?.storage?.registryMode==="supabase-edge-gateway" && x?.storage?.artifactMode==="supabase-edge-gateway";
-            const authBlocked=status==="503" && x?.ok===false && x?.ready===false && x?.code==="AUTH_CONFIGURATION_REQUIRED" && x?.checks?.authentication===false;
-            const storageBlocked=status==="503" && x?.ok===false && x?.ready===false && x?.code==="DURABLE_STORAGE_REQUIRED" && x?.checks?.authentication===true && x?.storage?.durable===false && (x?.checks?.registryPersistence===false || x?.checks?.artifactPersistence===false);
-            if(!durable && !authBlocked && !storageBlocked){console.error("Unexpected readiness contract",status,x);process.exit(1)}
-            console.log(JSON.stringify({readiness:durable?"DURABLE_STORAGE_VERIFIED":authBlocked?"AUTH_CONFIGURATION_REQUIRED":"DURABLE_STORAGE_REQUIRED",httpStatus:Number(status),checks:x.checks,storage:x.storage||null}));
+          if [ "$code" != "200" ]; then
+            STATUS="$code" node -e 'const fs=require("node:fs"); let x={}; try{x=JSON.parse(fs.readFileSync("ready.json","utf8"))}catch{}; console.error(JSON.stringify({readiness:"FAIL",httpStatus:Number(process.env.STATUS)||0,code:x.code||"NON_JSON_RESPONSE",checks:x.checks||null,storage:x.storage||null,storageErrors:x.storageErrors||null})); process.exit(1)'
+          fi
+          node -e '
+            const x=require("./ready.json");
+            const durable=x?.ok===true && x?.ready===true && x?.checks?.authentication===true && x?.checks?.registryPersistence===true && x?.checks?.artifactPersistence===true && x?.storage?.durable===true && x?.storage?.registryMode==="supabase-edge-gateway" && x?.storage?.artifactMode==="supabase-edge-gateway";
+            if(!durable){console.error("Readiness did not prove durable storage",x);process.exit(1)}
+            console.log(JSON.stringify({readiness:"DURABLE_STORAGE_VERIFIED",httpStatus:200,checks:x.checks,storage:x.storage}));
           '
 
       - name: Verify public capabilities contract
@@ -75,9 +98,41 @@ jobs:
           curl --silent --show-error --connect-timeout 10 --max-time 90 --fail "$BASE_URL/v1/factory/capabilities" -o capabilities.json
           node -e 'const x=require("./capabilities.json"); if(!x.operations?.includes("export") || x.deploymentExecutionImplemented!==false) process.exit(1); console.log(JSON.stringify({capabilities:"PASS",deploymentExecutionImplemented:x.deploymentExecutionImplemented,operations:x.operations}))'
 
+      - name: Verify repository key authenticates against this Render target
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FACTORY_API_KEY:-}" ]; then
+            echo "Required repository secret FACTORY_API_KEY is missing."
+            exit 1
+          fi
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -H "x-api-key: $FACTORY_API_KEY" -o authenticated-apis.json -w '%{http_code}' "$BASE_URL/v1/factory/apis" || true)"
+          if [ "$code" != "200" ]; then
+            STATUS="$code" node -e 'const fs=require("node:fs"); let x={}; try{x=JSON.parse(fs.readFileSync("authenticated-apis.json","utf8"))}catch{}; console.error(JSON.stringify({authenticatedControlPlane:"FAIL",httpStatus:Number(process.env.STATUS)||0,code:x.code||"NON_JSON_RESPONSE"})); process.exit(1)'
+          fi
+          node -e 'const x=require("./authenticated-apis.json"); if(x?.ok!==true || !Array.isArray(x?.apis)) process.exit(1); console.log(JSON.stringify({authenticatedControlPlane:"PASS",apiCount:x.apis.length}))'
+
+      - name: Verify authenticated username research entrypoint
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FACTORY_API_KEY:-}" ]; then
+            echo "Required repository secret FACTORY_API_KEY is missing."
+            exit 1
+          fi
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 180 -H "x-api-key: $FACTORY_API_KEY" -H 'content-type: application/json' -o username-research.json -w '%{http_code}' -X POST "$BASE_URL/v1/factory/research/username" --data '{"username":"salamou1944","timeoutMs":120000}' || true)"
+          if [ "$code" != "200" ]; then
+            STATUS="$code" node -e 'const fs=require("node:fs"); let x={}; try{x=JSON.parse(fs.readFileSync("username-research.json","utf8"))}catch{}; console.error(JSON.stringify({usernameResearch:"FAIL",httpStatus:Number(process.env.STATUS)||0,code:x.code||"NON_JSON_RESPONSE",source:x.source||null})); process.exit(1)'
+          fi
+          node -e 'const x=require("./username-research.json"); if(x?.ok!==true || x?.source!=="sherlock" || x?.username!=="salamou1944" || !Array.isArray(x?.evidence) || x?.verified!==false) { console.error(JSON.stringify({usernameResearch:"FAIL",code:x?.code||"UNEXPECTED_RESPONSE",source:x?.source||null})); process.exit(1) }; console.log(JSON.stringify({usernameResearch:"PASS",source:x.source,username:x.username,status:x.status,evidenceCount:x.evidence.length,verified:x.verified}))'
+
       - name: Verify protected route rejects unauthenticated requests
         run: |
           set -euo pipefail
           code="$(curl --silent --show-error --connect-timeout 10 --max-time 90 -o protected.json -w '%{http_code}' "$BASE_URL/v1/factory/apis" || true)"
-          test "$code" = "401" -o "$code" = "503"
-          STATUS="$code" node -e 'const x=require("./protected.json"); const status=process.env.STATUS; const unauthorized=status==="401"&&x?.ok===false&&x?.code==="UNAUTHORIZED"; const authBlocked=status==="503"&&x?.ok===false&&x?.code==="AUTH_CONFIGURATION_REQUIRED"; if(!unauthorized&&!authBlocked) process.exit(1); console.log(JSON.stringify({authentication:unauthorized?"UNAUTHENTICATED_REJECTED":"FAIL_CLOSED",httpStatus:Number(status),code:x.code}))'
+          if [ "$code" != "401" ]; then
+            STATUS="$code" node -e 'const fs=require("node:fs"); let x={}; try{x=JSON.parse(fs.readFileSync("protected.json","utf8"))}catch{}; console.error(JSON.stringify({authentication:"FAIL",httpStatus:Number(process.env.STATUS)||0,code:x.code||"NON_JSON_RESPONSE"})); process.exit(1)'
+          fi
+          node -e 'const x=require("./protected.json"); if(x?.ok!==false || x?.code!=="UNAUTHORIZED") process.exit(1); console.log(JSON.stringify({authentication:"UNAUTHENTICATED_REJECTED",httpStatus:401,code:x.code}))'
