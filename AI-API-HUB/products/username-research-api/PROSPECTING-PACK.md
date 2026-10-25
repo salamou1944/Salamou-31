@@ -2,7 +2,7 @@
 
 **Purpose:** acquire the first legitimate pilot customer for Username Research API without paid acquisition or new subscriptions.
 
-**Evidence boundary:** two initial outreach emails were sent on 2026-10-25 from the dedicated AI API Pilot Outreach inbox. No reply, customer conversion, or revenue is confirmed. Fit remains a hypothesis based on public company descriptions. Do not claim a partnership, integration, customer, or endorsement.
+**Evidence boundary:** three initial outreach emails were sent on 2026-10-25 from the dedicated AI API Pilot Outreach inbox. No reply, customer conversion, or revenue is confirmed. Fit remains a hypothesis based on public company descriptions. Do not claim a partnership, integration, customer, or endorsement.
 
 ## Pilot offer to validate
 
@@ -51,7 +51,9 @@ Do not issue a key until the prospect has agreed to scope and price. Never share
 - **Contact:** hello@b2bleadgenerationagency.com
 - **Website/contact:** https://b2bleadgenerationagency.com/contact
 - **Suggested angle:** test username discovery as a narrowly scoped research signal for a client-approved prospect list, not as a source of private contact data.
-- **Status:** not contacted.
+- **Outreach:** sent 2026-10-25 from api-pilot@agentmail.to; message ID: <010001a17110f7ad-10512bff-9272-4d4e-836f-4f7bd9370263-000000@email.amazonses.com>
+- **Suggested angle:** test username discovery as a narrowly scoped research signal for a client-approved prospect list, not as a source of private contact data.
+- **Status:** CONTACTED — awaiting reply.
 
 ### 5. Veydan — OSINT/investigation workflow product (lower priority; potential overlap)
 
