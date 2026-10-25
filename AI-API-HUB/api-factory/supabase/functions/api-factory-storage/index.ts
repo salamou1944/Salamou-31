@@ -62,7 +62,7 @@ Deno.serve(async (req: Request) => {
     const status = data.ok === true ? 200 : data.code === "CUSTOMER_QUOTA_EXCEEDED" ? 429 : data.code === "INVALID_USAGE_ROUTE" ? 400 : 401;
     return json(data, status);
   }
-  const revokeMatch = pathname.match(/^\\/customer-keys\\/([0-9a-f-]{36})\\/revoke$/i);
+  const revokeMatch = pathname.match(/^\/customer-keys\/([0-9a-f-]{36})\/revoke$/i);
   if (revokeMatch && req.method === "POST") {
     const { data, error } = await supabase.from("api_factory_customer_keys")
       .update({ status: "revoked", revoked_at: new Date().toISOString() })
@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
     if (!data) return json({ ok: false, error: "CUSTOMER_KEY_NOT_FOUND" }, 404);
     return json({ ok: true, key: { id: data.id, label: data.label, status: data.status, quotaLimit: data.quota_limit, usageCount: data.usage_count, createdAt: data.created_at, revokedAt: data.revoked_at } });
   }
-  const usageMatch = pathname.match(/^\\/customer-keys\\/([0-9a-f-]{36})\\/usage$/i);
+  const usageMatch = pathname.match(/^\/customer-keys\/([0-9a-f-]{36})\/usage$/i);
   if (usageMatch && req.method === "GET") {
     const { data: key, error: keyError } = await supabase.from("api_factory_customer_keys")
       .select("id,label,status,quota_limit,usage_count,created_at,revoked_at")
