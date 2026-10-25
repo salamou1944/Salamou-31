@@ -2,12 +2,12 @@
   "schema": "sal31-product-evidence/v1",
   "product_id": "username-research-api",
   "technical": {
-    "state": "IMPLEMENTED_AWAITING_EXTERNAL_RUNTIME_VERIFICATION",
-    "verified": false
+    "state": "RUNTIME_VERIFIED",
+    "verified": true
   },
   "business": {
-    "state": "DISCOVERED",
-    "verified": false
+    "state": "ENTRY_POINT_VERIFIED",
+    "verified": true
   },
   "revenue": {
     "state": "NOT_OBSERVED",
@@ -21,9 +21,16 @@
     {
       "type": "deployment_attempt",
       "result": "BLOCKED",
-      "evidence": "Railway rejected new project provisioning because the free-plan resource provision limit was exceeded.",
+      "evidence": "Historical Railway provisioning attempt was rejected because the free-plan resource provision limit was exceeded. No paid upgrade was made.",
       "paid_upgrade": false,
       "timestamp": "2026-10-07"
+    },
+    {
+      "type": "live_runtime_smoke",
+      "result": "PASS",
+      "evidence": "GitHub Actions run 40151811406 exercised the live Production and Preview Render endpoints after the api-factory-storage Edge Function update. Both passed durable registry/artifact readiness, authenticated control-plane access, the POST /v1/factory/research/username Sherlock path, and unauthenticated-route rejection. The username response contained four evidence items and explicitly returned verified=false. This proves a reachable runtime, not customer use or identity verification.",
+      "source": "https://github.com/salamou1944/Salamou-31/actions/runs/40151811406",
+      "timestamp": "2026-10-25"
     }
   ]
 }
