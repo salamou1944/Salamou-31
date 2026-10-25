@@ -59,7 +59,9 @@ try{
   assert.equal(customerKeyCreateUnavailable.status,503,"customer key issuance must fail closed when durable key storage is unavailable");
   assert.equal((await customerKeyCreateUnavailable.json()).code,"CUSTOMER_KEY_STORE_NOT_CONFIGURED");
 
-  const customerResearchUnavailable=await fetch(base+"/v1/factory/research/username",{method:"POST",headers:{"content-type":"application/json","x-api-key":"sal31_test_key"},body:JSON.stringify({username:"valid_name"})});
+  const malformedCustomerKey=await fetch(base+"/v1/factory/research/username",{method:"POST",headers:{"content-type":"application/json","x-api-key":"sal31_test_key"},body:JSON.stringify({username:"valid_name"})});
+  assert.equal(malformedCustomerKey.status,401,"malformed customer keys must be rejected before gateway calls");
+  const customerResearchUnavailable=await fetch(base+"/v1/factory/research/username",{method:"POST",headers:{"content-type":"application/json","x-api-key":"sal31_"+"A".repeat(43)},body:JSON.stringify({username:"valid_name"})});
   assert.equal(customerResearchUnavailable.status,503,"a customer key must not be accepted without the durable key store");
   assert.equal((await customerResearchUnavailable.json()).code,"CUSTOMER_KEY_STORE_NOT_CONFIGURED");
   const spec={
