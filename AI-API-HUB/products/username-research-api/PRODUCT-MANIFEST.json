@@ -1,7 +1,7 @@
 {
   "product_id": "username-research-api",
   "version": "v1",
-  "status": "RUNTIME_VERIFIED_AWAITING_CUSTOMER_ACCESS",
+  "status": "CUSTOMER_ACCESS_TECHNICALLY_VERIFIED_AWAITING_COMMERCIALIZATION",
   "purpose": "Username-to-public-profile discovery for lead research and intelligence workflows.",
   "entry_point": {
     "method": "POST",
@@ -25,17 +25,16 @@
     "research automation"
   ],
   "evidence": {
-    "technical": "RUNTIME_VERIFIED by live Render smoke run 40151811406 in Production and Preview; the endpoint returned source=sherlock, four evidence items, and verified=false.",
-    "business": "ENTRY_POINT_VERIFIED because the live endpoint is independently reachable; no independent customer use is observed.",
+    "technical": "RUNTIME_VERIFIED in Production and Preview. Live customer-key lifecycle smoke run 40154267374 (Preview) and 40154410859 (Production) verified one real Sherlock request (HTTP 200), quota rejection on the second request (HTTP 429), durable usageCount=1, revocation, and HTTP 401 after revocation. The research result remains discovery evidence, not identity verification.",
+    "business": "ENTRY_POINT_VERIFIED. Customer credential isolation and durable quota controls have been tested in both environments; independent customer use remains unobserved.",
     "revenue": "not observed"
   },
   "commercial_readiness": {
     "state": "BLOCKED",
     "blockers": [
-      "Customer-specific API key issuance, rotation, and revocation are not implemented; the current endpoint uses the shared factory control-plane key, which must never be given to customers.",
-      "Per-customer durable usage, quota, and idempotency state are not implemented; local file ledgers are not durable.",
       "Customer onboarding, billing, and payment confirmation are not implemented.",
-      "No generated API is registered in the factory registry yet; the live direct research route is not proof of a generated API deployment."
+      "No generated API is registered in the factory registry yet; the live direct research route is not proof of a generated API deployment.",
+      "No independent paying customer or real paid transaction has been observed."
     ]
   },
   "constraints": [

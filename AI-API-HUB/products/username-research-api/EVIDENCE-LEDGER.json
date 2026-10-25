@@ -31,6 +31,13 @@
       "evidence": "GitHub Actions run 40151811406 exercised the live Production and Preview Render endpoints after the api-factory-storage Edge Function update. Both passed durable registry/artifact readiness, authenticated control-plane access, the POST /v1/factory/research/username Sherlock path, and unauthenticated-route rejection. The username response contained four evidence items and explicitly returned verified=false. This proves a reachable runtime, not customer use or identity verification.",
       "source": "https://github.com/salamou1944/Salamou-31/actions/runs/40151811406",
       "timestamp": "2026-10-25"
+    },
+    {
+      "type": "customer_key_lifecycle_smoke",
+      "result": "PASS",
+      "evidence": "After PR #61 was merged as a2ec755fa6e756c964dc654ad4c70505e1ef7dd2 and the Production Render deployment dep-dbemgpjncjis73enm7vg reached LIVE, run 40154410859 verified production customer-key creation with the raw key masked, a real Sherlock research response HTTP 200, second request rejected at quota 1 with HTTP 429, durable usageCount=1 and quotaLimit=1, successful revocation, and HTTP 401 after revocation. The temporary key was revoked; no active test key was retained. Preview lifecycle also passed in run 40154267374.",
+      "source": "https://github.com/salamou1944/Salamou-31/actions/runs/40154410859",
+      "timestamp": "2026-10-25"
     }
   ]
 }
