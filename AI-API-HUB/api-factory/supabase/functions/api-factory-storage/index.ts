@@ -26,6 +26,69 @@ Deno.serve(async (req: Request) => {
   if (!(await authorized(req))) return json({ ok: false, error: "Unauthorized" }, 401);
   const url = new URL(req.url);
   const pathname = url.pathname.replace(/^.*\/api-factory-storage/, "") || "/";
+  if (pathname === "/customer-keys/check" && req.method === "GET") {
+    const { data, error } = await supabase.rpc("consume_api_factory_customer_key", {
+      p_key_hash: "0000000000000000000000000000000000000000000000000000000000000000",
+      p_route: "readiness-probe"
+    });
+    if (error || data?.ok !== false || data?.code !== "CUSTOMER_API_KEY_INVALID") {
+      return json({ ok: false, error: "CUSTOMER_KEY_STORE_CHECK_FAILED" }, 502);
+    }
+    return json({ ok: true, mode: "supabase-edge-gateway", tables: true, quotaRpc: true });
+  }
+  if (pathname === "/customer-keys" && req.method === "POST") {
+    let body: any; try { body = await req.json(); } catch { return json({ ok: false, error: "INVALID_JSON" }, 400); }
+    const keyHash = typeof body?.keyHash === "string" ? body.keyHash : "";
+    const label = typeof body?.label === "string" ? body.label.trim() : "";
+    const quotaLimit = body?.quotaLimit;
+    if (!/^[a-f0-9]{64}$/.test(keyHash) || label.length < 1 || label.length > 100 || !Number.isInteger(quotaLimit) || quotaLimit < 1 || quotaLimit > 100000) {
+      return json({ ok: false, error: "INVALID_CUSTOMER_KEY_INPUT" }, 400);
+    }
+    const { data, error } = await supabase.from("api_factory_customer_keys")
+      .insert({ key_hash: keyHash, label, quota_limit: quotaLimit })
+      .select("id,label,status,quota_limit,usage_count,created_at")
+      .maybeSingle();
+    if (error) return json({ ok: false, error: error.code === "23505" ? "CUSTOMER_KEY_HASH_CONFLICT" : "CUSTOMER_KEY_CREATE_FAILED" }, error.code === "23505" ? 409 : 502);
+    if (!data) return json({ ok: false, error: "CUSTOMER_KEY_CREATE_FAILED" }, 502);
+    return json({ ok: true, key: { id: data.id, label: data.label, status: data.status, quotaLimit: data.quota_limit, usageCount: data.usage_count, createdAt: data.created_at } }, 201);
+  }
+  if (pathname === "/customer-keys/consume" && req.method === "POST") {
+    let body: any; try { body = await req.json(); } catch { return json({ ok: false, error: "INVALID_JSON" }, 400); }
+    const keyHash = typeof body?.keyHash === "string" ? body.keyHash : "";
+    const route = typeof body?.route === "string" ? body.route : "";
+    if (!/^[a-f0-9]{64}$/.test(keyHash) || route !== "username-research") return json({ ok: false, error: "INVALID_CUSTOMER_KEY_INPUT" }, 400);
+    const { data, error } = await supabase.rpc("consume_api_factory_customer_key", { p_key_hash: keyHash, p_route: route });
+    if (error || !data || typeof data !== "object") return json({ ok: false, error: "CUSTOMER_KEY_CONSUME_FAILED" }, 502);
+    const status = data.ok === true ? 200 : data.code === "CUSTOMER_QUOTA_EXCEEDED" ? 429 : data.code === "INVALID_USAGE_ROUTE" ? 400 : 401;
+    return json(data, status);
+  }
+  const revokeMatch = pathname.match(/^\/customer-keys\/([0-9a-f-]{36})\/revoke$/i);
+  if (revokeMatch && req.method === "POST") {
+    const { data, error } = await supabase.from("api_factory_customer_keys")
+      .update({ status: "revoked", revoked_at: new Date().toISOString() })
+      .eq("id", revokeMatch[1])
+      .select("id,label,status,quota_limit,usage_count,created_at,revoked_at")
+      .maybeSingle();
+    if (error) return json({ ok: false, error: "CUSTOMER_KEY_REVOKE_FAILED" }, 502);
+    if (!data) return json({ ok: false, error: "CUSTOMER_KEY_NOT_FOUND" }, 404);
+    return json({ ok: true, key: { id: data.id, label: data.label, status: data.status, quotaLimit: data.quota_limit, usageCount: data.usage_count, createdAt: data.created_at, revokedAt: data.revoked_at } });
+  }
+  const usageMatch = pathname.match(/^\/customer-keys\/([0-9a-f-]{36})\/usage$/i);
+  if (usageMatch && req.method === "GET") {
+    const { data: key, error: keyError } = await supabase.from("api_factory_customer_keys")
+      .select("id,label,status,quota_limit,usage_count,created_at,revoked_at")
+      .eq("id", usageMatch[1])
+      .maybeSingle();
+    if (keyError) return json({ ok: false, error: "CUSTOMER_KEY_USAGE_READ_FAILED" }, 502);
+    if (!key) return json({ ok: false, error: "CUSTOMER_KEY_NOT_FOUND" }, 404);
+    const { data: events, error: usageError } = await supabase.from("api_factory_customer_usage")
+      .select("id,route,created_at")
+      .eq("customer_key_id", usageMatch[1])
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (usageError) return json({ ok: false, error: "CUSTOMER_KEY_USAGE_READ_FAILED" }, 502);
+    return json({ ok: true, key: { id: key.id, label: key.label, status: key.status, quotaLimit: key.quota_limit, usageCount: key.usage_count, remaining: Math.max(0, key.quota_limit - key.usage_count), createdAt: key.created_at, revokedAt: key.revoked_at }, recentUsage: events ?? [] });
+  }
   if (pathname === "/registry/check" && req.method === "GET") {
     const probe = await verifyRegistryWriteRead({
       read: async () => {
