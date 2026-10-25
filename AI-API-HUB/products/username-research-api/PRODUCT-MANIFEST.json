@@ -1,7 +1,7 @@
 {
   "product_id": "username-research-api",
   "version": "v1",
-  "status": "READY_FOR_EXTERNAL_ENTRY_VERIFICATION",
+  "status": "RUNTIME_VERIFIED_AWAITING_CUSTOMER_ACCESS",
   "purpose": "Username-to-public-profile discovery for lead research and intelligence workflows.",
   "entry_point": {
     "method": "POST",
@@ -15,7 +15,8 @@
   "implementation": {
     "handler": "Sherlock",
     "factory": "AI-API-HUB/api-factory",
-    "endpoint": "POST /v1/factory/research/username"
+    "endpoint": "POST /v1/factory/research/username",
+    "runtime": "Render Production and Preview"
   },
   "commercial_use_cases": [
     "lead research",
@@ -24,15 +25,25 @@
     "research automation"
   ],
   "evidence": {
-    "technical": "RUNTIME_VERIFIED when the endpoint is independently exercised with Sherlock installed",
-    "business": "DISCOVERED until an external customer uses the endpoint",
+    "technical": "RUNTIME_VERIFIED by live Render smoke run 40151811406 in Production and Preview; the endpoint returned source=sherlock, four evidence items, and verified=false.",
+    "business": "ENTRY_POINT_VERIFIED because the live endpoint is independently reachable; no independent customer use is observed.",
     "revenue": "not observed"
+  },
+  "commercial_readiness": {
+    "state": "BLOCKED",
+    "blockers": [
+      "Customer-specific API key issuance, rotation, and revocation are not implemented; the current endpoint uses the shared factory control-plane key, which must never be given to customers.",
+      "Per-customer durable usage, quota, and idempotency state are not implemented; local file ledgers are not durable.",
+      "Customer onboarding, billing, and payment confirmation are not implemented.",
+      "No generated API is registered in the factory registry yet; the live direct research route is not proof of a generated API deployment."
+    ]
   },
   "constraints": [
     "public-source research only",
     "no credential collection",
     "no private-data inference",
     "no fabricated matches",
-    "provider/tool failures remain explicit"
+    "provider/tool failures remain explicit",
+    "discovery evidence must not be represented as verified identity"
   ]
 }
