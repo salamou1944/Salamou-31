@@ -2,7 +2,7 @@
 
 **Purpose:** acquire the first legitimate pilot customer for Username Research API without paid acquisition or new subscriptions.
 
-**Evidence boundary:** three initial outreach emails were sent on 2026-10-25 from the dedicated AI API Pilot Outreach inbox. No reply, customer conversion, or revenue is confirmed. Fit remains a hypothesis based on public company descriptions. Do not claim a partnership, integration, customer, or endorsement.
+**Evidence boundary:** four outreach emails have been sent as of 2026-10-26T02:27:56Z from the dedicated AI API Pilot Outreach inbox (three on 2026-10-25, one on 2026-10-26). No reply, customer conversion, or revenue is confirmed. Fit remains a hypothesis based on public company descriptions. Do not claim a partnership, integration, customer, or endorsement. Fit remains a hypothesis based on public company descriptions. Do not claim a partnership, integration, customer, or endorsement.
 
 ## Pilot offer to validate
 
@@ -62,6 +62,17 @@ Do not issue a key until the prospect has agreed to scope and price. Never share
 - **Website:** https://veydan.app/
 - **Suggested angle:** ask whether a lightweight external username-discovery endpoint is useful for a specific prototype or overflow workflow. Acknowledge that its existing product may already cover the use case.
 - **Status:** not contacted.
+
+### Additional contacted prospect — Data-Track Consulting (OSINT & digital due diligence)
+
+- **Public source:** https://data-track-consulting.fr/
+- **Why:** the official site describes OSINT, digital-footprint/reputation analysis, public-source collection, and GDPR-scoped due diligence for recruitment firms, executives and investors. It explicitly warns that public information is not automatically reusable for every purpose.
+- **Public contact:** contact@data-track-consulting.fr (published on the official site).
+- **Outreach:** sent 2026-10-26T02:27:56.501Z from api-pilot@agentmail.to.
+- **Message ID:** <010001a17609324d-bc5f6dbb-d131-4d37-9471-a1f3e4025bc1-000000@email.amazonses.com>
+- **Thread ID:** 6a134628-44eb-4227-bdcd-c1e8f1d6b177
+- **Suggested angle:** evaluate whether public-username discovery can reduce one narrow first-pass research task, with agreed lawful purpose, data minimization, source provenance, false-positive review, and retention limits. It is not identity verification and must not be represented as a replacement for OSINT analysis.
+- **Status:** CONTACTED — awaiting reply. The AgentMail thread currently has a sent message only; recipient delivery and interest are not confirmed.
 
 ## First outreach message — English
 
@@ -130,3 +141,5 @@ Do not skip stages or mark outreach, customer use, or revenue based on this pros
 - Linkiw — https://linkiw.app/en
 - B2B Lead Generation Agency — https://b2bleadgenerationagency.com/contact
 - Veydan — https://veydan.app/
+
+- Data-Track Consulting — https://data-track-consulting.fr/
