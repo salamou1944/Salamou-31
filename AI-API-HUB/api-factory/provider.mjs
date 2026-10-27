@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { parseParams, resolveModelId } from "modelparams";
 
 export class ProviderUnavailableError extends Error {
   constructor(message="Provider is unavailable") {
@@ -6,6 +7,34 @@ export class ProviderUnavailableError extends Error {
     this.name="ProviderUnavailableError";
     this.code="PROVIDER_UNAVAILABLE";
   }
+}
+
+export class ProviderInputValidationError extends Error {
+  constructor(message="Provider model parameters are invalid") {
+    super(message);
+    this.name="ProviderInputValidationError";
+    this.code="INVALID_MODEL_PARAMETERS";
+  }
+}
+
+function validatedModelParams(config,input){
+  const supplied=input?.params!==undefined || input?.temperature!==undefined;
+  if(!config.modelParamsId){
+    if(input?.params!==undefined) throw new ProviderInputValidationError("params requires provider.modelParamsId to be configured");
+    return input?.temperature!==undefined ? {temperature:input.temperature} : {};
+  }
+  if(!supplied) return {};
+  const resolved=resolveModelId(config.modelParamsId);
+  if(!resolved.ok || resolved.id!==config.modelParamsId) throw new ProviderInputValidationError("Configured modelParamsId is not in the pinned catalog");
+  let candidate=input?.params===undefined ? {} : input.params;
+  if(input?.temperature!==undefined){
+    if(!candidate || typeof candidate!=="object" || Array.isArray(candidate)) throw new ProviderInputValidationError("params must be an object when temperature is supplied separately");
+    if(Object.hasOwn(candidate,"temperature") && candidate.temperature!==input.temperature) throw new ProviderInputValidationError("temperature conflicts with params.temperature");
+    candidate={...candidate,temperature:input.temperature};
+  }
+  const result=parseParams(resolved.id,candidate);
+  if(!result.success) throw new ProviderInputValidationError(result.issues.map(issue=>issue.message).join("; ").slice(0,1200));
+  return result.value;
 }
 
 export function providerConfig(manifest={}){
@@ -17,6 +46,7 @@ export function providerConfig(manifest={}){
     kind:p.kind||null,
     baseUrl:typeof p.baseUrl==="string" ? p.baseUrl.replace(/\/$/,"") : null,
     model:typeof p.model==="string" ? p.model : null,
+    modelParamsId:typeof p.modelParamsId==="string" ? p.modelParamsId : null,
     credentialEnv
   };
 }
@@ -125,6 +155,7 @@ export function createProviderAdapter(config){
     async execute(input){
       if(!zeroCost.allowed) throw new ProviderUnavailableError("Provider rejected by zero-cost policy: "+zeroCost.reason);
       if(!["openai-compatible","soat"].includes(cfg.kind)) throw new ProviderUnavailableError("Unsupported provider adapter");
+      const modelParams=validatedModelParams(cfg,input||{});
       const credential=cfg.credentialEnv ? process.env[cfg.credentialEnv] : null;
       if(!credential) throw new ProviderUnavailableError("Provider credentials are not configured");
       if(!cfg.baseUrl || (cfg.kind==="openai-compatible" && !cfg.model)) throw new ProviderUnavailableError("Provider configuration is incomplete");
@@ -138,9 +169,9 @@ export function createProviderAdapter(config){
       const requestMessages=cfg.kind==="soat" ? messages.filter((message)=>message?.role!=="system") : messages;
       const requestBody={
         ...(cfg.kind==="soat" ? {ai_provider_id:soatProviderId} : {model:cfg.model}),
+        ...modelParams,
         ...(systemMessages.length ? {instructions:systemMessages.map((message)=>message.content).join("\n\n")} : {}),
-        messages:requestMessages,
-        ...(input.temperature!==undefined ? {temperature:input.temperature} : {})
+        messages:requestMessages
       };
       const headers={"content-type":"application/json","authorization":"Bearer "+credential};
       if(input.__idempotencyKey) headers["idempotency-key"]=String(input.__idempotencyKey);
