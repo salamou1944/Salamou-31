@@ -24,6 +24,10 @@ It is not an API catalog and it is not a single AI endpoint. A manifest is the m
 
 Set `FACTORY_API_KEY` in production to protect the control plane. Protected endpoints fail closed with HTTP 503 (`AUTH_CONFIGURATION_REQUIRED`) when the key is missing and HTTP 401 (`UNAUTHORIZED`) when the supplied key does not match. `/health` and the non-mutating capabilities description remain public.
 
+## Optional model parameter validation
+
+For a provider model represented in the pinned `modelparams@0.0.72` catalog, set `provider.modelParamsId` to its canonical catalog ID (for example `openai/gpt-4.1`). Requests may then include a `params` object; the factory validates it before network I/O and returns `422 INVALID_MODEL_PARAMETERS` for unsupported keys or values. Do not set this field when the configured model is not represented by the catalog. This static check does not replace a live provider probe.
+
 ## Durable storage
 
 The currently verified zero-upfront-cost Render deployments (Production and Preview) use a dedicated Salamou-31 Supabase project through the `api-factory-storage` Edge Function gateway. The latest strict external smoke run on 2026-10-25, [40151811406](https://github.com/salamou1944/Salamou-31/actions/runs/40151811406), verified authenticated registry and artifact write/read checks on both targets after the gateway was updated; see [PERSISTENCE.md](./PERSISTENCE.md) for deployment commits, evidence, and limitations. Configure:
