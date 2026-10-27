@@ -39,6 +39,45 @@ assert.deepEqual(result,{ok:true,calls:3});
 assert.equal(calls,3);
 await stopServer(retryServer);
 
+let modelParamCalls=0;
+let observedModelBody=null;
+const modelParamServer=await startServer((req,res)=>{
+  modelParamCalls++;
+  let raw="";
+  req.on("data",chunk=>raw+=chunk);
+  req.on("end",()=>{
+    observedModelBody=JSON.parse(raw);
+    res.writeHead(200,{"content-type":"application/json"});
+    res.end(JSON.stringify({ok:true}));
+  });
+});
+const modelParamAdapter=createProviderAdapter({
+  kind:"openai-compatible",
+  baseUrl:"http://127.0.0.1:"+modelParamServer.address().port,
+  model:"gpt-4.1",
+  modelParamsId:"openai/gpt-4.1",
+  credentialEnv:"TEST_PROVIDER_KEY"
+});
+await modelParamAdapter.execute({
+  messages:[{role:"user",content:"hello"}],
+  params:{temperature:0.7,max_tokens:128},
+  __idempotencyKey:"model-params-valid"
+});
+assert.equal(observedModelBody.temperature,0.7);
+assert.equal(observedModelBody.max_tokens,128);
+assert.equal(observedModelBody.model,"gpt-4.1");
+const callsBeforeInvalid=modelParamCalls;
+await assert.rejects(
+  modelParamAdapter.execute({
+    messages:[{role:"user",content:"hello"}],
+    params:{temperature:0.7,top_k:40},
+    __idempotencyKey:"model-params-invalid"
+  }),
+  error=>error?.code==="INVALID_MODEL_PARAMETERS" && /unknown parameter/i.test(error.message)
+);
+assert.equal(modelParamCalls,callsBeforeInvalid,"invalid catalog parameters must be rejected before provider network I/O");
+await stopServer(modelParamServer);
+
 let unsafeCalls=0;
 const unsafeServer=await startServer((req,res)=>{
   unsafeCalls++;
