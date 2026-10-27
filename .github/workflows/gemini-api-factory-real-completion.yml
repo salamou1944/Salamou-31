@@ -28,6 +28,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install pinned API Factory dependencies without lifecycle scripts
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: Check integration probe syntax
         run: node --check google-factory-real-probe.mjs
       - name: Run real Gemini completion through API Factory generated runtime
