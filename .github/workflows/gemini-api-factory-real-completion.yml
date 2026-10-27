@@ -28,6 +28,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install API Factory dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify factory dependency resolution
+        run: |
+          node --input-type=module -e 'await import("./factory.mjs"); console.log("factory dependency resolution passed")'
       - name: Check integration probe syntax
         run: node --check google-factory-real-probe.mjs
       - name: Run real Gemini completion through API Factory generated runtime
