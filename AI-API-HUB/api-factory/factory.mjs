@@ -122,6 +122,7 @@ const quota=new QuotaGuard(Number(process.env.API_QUOTA_LIMIT||0));
 app.setErrorHandler((error,request,reply)=>{
   if(error?.validation) return reply.code(400).send({error:{code:"VALIDATION_ERROR",message:"Request validation failed",details:error.validation}});
   if(error instanceof QuotaExceededError) return reply.code(429).send({error:{code:error.code,message:error.message,limit:error.limit}});
+  if(error?.code==="INVALID_MODEL_PARAMETERS") return reply.code(422).send({error:{code:error.code,message:error.message}});
   if(error?.code==="PROVIDER_UNAVAILABLE") return reply.code(503).send({error:{code:error.code,message:"Provider unavailable"}});
   request.log.error({err:error},"request failed");
   return reply.code(500).send({error:{code:"INTERNAL_ERROR",message:"Internal server error"}});
