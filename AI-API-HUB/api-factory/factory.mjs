@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { resolveModelId } from "modelparams";
 
 const NAME=/^[a-z][a-z0-9-]{2,62}$/;
 const METHOD=/^(GET|POST|PUT|PATCH|DELETE)$/;
@@ -25,6 +26,11 @@ export function validateSpec(spec){
     if(provider.credentialEnv!==undefined && (typeof provider.credentialEnv!=="string"||!/^[A-Z][A-Z0-9_]{1,127}$/.test(provider.credentialEnv))) throw new Error("provider.credentialEnv is invalid");
     if(provider.baseUrl!==undefined && (typeof provider.baseUrl!=="string"||!/^https?:\/\//.test(provider.baseUrl))) throw new Error("provider.baseUrl must be an http(s) URL");
     if(provider.model!==undefined && typeof provider.model!=="string") throw new Error("provider.model must be a string");
+    if(provider.modelParamsId!==undefined){
+      if(typeof provider.modelParamsId!=="string" || !provider.modelParamsId.includes("/")) throw new Error("provider.modelParamsId must be a canonical provider/model catalog ID");
+      const resolved=resolveModelId(provider.modelParamsId);
+      if(!resolved.ok || resolved.id!==provider.modelParamsId) throw new Error("provider.modelParamsId is not present in the pinned modelparams catalog");
+    }
     if(provider.freePolicy!==undefined){
       const fp=provider.freePolicy;
       if(!fp || typeof fp!=="object" || Array.isArray(fp)) throw new Error("provider.freePolicy must be an object");
@@ -59,6 +65,7 @@ export function validateSpec(spec){
       kind:provider.kind,
       baseUrl:provider.baseUrl||null,
       model:provider.model||null,
+      modelParamsId:provider.modelParamsId||null,
       credentialEnv:provider.credentialEnv||null,
       freePolicy:provider.freePolicy ? {
         zeroCostOnly:provider.freePolicy.zeroCostOnly===true,
@@ -115,6 +122,7 @@ const quota=new QuotaGuard(Number(process.env.API_QUOTA_LIMIT||0));
 app.setErrorHandler((error,request,reply)=>{
   if(error?.validation) return reply.code(400).send({error:{code:"VALIDATION_ERROR",message:"Request validation failed",details:error.validation}});
   if(error instanceof QuotaExceededError) return reply.code(429).send({error:{code:error.code,message:error.message,limit:error.limit}});
+  if(error?.code==="INVALID_MODEL_PARAMETERS") return reply.code(422).send({error:{code:error.code,message:error.message}});
   if(error?.code==="PROVIDER_UNAVAILABLE") return reply.code(503).send({error:{code:error.code,message:"Provider unavailable"}});
   request.log.error({err:error},"request failed");
   return reply.code(500).send({error:{code:"INTERNAL_ERROR",message:"Internal server error"}});
@@ -169,12 +177,13 @@ app.get("/ready",async(request,reply)=>{
 ${routes}
 await app.listen({port,host:"0.0.0.0"});
 `;
-  const pkg=JSON.stringify({name:s.name,version:"0.1.0",private:true,type:"module",scripts:{start:"node server.mjs",test:"node --check server.mjs"},dependencies:{fastify:"5.6.1"}},null,2)+"\n";
+  const runtimeDependencies={fastify:"5.6.1",...(s.provider?{modelparams:"0.0.72"}:{})};
+  const pkg=JSON.stringify({name:s.name,version:"0.1.0",private:true,type:"module",scripts:{start:"node server.mjs",test:"node --check server.mjs"},dependencies:runtimeDependencies},null,2)+"\n";
   const openapi={openapi:"3.1.0",info:{title:s.name,version:s.version,description:s.description},paths:{},components:{schemas:{}}};
   if(s.auth==="api-key") openapi.components.securitySchemes={ApiKey:{type:"apiKey",in:"header",name:"x-api-key"}};
   for(const op of s.operations){
     const method=op.method.toLowerCase(); openapi.paths[op.path]??={};
-    openapi.paths[op.path][method]={summary:op.summary,responses:{"200":{description:"Success"},"401":{description:"Unauthorized"},"503":{description:"Provider unavailable"}}};
+    openapi.paths[op.path][method]={summary:op.summary,responses:{"200":{description:"Success"},"401":{description:"Unauthorized"},"422":{description:"Model parameters rejected"},"503":{description:"Provider unavailable"}}};
     if(s.auth==="api-key") openapi.paths[op.path][method].security=[{ApiKey:[]}];
     if(op.requestSchema) openapi.paths[op.path][method].requestBody={required:true,content:{"application/json":{schema:op.requestSchema}}};
   }

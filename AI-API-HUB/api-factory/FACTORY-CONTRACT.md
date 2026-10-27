@@ -54,6 +54,10 @@ Generated services include:
 - quota enforcement through `API_QUOTA_LIMIT`; rejected requests are not counted as successful usage.
 - structured errors for validation, quota, provider, and internal failures.
 
+## Model parameter validation (opt-in)
+
+Provider specs may set `provider.modelParamsId` to an exact canonical ID from the pinned `modelparams@0.0.72` catalog, for example `openai/gpt-4.1`. When a request supplies `params` (or a top-level `temperature`) for that configured model, the adapter validates keys, types, ranges, enum values, and catalog applicability before any provider network request. Invalid input returns HTTP 422 with `INVALID_MODEL_PARAMETERS`; valid input is forwarded as provider parameters. `params` without `modelParamsId` is rejected rather than passed through unvalidated. Existing provider specs without `modelParamsId` keep their previous behavior. The catalog is a static, version-pinned validation aid, not proof that a provider is available or that its live behavior matches the catalog.
+
 ## Provider contract
 
 The core compiler is provider-neutral. Provider-backed operations declare an adapter kind and a credential environment variable name. Credentials are never emitted into generated source.
