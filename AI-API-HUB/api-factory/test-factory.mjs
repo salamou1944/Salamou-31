@@ -15,6 +15,7 @@ const spec={name:"demo-orders",version:"v1",description:"Generated test API",aut
 ]};
 assert.equal(validateSpec(spec).name,"demo-orders");
 assert.throws(()=>validateSpec({...spec,name:"Bad Name"}),/name/);
+assert.throws(()=>validateSpec({...spec,provider:{kind:"openai-compatible",model:"gpt-4.1",modelParamsId:"openai/not-a-real-model",baseUrl:"https://example.invalid/v1",credentialEnv:"TEST_PROVIDER_KEY"},operations:[{method:"POST",path:"/v1/generate",summary:"Generate output",handler:"provider"}]}),/modelParamsId/);
 assert.throws(()=>validateSpec({...spec,operations:[spec.operations[0],spec.operations[0]]}),/duplicate/);
 assert.throws(()=>validateSpec({...spec,operations:[{...spec.operations[0],handler:"provider"}]}),/provider handler requires/);
 
@@ -70,7 +71,7 @@ assert.equal(usage.total,4);
 child.kill("SIGTERM");
 await wait(300);
 
-const providerSpec={name:"provider-demo",version:"v1",auth:"none",provider:{kind:"openai-compatible",baseUrl:"https://example.invalid/v1",model:"test-model",credentialEnv:"TEST_PROVIDER_KEY"},operations:[
+const providerSpec={name:"provider-demo",version:"v1",auth:"none",provider:{kind:"openai-compatible",baseUrl:"https://example.invalid/v1",model:"gpt-4.1",modelParamsId:"openai/gpt-4.1",credentialEnv:"TEST_PROVIDER_KEY"},operations:[
  {method:"POST",path:"/v1/generate",summary:"Generate output",handler:"provider",requestSchema:{type:"object"}}
 ]};
 const providerArtifact=compileApi(providerSpec,root);
@@ -88,6 +89,19 @@ assert.equal(ready.status,503);
 const readyBody=await ready.json();
 assert.equal(readyBody.ready,false);
 assert.equal(readyBody.provider.reason,"missing_credentials");
+const invalidParamsResponse=await fetch("http://127.0.0.1:3008/v1/generate",{
+  method:"POST",
+  headers:{"content-type":"application/json"},
+  body:JSON.stringify({messages:[{role:"user",content:"hello"}],params:{temperature:7}})
+});
+assert.equal(invalidParamsResponse.status,422);
+assert.equal((await invalidParamsResponse.json()).error.code,"INVALID_MODEL_PARAMETERS");
+const validParamsWithoutCredential=await fetch("http://127.0.0.1:3008/v1/generate",{
+  method:"POST",
+  headers:{"content-type":"application/json"},
+  body:JSON.stringify({messages:[{role:"user",content:"hello"}],params:{temperature:0.7,max_tokens:64}})
+});
+assert.equal(validParamsWithoutCredential.status,503,"valid parameters pass validation but provider credentials remain a separate blocker");
 providerChild.kill("SIGTERM");
 await wait(300);
 const zeroCostRejectedSpec={name:"zero-cost-rejected",version:"v1",auth:"none",provider:{
