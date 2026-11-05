@@ -1,6 +1,9 @@
 name: API Factory Render External Smoke
 
 on:
+  # Daily smoke before the operator monitor; GitHub cron uses UTC (18:00 Africa/Algiers).
+  schedule:
+    - cron: "0 17 * * *"
   workflow_dispatch:
   push:
     branches:
