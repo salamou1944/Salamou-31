@@ -6,7 +6,7 @@ if (process.env.CLOUDFLARE_WORKERS_AI_BILLING_TIER !== "free") {
 }
 const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 const token = process.env.CLOUDFLARE_API_TOKEN;
-const model = process.env.PROVIDER_MODEL ?? "@cf/meta/llama-3.1-8b-instruct";
+const model = process.env.PROVIDER_MODEL ?? "@cf/zai-org/glm-4.7-flash";
 
 if (!accountId || !token) {
   console.error(JSON.stringify({
