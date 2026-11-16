@@ -3,14 +3,15 @@
     "provider_id": "gemini",
     "access_class": "api_key",
     "free_status": "recurring",
-    "quota_basis": "provider-defined free quota",
+    "quota_basis": "model-specific RPM/TPM/RPD per project; exact current limits vary by model and are shown in AI Studio; RPD resets at midnight Pacific",
     "estimated_monthly_tokens": null,
     "hard_stop": false,
-    "eligibility_gate": "account_and_api_key",
-    "tos_risk": "review",
-    "source_last_researched": "2026-10-05",
-    "source_url": "https://github.com/diegosouzapw/OmniRoute",
-    "official_source_verified": false
+    "eligibility_gate": "active AI Studio project and API key; model-specific free-tier availability; some projects require verification; keep billing unlinked to remain on Free tier",
+    "tos_risk": "avoid",
+    "source_last_researched": "2026-11-16",
+    "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+    "official_source_verified": true,
+    "notes": "Google's official pricing page states that Free-tier content is used to improve Google products, while Paid-tier content is not. Free access is limited to selected models and rate limits are model/project-specific and not guaranteed. Do not send confidential, personal, or customer data; exclude this Free tier from automatic production routing."
   },
   {
     "provider_id": "pollinations",
@@ -30,13 +31,14 @@
     "provider_id": "ollama-local",
     "access_class": "local",
     "free_status": "recurring",
-    "quota_basis": "local_compute",
+    "quota_basis": "local compute; no hosted token fee, but hardware, electricity, storage, and operator time remain costs",
     "estimated_monthly_tokens": null,
-    "hard_stop": true,
-    "eligibility_gate": "local_runtime",
-    "tos_risk": "ok",
-    "source_last_researched": "2026-10-05",
-    "source_url": "https://github.com/diegosouzapw/OmniRoute",
-    "official_source_verified": false
+    "hard_stop": false,
+    "eligibility_gate": "local runtime; compatible hardware; exact model licence checked independently",
+    "tos_risk": "review",
+    "source_last_researched": "2026-11-16",
+    "source_url": "https://github.com/ollama/ollama",
+    "official_source_verified": false,
+    "notes": "The Ollama runtime repository is MIT-licensed, but each downloaded model has its own licence and usage conditions. Local inference avoids a hosted API token bill; it is not zero-cost to operate and must not be treated as unlimited free capacity."
   }
 ]
